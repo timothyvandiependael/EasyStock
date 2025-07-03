@@ -1,0 +1,6 @@
+@EasyStock.API_HostAddress = http://localhost:5064
+
+GET {{EasyStock.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
