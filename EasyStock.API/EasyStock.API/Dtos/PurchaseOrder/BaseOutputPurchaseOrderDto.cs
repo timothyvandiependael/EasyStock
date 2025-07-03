@@ -5,6 +5,7 @@ namespace EasyStock.API.Dtos
     public class BaseOutputPurchaseOrderDto : OutputDtoBase
     {
         public int Id { get; set; }
+        public string OrderNumber { get; set; }
 
         public string? Comments { get; set; }
 

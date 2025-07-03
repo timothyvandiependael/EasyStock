@@ -3,6 +3,7 @@
     public class SalesOrder : ModelBase, IEntity
     {
         public int Id { get; set; }
+        public string OrderNumber { get; set; }
 
         public string? Comments { get; set; }
 

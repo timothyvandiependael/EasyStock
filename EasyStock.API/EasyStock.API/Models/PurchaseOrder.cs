@@ -5,6 +5,7 @@ namespace EasyStock.API.Models
     public class PurchaseOrder : ModelBase, IEntity
     {
         public int Id { get; set; }
+        public string OrderNumber { get; set; }
 
         public string? Comments { get; set; }
 
