@@ -8,9 +8,9 @@ namespace EasyStock.API.Controllers
     [ApiController]
     [Authorize]
     [Route("api/StockMovements")]
-    public class StockMovementController : GenericController<StockMovement>
+    public class StockMovementController : ControllerBase
     {
-        public StockMovementController(IService<StockMovement> service) : base(service) { }
+        
 
     }
 }

@@ -9,47 +9,47 @@ using System.Linq.Dynamic.Core;
 
 namespace EasyStock.API.Repositories
 {
-    public class PurchaseOrderRepository : IPurchaseOrderRepository
+    public class PurchaseOrderLineRepository : IPurchaseOrderLineRepository
     {
         private readonly AppDbContext _context;
-        private readonly DbSet<PurchaseOrder> _dbSet;
+        private readonly DbSet<PurchaseOrderLine> _dbSet;
         private readonly IMapper _mapper;
 
-        public PurchaseOrderRepository(AppDbContext context, IMapper mapper)
+        public PurchaseOrderLineRepository(AppDbContext context, IMapper mapper)
         {
             _context = context;
-            _dbSet = context.Set<PurchaseOrder>();
+            _dbSet = context.Set<PurchaseOrderLine>();
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<PurchaseOrderOverview>> GetAllAsync()
+        public async Task<IEnumerable<PurchaseOrderLineOverview>> GetAllAsync()
         {
             return await _dbSet
-                .ProjectTo<PurchaseOrderOverview>(_mapper.ConfigurationProvider)
+                .ProjectTo<PurchaseOrderLineOverview>(_mapper.ConfigurationProvider)
                 .ToListAsync();
         }
 
-        public async Task<PaginationResult<PurchaseOrderOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
+        public async Task<PaginationResult<PurchaseOrderLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
         {
             var query = _dbSet.AsQueryable();
 
             if (filters != null && filters.Count > 0)
             {
                 // Custom filters
-                if (filters.Any(f => f.Field == "SupplierName"))
+                if (filters.Any(f => f.Field == "ProductName"))
                 {
-                    var supplierNameFilter = filters.First(f => f.Field == "SupplierName");
+                    var productNameFilter = filters.First(f => f.Field == "ProductName");
 
-                    query = supplierNameFilter.Operator switch
+                    query = productNameFilter.Operator switch
                     {
-                        "contains" => query.Where(p => p.Supplier.Name.Contains(supplierNameFilter.Value)),
-                        "startswith" => query.Where(p => p.Supplier.Name.StartsWith(supplierNameFilter.Value)),
-                        "endswith" => query.Where(p => p.Supplier.Name.EndsWith(supplierNameFilter.Value))
+                        "contains" => query.Where(p => p.Product.Name.Contains(productNameFilter.Value)),
+                        "startswith" => query.Where(p => p.Product.Name.StartsWith(productNameFilter.Value)),
+                        "endswith" => query.Where(p => p.Product.Name.EndsWith(productNameFilter.Value))
                     };
                 }
 
                 // Regular Filters
-                query = query.ApplyFilters(filters.Where(f => f.Field != "SupplierName").ToList());
+                query = query.ApplyFilters(filters.Where(f => f.Field != "ProductName").ToList());
             }
 
             // Sorting
@@ -59,7 +59,7 @@ namespace EasyStock.API.Repositories
                 query = query.OrderBy($"{first.Field} {(first.Direction == "asc" ? "ascending" : "descending")}");
                 foreach (var s in sorting.Skip(1))
                 {
-                    query = ((IOrderedQueryable<PurchaseOrder>)query).ThenBy($"{s.Field} {(s.Direction == "asc" ? "ascending" : "descending")}");
+                    query = ((IOrderedQueryable<PurchaseOrderLine>)query).ThenBy($"{s.Field} {(s.Direction == "asc" ? "ascending" : "descending")}");
                 }
             }
             else
@@ -72,10 +72,10 @@ namespace EasyStock.API.Repositories
             var data = await query
                 .Skip((pagination.PageNumber - 1) * pagination.PageSize)
                 .Take(pagination.PageSize)
-                .ProjectTo<PurchaseOrderOverview>(_mapper.ConfigurationProvider)
+                .ProjectTo<PurchaseOrderLineOverview>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            return new PaginationResult<PurchaseOrderOverview>
+            return new PaginationResult<PurchaseOrderLineOverview>
             {
                 TotalCount = totalCount,
                 Data = data

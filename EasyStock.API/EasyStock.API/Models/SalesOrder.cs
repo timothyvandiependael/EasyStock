@@ -8,6 +8,7 @@
 
         public int ClientId { get; set; }
         public Client Client { get; set; }
+        public string Status { get; set; }
 
         public ICollection<SalesOrderLine> Lines { get; set; }
     }

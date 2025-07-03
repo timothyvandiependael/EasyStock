@@ -2,14 +2,11 @@
 
 namespace EasyStock.API.Dtos
 {
-    public class BaseOutputPurchaseOrderDto : OutputDtoBase
+    public class BaseOutputSalesOrderDto : OutputDtoBase
     {
         public int Id { get; set; }
-
         public string? Comments { get; set; }
-
-        public int SupplierId { get; set; }
+        public int ClientId { get; set; }
         public string Status { get; set; }
-
     }
 }

@@ -8,9 +8,8 @@ namespace EasyStock.API.Controllers
     [ApiController]
     [Authorize]
     [Route("api/Users")]
-    public class UserController : GenericController<User>
+    public class UserController : ControllerBase
     {
-        public UserController(IService<User> service) : base(service) { }
 
     }
 }

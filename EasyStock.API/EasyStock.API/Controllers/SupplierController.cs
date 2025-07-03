@@ -8,9 +8,9 @@ namespace EasyStock.API.Controllers
     [ApiController]
     [Authorize]
     [Route("api/Suppliers")]
-    public class SupplierController : GenericController<Supplier>
+    public class SupplierController : ControllerBase
     {
-        public SupplierController(IService<Supplier> service) : base(service) { }
+       
 
     }
 }

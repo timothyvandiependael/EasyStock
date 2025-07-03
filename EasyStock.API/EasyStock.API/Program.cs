@@ -43,13 +43,24 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<IUserAuthRepository, UserAuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(IService<>), typeof(IService<>));
+
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
+
 builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
 builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
 
+builder.Services.AddScoped<IPurchaseOrderLineRepository, PurchaseOrderLineRepository>();
+builder.Services.AddScoped<IPurchaseOrderLineService, PurchaseOrderLineService>();
+
+builder.Services.AddScoped<ISalesOrderRepository, SalesOrderRepository>();
+builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
+
+builder.Services.AddScoped<ISalesOrderLineRepository, SalesOrderLineRepository>();
+builder.Services.AddScoped<ISalesOrderLineService, SalesOrderLineService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

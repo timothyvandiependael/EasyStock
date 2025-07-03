@@ -24,8 +24,6 @@
   <ItemGroup>
     <Folder Include="Dtos\User\" />
     <Folder Include="Dtos\StockMovement\" />
-    <Folder Include="Dtos\SalesOrderLine\" />
-    <Folder Include="Dtos\SalesOrder\" />
     <Folder Include="Migrations\" />
   </ItemGroup>
 

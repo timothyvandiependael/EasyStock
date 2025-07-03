@@ -11,6 +11,8 @@ namespace EasyStock.API.Models
         public int SupplierId { get; set; }
         public Supplier Supplier { get; set; }
 
+        public string Status { get; set; }
+
         public ICollection<PurchaseOrderLine> Lines { get; set; }
     }
 }

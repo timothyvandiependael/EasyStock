@@ -17,5 +17,6 @@ namespace EasyStock.API.Dtos
         [Required]
         [Range(0, double.MaxValue)]
         public decimal UnitPrice { get; set; }
+        public string Status { get; set; }
     }
 }

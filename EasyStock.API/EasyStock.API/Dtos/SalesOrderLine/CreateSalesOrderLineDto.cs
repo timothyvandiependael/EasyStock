@@ -1,15 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace EasyStock.API.Models
+namespace EasyStock.API.Dtos
 {
-    public class SalesOrderLine : ModelBase, IEntity
+    public class CreateSalesOrderLineDto
     {
-        public int Id { get; set; }
         public int SalesOrderId { get; set; }
-        public SalesOrder SalesOrder { get; set; }
         public int LineNumber { get; set; }
         public int ProductId { get; set; }
-        public Product Product { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]
@@ -18,6 +15,5 @@ namespace EasyStock.API.Models
         [Required]
         [Range(0, double.MaxValue)]
         public decimal UnitPrice { get; set; }
-        public string Status { get; set; }
     }
 }

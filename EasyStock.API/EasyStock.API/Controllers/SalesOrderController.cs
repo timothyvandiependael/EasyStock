@@ -2,15 +2,92 @@
 using EasyStock.API.Models;
 using EasyStock.API.Services;
 using Microsoft.AspNetCore.Authorization;
+using AutoMapper;
+using EasyStock.API.Common;
+using EasyStock.API.Dtos;
 
 namespace EasyStock.API.Controllers
 {
     [ApiController]
     [Authorize]
     [Route("api/SalesOrders")]
-    public class SalesOrderController : GenericController<SalesOrder>
+    public class SalesOrderController : ControllerBase
     {
-        public SalesOrderController(IService<SalesOrder> service) : base(service) { }
+        private readonly IService<SalesOrder> _service;
+        private readonly ISalesOrderService _salesOrderService;
+        private readonly IMapper _mapper;
+
+        public SalesOrderController(IService<SalesOrder> service, IMapper mapper, ISalesOrderService salesOrderService)
+        {
+            _service = service;
+            _mapper = mapper;
+            _salesOrderService = salesOrderService;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<SalesOrder>>> GetAll()
+        {
+            var entities = await _salesOrderService.GetAllAsync();
+            var dtos = _mapper.Map<IEnumerable<OutputSalesOrderOverviewDto>>(entities);
+            return Ok(dtos);
+        }
+
+        [HttpGet("id/{id}")]
+        public async Task<ActionResult<SalesOrder?>> GetById(int id)
+        {
+            var entity = await _service.GetByIdAsync(id);
+            if (entity == null) return NotFound();
+            var dto = _mapper.Map<OutputSalesOrderDetailDto>(entity);
+            dto.Client = _mapper.Map<OutputClientDto>(entity.Client);
+            dto.Lines = _mapper.Map<List<OutputSalesOrderLineOverviewDto>>(entity.Lines);
+
+
+            return Ok(dto);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Add([FromBody] CreateSalesOrderDto dto)
+        {
+            if (dto == null) return BadRequest();
+            var entity = _mapper.Map<SalesOrder>(dto);
+            await _service.AddAsync(entity);
+
+            var resultDto = _mapper.Map<OutputSalesOrderDetailDto>(entity);
+            return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> Update(int id, [FromBody] UpdateSalesOrderDto dto)
+        {
+            if (dto == null || dto.Id != id) return BadRequest();
+            var entity = _mapper.Map<SalesOrder>(dto);
+            await _service.UpdateAsync(entity);
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> Delete(int id)
+        {
+            await _service.DeleteAsync(id);
+            return NoContent();
+        }
+
+        [HttpPost("advanced")]
+        public async Task<ActionResult<PaginationResult<OutputSalesOrderOverviewDto>>> GetAdvanced([FromBody] AdvancedQueryParametersDto parameters)
+        {
+            if (parameters == null) return BadRequest("Missing parameters");
+
+            var result = await _salesOrderService.GetAdvancedAsync(parameters.Filters, parameters.Sorting, parameters.Pagination);
+            var dtoItems = _mapper.Map<List<OutputSalesOrderOverviewDto>>(result.Data);
+
+            return Ok(new PaginationResult<OutputSalesOrderOverviewDto>
+            {
+                Data = dtoItems,
+                TotalCount = result.TotalCount
+            });
+        }
+
 
     }
 }
