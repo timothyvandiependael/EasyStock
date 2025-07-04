@@ -15,8 +15,13 @@ namespace EasyStock.API.Data
         public DbSet<SalesOrderLine> SalesOrderLines => Set<SalesOrderLine>();
         public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
         public DbSet<PurchaseOrderLine> PurchaseOrderLines => Set<PurchaseOrderLine>();
-        public DbSet<StockMovement> StockMovement => Set<StockMovement>();
+        public DbSet<StockMovement> StockMovements => Set<StockMovement>();
         public DbSet<User> Users => Set<User>();
+        public DbSet<Dispatch> Dispatches => Set<Dispatch>(); 
+        public DbSet<DispatchLine> DispatchLines => Set<DispatchLine>();
+        public DbSet<Reception> Receptions => Set<Reception>();
+        public DbSet<ReceptionLine> ReceptionLines => Set<ReceptionLine>();
+        public DbSet<UserPermission> UserPermissions => Set<UserPermission>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -33,7 +38,12 @@ namespace EasyStock.API.Data
             modelBuilder.Entity<PurchaseOrderLine>().HasKey(o => o.Id);
             modelBuilder.Entity<StockMovement>().HasKey(o => o.Id);
             modelBuilder.Entity<User>().HasKey(o => o.Id);
-            
+            modelBuilder.Entity<Dispatch>().HasKey(o => o.Id);
+            modelBuilder.Entity<DispatchLine>().HasKey(o => o.Id);
+            modelBuilder.Entity<Reception>().HasKey(o => o.Id);
+            modelBuilder.Entity<ReceptionLine>().HasKey(o => o.Id);
+            modelBuilder.Entity<UserPermission>().HasKey(o => o.Id);
+
         }
     }
 }

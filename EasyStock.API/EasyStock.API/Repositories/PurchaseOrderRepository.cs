@@ -44,7 +44,8 @@ namespace EasyStock.API.Repositories
                     {
                         "contains" => query.Where(p => p.Supplier.Name.Contains(supplierNameFilter.Value)),
                         "startswith" => query.Where(p => p.Supplier.Name.StartsWith(supplierNameFilter.Value)),
-                        "endswith" => query.Where(p => p.Supplier.Name.EndsWith(supplierNameFilter.Value))
+                        "endswith" => query.Where(p => p.Supplier.Name.EndsWith(supplierNameFilter.Value)),
+                        _ => throw new NotSupportedException($"Operator is not supported for strings.")
                     };
                 }
 

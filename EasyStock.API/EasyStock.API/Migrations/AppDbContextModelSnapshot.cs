@@ -126,6 +126,94 @@ namespace EasyStock.API.Migrations
                     b.ToTable("Clients");
                 });
 
+            modelBuilder.Entity("EasyStock.API.Models.Dispatch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("BlDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("BlUserId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CrDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CrUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DispatchNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("LcDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LcUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.ToTable("Dispatches");
+                });
+
+            modelBuilder.Entity("EasyStock.API.Models.DispatchLine", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("BlDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("BlUserId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CrDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CrUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("DispatchId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("LcDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LcUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DispatchId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("DispatchLines");
+                });
+
             modelBuilder.Entity("EasyStock.API.Models.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -315,6 +403,94 @@ namespace EasyStock.API.Migrations
                     b.ToTable("PurchaseOrderLines");
                 });
 
+            modelBuilder.Entity("EasyStock.API.Models.Reception", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("BlDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("BlUserId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CrDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CrUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("LcDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LcUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ReceptionNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("SupplierId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SupplierId");
+
+                    b.ToTable("Receptions");
+                });
+
+            modelBuilder.Entity("EasyStock.API.Models.ReceptionLine", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("BlDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("BlUserId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CrDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CrUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("LcDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LcUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ReceptionId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ReceptionId");
+
+                    b.ToTable("ReceptionLines");
+                });
+
             modelBuilder.Entity("EasyStock.API.Models.SalesOrder", b =>
                 {
                     b.Property<int>("Id")
@@ -468,7 +644,7 @@ namespace EasyStock.API.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("StockMovement");
+                    b.ToTable("StockMovements");
                 });
 
             modelBuilder.Entity("EasyStock.API.Models.Supplier", b =>
@@ -574,6 +750,90 @@ namespace EasyStock.API.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("EasyStock.API.Models.UserPermission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("BlDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("BlUserId")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("CanAdd")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanDelete")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanEdit")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanView")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CrDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CrUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("LcDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LcUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Resource")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserPermissions");
+                });
+
+            modelBuilder.Entity("EasyStock.API.Models.Dispatch", b =>
+                {
+                    b.HasOne("EasyStock.API.Models.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("EasyStock.API.Models.DispatchLine", b =>
+                {
+                    b.HasOne("EasyStock.API.Models.Dispatch", "Dispatch")
+                        .WithMany("Lines")
+                        .HasForeignKey("DispatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EasyStock.API.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Dispatch");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("EasyStock.API.Models.Product", b =>
                 {
                     b.HasOne("EasyStock.API.Models.Supplier", "AutoRestockSupplier")
@@ -621,6 +881,36 @@ namespace EasyStock.API.Migrations
                     b.Navigation("PurchaseOrder");
                 });
 
+            modelBuilder.Entity("EasyStock.API.Models.Reception", b =>
+                {
+                    b.HasOne("EasyStock.API.Models.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("EasyStock.API.Models.ReceptionLine", b =>
+                {
+                    b.HasOne("EasyStock.API.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EasyStock.API.Models.Reception", "Reception")
+                        .WithMany("Lines")
+                        .HasForeignKey("ReceptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Reception");
+                });
+
             modelBuilder.Entity("EasyStock.API.Models.SalesOrder", b =>
                 {
                     b.HasOne("EasyStock.API.Models.Client", "Client")
@@ -662,12 +952,33 @@ namespace EasyStock.API.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("EasyStock.API.Models.UserPermission", b =>
+                {
+                    b.HasOne("EasyStock.API.Models.User", "User")
+                        .WithMany("Permissions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EasyStock.API.Models.Client", b =>
                 {
                     b.Navigation("SalesOrders");
                 });
 
+            modelBuilder.Entity("EasyStock.API.Models.Dispatch", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
             modelBuilder.Entity("EasyStock.API.Models.PurchaseOrder", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("EasyStock.API.Models.Reception", b =>
                 {
                     b.Navigation("Lines");
                 });
@@ -682,6 +993,11 @@ namespace EasyStock.API.Migrations
                     b.Navigation("Products");
 
                     b.Navigation("PurchaseOrders");
+                });
+
+            modelBuilder.Entity("EasyStock.API.Models.User", b =>
+                {
+                    b.Navigation("Permissions");
                 });
 #pragma warning restore 612, 618
         }

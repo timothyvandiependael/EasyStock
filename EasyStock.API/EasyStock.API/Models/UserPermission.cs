@@ -5,7 +5,6 @@
         public int Id { get; set; }
         public int UserId { get; set; }
         public User User { get; set; }
-
         public string Resource { get; set; } 
         public bool CanView { get; set; }
         public bool CanAdd { get; set; }

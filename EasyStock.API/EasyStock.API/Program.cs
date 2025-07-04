@@ -62,6 +62,24 @@ builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
 builder.Services.AddScoped<ISalesOrderLineRepository, SalesOrderLineRepository>();
 builder.Services.AddScoped<ISalesOrderLineService, SalesOrderLineService>();
 
+builder.Services.AddScoped<IDispatchRepository, DispatchRepository>();
+builder.Services.AddScoped<IDispatchService, DispatchService>();
+
+builder.Services.AddScoped<IDispatchLineRepository, DispatchLineRepository>();
+builder.Services.AddScoped<IDispatchLineService, DispatchLineService>();
+
+builder.Services.AddScoped<IReceptionRepository, ReceptionRepository>();
+builder.Services.AddScoped<IReceptionService, ReceptionService>();
+
+builder.Services.AddScoped<IReceptionLineRepository, ReceptionLineRepository>();
+builder.Services.AddScoped<IReceptionLineService, ReceptionLineService>();
+
+builder.Services.AddScoped<IUserPermissionRepository, UserPermissionRepository>();
+builder.Services.AddScoped<IUserPermissionService, UserPermissionService>();
+
+builder.Services.AddScoped<IStockMovementRepository, StockMovementRepository>();
+builder.Services.AddScoped<IStockMovementService, StockMovementService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
