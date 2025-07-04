@@ -7,6 +7,7 @@ namespace EasyStock.API.Models
         [Required]
         public DateTime CrDate { get; set; }
         [Required]
+        [ConcurrencyCheck]
         public DateTime LcDate { get; set; }
         [Required]
         public string CrUserId { get; set; }

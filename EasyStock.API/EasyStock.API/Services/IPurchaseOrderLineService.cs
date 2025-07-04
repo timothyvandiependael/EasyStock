@@ -7,5 +7,7 @@ namespace EasyStock.API.Services
     {
         Task<IEnumerable<PurchaseOrderLineOverview>> GetAllAsync();
         Task<PaginationResult<PurchaseOrderLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination);
+
+        Task AddAsync(PurchaseOrderLine entity, string userName);
     }
 }

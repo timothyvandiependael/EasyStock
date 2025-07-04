@@ -6,9 +6,10 @@ namespace EasyStock.API.Services
     {
         Task<T?> GetByIdAsync(int id);
         Task<IEnumerable<T>> GetAllAsync();
-        Task AddAsync(T entity);
-        Task UpdateAsync(T entity);
+        Task AddAsync(T entity, string userName);
+        Task UpdateAsync(T entity, string userName);
         Task DeleteAsync(int id);
+        Task BlockAsync(int id, string userName);
         Task<PaginationResult<T>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination);
     }
 }

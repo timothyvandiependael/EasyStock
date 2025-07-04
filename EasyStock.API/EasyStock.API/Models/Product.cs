@@ -35,6 +35,9 @@ namespace EasyStock.API.Models
         public int ReservedStock { get; set; }
 
         [Range(0, int.MaxValue)]
+        public int InboundStock { get; set; }
+
+        [Range(0, int.MaxValue)]
         public int AvailableStock { get; set; }
 
         [Range(0, int.MaxValue)]

@@ -28,15 +28,6 @@ namespace EasyStock.API.Dtos
         public decimal Discount { get; set; }
 
         [Range(0, int.MaxValue)]
-        public int TotalStock { get; set; }
-
-        [Range(0, int.MaxValue)]
-        public int ReservedStock { get; set; }
-
-        [Range(0, int.MaxValue)]
-        public int AvailableStock { get; set; }
-
-        [Range(0, int.MaxValue)]
         public int MinimumStock { get; set; }
 
         public bool AutoRestock { get; set; }

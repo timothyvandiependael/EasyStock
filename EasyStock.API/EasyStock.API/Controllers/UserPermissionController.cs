@@ -47,7 +47,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null) return BadRequest();
             var entity = _mapper.Map<UserPermission>(dto);
-            await _service.AddAsync(entity);
+            await _service.AddAsync(entity, HttpContext.User.Identity!.Name!);
 
             var resultDto = _mapper.Map<OutputUserPermissionDetailDto>(entity);
             return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
@@ -58,7 +58,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null || dto.Id != id) return BadRequest();
             var entity = _mapper.Map<UserPermission>(dto);
-            await _service.UpdateAsync(entity);
+            await _service.UpdateAsync(entity, HttpContext.User.Identity!.Name!);
 
             return NoContent();
         }
@@ -67,6 +67,13 @@ namespace EasyStock.API.Controllers
         public async Task<ActionResult> Delete(int id)
         {
             await _service.DeleteAsync(id);
+            return NoContent();
+        }
+
+        [HttpPost("block")]
+        public async Task<ActionResult> Block(int id)
+        {
+            await _service.BlockAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 

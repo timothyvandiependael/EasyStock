@@ -1,4 +1,6 @@
-﻿namespace EasyStock.API.Dtos
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace EasyStock.API.Dtos
 {
     public class BaseOutputProductDto : OutputDtoBase
     {
@@ -12,6 +14,7 @@
         public decimal Discount { get; set; }
         public int TotalStock { get; set; }
         public int ReservedStock { get; set; }
+        public int InboundStock { get; set; }
         public int AvailableStock { get; set; }
         public int MinimumStock { get; set; }
         public bool AutoRestock { get; set; }

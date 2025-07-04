@@ -1,9 +1,10 @@
 ﻿using EasyStock.API.Common;
+using EasyStock.API.Models;
 using EasyStock.API.Repositories;
 
 namespace EasyStock.API.Services
 {
-    public class Service<T> : IService<T> where T : class
+    public class Service<T> : IService<T> where T : ModelBase
     {
         private readonly IRepository<T> _repository;
 
@@ -12,12 +13,36 @@ namespace EasyStock.API.Services
             _repository = repository;
         }
 
-        public Task<T?> GetByIdAsync(int id) => _repository.GetByIdAsync(id);
-        public Task<IEnumerable<T>> GetAllAsync() => _repository.GetAllAsync();
-        public Task AddAsync(T entity) => _repository.AddAsync(entity);
-        public Task UpdateAsync(T entity) => _repository.UpdateAsync(entity);
-        public Task DeleteAsync(int id) => _repository.DeleteAsync(id);
-        public Task<PaginationResult<T>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
-            => _repository.GetAdvancedAsync(filters, sorting, pagination);
+        public async Task<T?> GetByIdAsync(int id) => await _repository.GetByIdAsync(id);
+        public async Task<IEnumerable<T>> GetAllAsync() => await _repository.GetAllAsync();
+        public async Task AddAsync(T entity, string userName)
+        {
+            entity.LcUserId = userName;
+            entity.LcDate = DateTime.UtcNow;
+            entity.CrUserId = userName;
+            entity.CrDate = entity.LcDate;
+            await _repository.AddAsync(entity);
+        }
+        public async Task UpdateAsync(T entity, string userName)
+        {
+            entity.LcUserId = userName;
+            entity.LcDate = DateTime.UtcNow;
+            await _repository.UpdateAsync(entity);
+        }
+
+        public async Task BlockAsync(int id, string userName)
+        {
+            var entity = await _repository.GetByIdAsync(id);
+            entity.BlDate = DateTime.UtcNow;
+            entity.BlUserId = userName;
+            await _repository.UpdateAsync(entity);
+        }
+
+        public async Task DeleteAsync(int id) 
+        {
+            await _repository.DeleteAsync(id); 
+        }
+        public async Task<PaginationResult<T>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
+            => await _repository.GetAdvancedAsync(filters, sorting, pagination);
     }
 }
