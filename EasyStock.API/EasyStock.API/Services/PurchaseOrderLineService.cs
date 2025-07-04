@@ -2,6 +2,7 @@
 using EasyStock.API.Data;
 using EasyStock.API.Models;
 using EasyStock.API.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace EasyStock.API.Services
 {
@@ -27,8 +28,10 @@ namespace EasyStock.API.Services
 
         public async Task AddAsync(PurchaseOrderLine entity, string userName)
         {
-            using (var transaction = _context.Database.BeginTransaction())
+            var attempt = 1;
+            while (attempt <= 3)
             {
+                using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
                     await _repository.AddAsync(entity);
@@ -38,18 +41,25 @@ namespace EasyStock.API.Services
                     product.LcUserId = userName;
                     product.LcDate = DateTime.UtcNow;
 
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
-                    transaction.Commit();
+                    await transaction.CommitAsync();
+                    break;
                 }
-                catch
+                catch (DbUpdateConcurrencyException ex)
                 {
-                    transaction.Rollback();
-                    throw;
+                    await transaction.RollbackAsync();
+
+                    if (++attempt > 3)
+                        throw;
+
+                    await Task.Delay(100 * attempt);
+                }
+                catch (Exception ex) 
+                { 
+                    await transaction.RollbackAsync();
                 }
             }
-            
-
         }
     }
 }
