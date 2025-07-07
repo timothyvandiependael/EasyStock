@@ -27,7 +27,7 @@ builder.Services.AddAuthentication(options =>
 .AddJwtBearer(options =>
 {
     var secretKey = builder.Configuration["JwtSettings:SecretKey"];
-    var key = Encoding.ASCII.GetBytes(secretKey);
+    var key = Encoding.ASCII.GetBytes(secretKey!);
 
     options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
     {

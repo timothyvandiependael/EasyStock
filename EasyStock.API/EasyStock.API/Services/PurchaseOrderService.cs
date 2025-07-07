@@ -46,6 +46,8 @@ namespace EasyStock.API.Services
             await _retryableTransactionService.ExecuteAsync(async () =>
             {
                 var entity = await _repository.GetByIdAsync(id);
+                if (entity == null)
+                    throw new InvalidOperationException($"Unable to delete record with ID {id}");
 
                 foreach (var line in entity.Lines)
                 {
@@ -60,6 +62,8 @@ namespace EasyStock.API.Services
             await _retryableTransactionService.ExecuteAsync(async () =>
             {
                 var entity = await _repository.GetByIdAsync(id);
+                if (entity == null)
+                    throw new InvalidOperationException($"Unable to block record with ID {id}");
                 entity.BlDate = DateTime.UtcNow;
                 entity.BlUserId = userName;
 
@@ -76,6 +80,8 @@ namespace EasyStock.API.Services
             await _retryableTransactionService.ExecuteAsync(async () =>
             {
                 var entity = await _repository.GetByIdAsync(id);
+                if (entity == null)
+                    throw new InvalidOperationException($"Unable to unblock record with ID {id}");
                 entity.BlDate = null;
                 entity.BlUserId = null;
                 entity.LcDate = DateTime.UtcNow;

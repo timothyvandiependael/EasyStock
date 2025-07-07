@@ -10,9 +10,9 @@ namespace EasyStock.API.Models
         [MaxLength(1000)]
         public string? Comments { get; set; }
 
-        public Reception Reception { get; set; }
+        public required Reception Reception { get; set; }
         public int ProductId { get; set; }
-        public Product Product { get; set; }
+        public required Product Product { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]
@@ -20,6 +20,6 @@ namespace EasyStock.API.Models
 
         [Required]
         public int PurchaseOrderLineId { get; set; }
-        public PurchaseOrderLine PurchaseOrderLine { get; set; }
+        public required PurchaseOrderLine PurchaseOrderLine { get; set; }
     }
 }

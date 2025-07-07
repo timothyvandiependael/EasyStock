@@ -8,7 +8,7 @@ namespace EasyStock.API.Dtos
         public string SKU { get; set; } = null!;
         public string Name { get; set; } = null!;
         public string? Description { get; set; }
-        public byte[] Photo { get; set; }
+        public byte[]? Photo { get; set; }
         public decimal CostPrice { get; set; }
         public decimal RetailPrice { get; set; }
         public decimal Discount { get; set; }

@@ -2,6 +2,6 @@
 {
     public class OutputReceptionOverviewDto : BaseOutputReceptionDto
     {
-        public string SupplierName { get; set; }
+        public required string SupplierName { get; set; }
     }
 }

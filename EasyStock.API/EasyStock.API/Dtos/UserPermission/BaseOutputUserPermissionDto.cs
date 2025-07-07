@@ -6,7 +6,7 @@ namespace EasyStock.API.Dtos
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public string Resource { get; set; }
+        public required string Resource { get; set; }
         public bool CanView { get; set; }
         public bool CanAdd { get; set; }
         public bool CanEdit { get; set; }

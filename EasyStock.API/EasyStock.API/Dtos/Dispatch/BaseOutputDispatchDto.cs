@@ -7,7 +7,7 @@ namespace EasyStock.API.Dtos
     {
         public int Id { get; set; }
         public string? Comments { get; set; }
-        public string DispatchNumber { get; set; }
+        public required string DispatchNumber { get; set; }
         public int ClientId { get; set; }
     }
 }

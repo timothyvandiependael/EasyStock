@@ -8,11 +8,11 @@ namespace EasyStock.API.Models
 
         [Required]
         [MaxLength(20)]
-        public string UserName { get; set; }
+        public required string UserName { get; set; }
 
         [Required]
-        public string PasswordHash { get; set; }
+        public required string PasswordHash { get; set; }
 
-        public string Role { get; set; }
+        public required string Role { get; set; }
     }
 }

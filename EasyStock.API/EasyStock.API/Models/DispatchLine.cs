@@ -6,13 +6,13 @@ namespace EasyStock.API.Models
     {
         public int Id { get; set; }
         public int DispatchId { get; set; }
-        public Dispatch Dispatch { get; set; }
+        public required Dispatch Dispatch { get; set; }
 
 
         [MaxLength(1000)]
         public string? Comments { get; set; }
         public int ProductId { get; set; }
-        public Product Product { get; set; }
+        public required Product Product { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]

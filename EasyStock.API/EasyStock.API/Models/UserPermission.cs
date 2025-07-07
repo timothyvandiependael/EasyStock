@@ -9,11 +9,11 @@ namespace EasyStock.API.Models
         [Required]
         public int UserId { get; set; }
 
-        public User User { get; set; }
+        public required User User { get; set; }
 
         [Required]
         [MaxLength(30)]
-        public string Resource { get; set; } 
+        public required string Resource { get; set; } 
 
         public bool CanView { get; set; }
         public bool CanAdd { get; set; }

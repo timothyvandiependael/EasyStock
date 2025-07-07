@@ -2,8 +2,8 @@
 {
     public class OutputReceptionLineOverviewDto : BaseOutputReceptionLineDto
     {
-        public string ReceptionNumber { get; set; }
-        public string ProductName { get; set; }
+        public required string ReceptionNumber { get; set; }
+        public required string ProductName { get; set; }
 
     }
 }

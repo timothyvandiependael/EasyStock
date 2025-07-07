@@ -5,8 +5,8 @@ namespace EasyStock.API.Dtos
 {
     public class OutputReceptionLineDetailDto : BaseOutputReceptionLineDto
     {
-        public OutputReceptionOverviewDto Reception { get; set; }
-        public OutputProductOverviewDto Product { get; set; }
-        public OutputPurchaseOrderLineOverviewDto PurchaseOrderLine { get; set; }
+        public required OutputReceptionOverviewDto Reception { get; set; }
+        public required OutputProductOverviewDto Product { get; set; }
+        public required OutputPurchaseOrderLineOverviewDto PurchaseOrderLine { get; set; }
     }
 }

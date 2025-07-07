@@ -2,6 +2,6 @@
 {
     public class Client : Person, IEntity
     {
-        public ICollection<SalesOrder> SalesOrders { get; set; }
+        public ICollection<SalesOrder> SalesOrders { get; set; } = new List<SalesOrder>();
     }
 }

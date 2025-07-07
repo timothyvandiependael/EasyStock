@@ -2,8 +2,8 @@
 {
     public class FilterCondition
     {
-        public string Field { get; set; }
-        public string Operator { get; set; }
-        public string Value { get; set; }
+        public required string Field { get; set; }
+        public required string Operator { get; set; }
+        public required string Value { get; set; }
     }
 }

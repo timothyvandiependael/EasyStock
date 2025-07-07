@@ -90,7 +90,7 @@ namespace EasyStock.API.Controllers
         [HttpPost("advanced")]
         public async Task<ActionResult<PaginationResult<OutputSalesOrderOverviewDto>>> GetAdvanced([FromBody] AdvancedQueryParametersDto parameters)
         {
-            if (parameters == null) return BadRequest("Missing parameters");
+            if (parameters == null || parameters.Filters == null || parameters.Sorting == null) return BadRequest("Missing parameters");
 
             var result = await _salesOrderService.GetAdvancedAsync(parameters.Filters, parameters.Sorting, parameters.Pagination);
             var dtoItems = _mapper.Map<List<OutputSalesOrderOverviewDto>>(result.Data);

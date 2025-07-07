@@ -4,6 +4,6 @@ namespace EasyStock.API.Dtos
 {
     public class OutputUserPermissionDetailDto : BaseOutputUserPermissionDto
     {
-        public OutputUserOverviewDto User { get; set; }
+        public required OutputUserOverviewDto User { get; set; }
     }
 }

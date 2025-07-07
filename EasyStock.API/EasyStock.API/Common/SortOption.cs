@@ -2,7 +2,7 @@
 {
     public class SortOption
     {
-        public string Field { get; set; }
-        public string Direction { get; set; }
+        public required string Field { get; set; }
+        public required string Direction { get; set; }
     }
 }

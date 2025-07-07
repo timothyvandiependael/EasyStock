@@ -2,7 +2,7 @@
 {
     public class DispatchLineOverview
     {
-        public string DispatchNumber { get; set; }
-        public string ProductName { get; set; }
+        public required string DispatchNumber { get; set; }
+        public required string ProductName { get; set; }
     }
 }

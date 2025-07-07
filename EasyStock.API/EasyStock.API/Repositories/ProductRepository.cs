@@ -42,9 +42,9 @@ namespace EasyStock.API.Repositories
 
                     query = autoRestockSupplierNameFilter.Operator switch
                     {
-                        "contains" => query.Where(p => p.AutoRestockSupplier.Name.Contains(autoRestockSupplierNameFilter.Value)),
-                        "startswith" => query.Where(p => p.AutoRestockSupplier.Name.StartsWith(autoRestockSupplierNameFilter.Value)),
-                        "endswith" => query.Where(p => p.AutoRestockSupplier.Name.EndsWith(autoRestockSupplierNameFilter.Value)),
+                        "contains" => query.Where(p => p.AutoRestockSupplier != null && p.AutoRestockSupplier.Name.Contains(autoRestockSupplierNameFilter.Value)),
+                        "startswith" => query.Where(p => p.AutoRestockSupplier != null && p.AutoRestockSupplier.Name.StartsWith(autoRestockSupplierNameFilter.Value)),
+                        "endswith" => query.Where(p => p.AutoRestockSupplier != null && p.AutoRestockSupplier.Name.EndsWith(autoRestockSupplierNameFilter.Value)),
                         _ => throw new NotSupportedException($"Operator is not supported for strings.")
                     };
                 }

@@ -6,6 +6,6 @@ namespace EasyStock.API.Models
     {
         public ICollection<Product> Products { get; set; } = new List<Product>();
 
-        public ICollection<PurchaseOrder> PurchaseOrders { get; set; }
+        public ICollection<PurchaseOrder> PurchaseOrders { get; set; } = new List<PurchaseOrder>();
     }
 }

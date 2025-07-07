@@ -8,8 +8,8 @@ namespace EasyStock.API.Models
 
         [Required]
         [MaxLength(20)]
-        public string UserName { get; set; }
+        public required string UserName { get; set; }
 
-        public ICollection<UserPermission> Permissions { get; set; }
+        public ICollection<UserPermission> Permissions { get; set; } = new List<UserPermission>();
     }
 }

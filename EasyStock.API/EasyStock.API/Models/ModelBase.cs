@@ -10,9 +10,9 @@ namespace EasyStock.API.Models
         [ConcurrencyCheck]
         public DateTime LcDate { get; set; }
         [Required]
-        public string CrUserId { get; set; }
+        public required string CrUserId { get; set; }
         [Required]
-        public string LcUserId { get; set; }
+        public required string LcUserId { get; set; }
 
         public DateTime? BlDate { get; set; }
         public string? BlUserId { get; set; }

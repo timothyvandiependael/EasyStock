@@ -2,6 +2,6 @@
 {
     public class StockMovementOverview : StockMovement
     {
-        public string ProductName { get; set; }
+        public required string ProductName { get; set; }
     }
 }

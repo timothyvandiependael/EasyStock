@@ -4,7 +4,7 @@ namespace EasyStock.API.Dtos
 {
     public class OutputDispatchDetailDto : BaseOutputDispatchDto
     {
-        public OutputClientDto Client { get; set; }
+        public required OutputClientDto Client { get; set; }
         public ICollection<OutputDispatchLineOverviewDto> Lines { get; set; } = new List<OutputDispatchLineOverviewDto>();
     }
 }

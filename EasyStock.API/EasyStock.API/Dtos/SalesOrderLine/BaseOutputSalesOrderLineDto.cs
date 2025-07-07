@@ -12,6 +12,6 @@ namespace EasyStock.API.Dtos
         public int ProductId { get; set; }
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
-        public string Status { get; set; }
+        public required string Status { get; set; }
     }
 }

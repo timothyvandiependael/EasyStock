@@ -8,14 +8,14 @@ namespace EasyStock.API.Models
     {
         public int Id { get; set; }
         public int PurchaseOrderId { get; set; }
-        public PurchaseOrder PurchaseOrder { get; set; }
+        public required PurchaseOrder PurchaseOrder { get; set; }
         public int LineNumber { get; set; }
 
         [MaxLength(1000)]
         public string? Comments { get; set; }
 
         public int ProductId { get; set; }
-        public Product Product { get; set; }
+        public required Product Product { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]

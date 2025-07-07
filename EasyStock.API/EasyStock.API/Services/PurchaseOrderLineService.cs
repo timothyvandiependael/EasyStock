@@ -13,11 +13,12 @@ namespace EasyStock.API.Services
         private readonly IRepository<Product> _genericProductRepository;
         private readonly IRetryableTransactionService _retryableTransactionService;
 
-        public PurchaseOrderLineService(IPurchaseOrderLineRepository purchaseOrderLineRepository, IRepository<PurchaseOrderLine> repository, IRetryableTransactionService retryableTransactionService)
+        public PurchaseOrderLineService(IPurchaseOrderLineRepository purchaseOrderLineRepository, IRepository<PurchaseOrderLine> repository, IRetryableTransactionService retryableTransactionService, IRepository<Product> genericProductRepository)
         {
             _purchaseOrderLineRepository = purchaseOrderLineRepository;
             _repository = repository;
             _retryableTransactionService = retryableTransactionService;
+            _genericProductRepository = genericProductRepository;
         }
 
         public async Task<IEnumerable<PurchaseOrderLineOverview>> GetAllAsync()
@@ -38,6 +39,8 @@ namespace EasyStock.API.Services
                 await _repository.AddAsync(entity);
 
                 var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
+                if (product == null)
+                    throw new InvalidOperationException($"Product with ID {entity.ProductId} not found when updating inbound stock.");
                 product.InboundStock += entity.Quantity;
                 product.LcUserId = userName;
                 product.LcDate = DateTime.UtcNow;
@@ -53,6 +56,9 @@ namespace EasyStock.API.Services
                 await _repository.AddAsync(entity);
 
                 var oldRecord = await _repository.GetByIdAsync(entity.Id);
+                if (oldRecord == null)
+                    throw new InvalidOperationException($"Purchase order line with ID {entity.Id} not found when trying to update it.");
+
                 if (oldRecord.Quantity != entity.Quantity)
                 {
                     if (entity.Status == OrderStatus.Open || entity.Status == OrderStatus.Partial)
@@ -60,6 +66,8 @@ namespace EasyStock.API.Services
                         var difference = entity.Quantity - oldRecord.Quantity;
 
                         var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
+                        if (product == null)
+                            throw new InvalidOperationException($"Product with ID {entity.ProductId} not found when updating inbound stock.");
                         product.InboundStock += difference;
                         product.LcUserId = userName;
                         product.LcDate = DateTime.UtcNow;
@@ -87,9 +95,13 @@ namespace EasyStock.API.Services
         private async Task DeleteInternalAsync(int id, string userName)
         {
             var record = await _repository.GetByIdAsync(id);
+            if (record == null)
+                throw new InvalidOperationException($"Unable to delete record with ID {id}");
             if (record.Status == OrderStatus.Open || record.Status == OrderStatus.Partial)
             {
                 var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
+                if (product == null)
+                    throw new InvalidOperationException($"Product with ID {record.ProductId} not found when updating inbound stock.");
                 product.InboundStock -= record.Quantity;
                 product.LcUserId = userName;
                 product.LcDate = DateTime.UtcNow;
@@ -117,12 +129,16 @@ namespace EasyStock.API.Services
         private async Task BlockInternalAsync(int id, string userName)
         {
             var record = await _repository.GetByIdAsync(id);
+            if (record == null)
+                throw new InvalidOperationException($"Unable to block record with ID {id}");
             record.BlDate = DateTime.UtcNow;
             record.BlUserId = userName;
 
             if (record.Status == OrderStatus.Open || record.Status == OrderStatus.Partial)
             {
                 var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
+                if (product == null)
+                    throw new InvalidOperationException($"Product with ID {record.ProductId} not found when updating inbound stock.");
                 product.InboundStock -= record.Quantity;
                 product.LcUserId = userName;
                 product.LcDate = DateTime.UtcNow;
@@ -150,6 +166,8 @@ namespace EasyStock.API.Services
         private async Task UnblockInternalAsync(int id, string userName)
         {
             var record = await _repository.GetByIdAsync(id);
+            if (record == null)
+                throw new InvalidOperationException($"Unable to unblock record with ID {id}");
             record.BlDate = null;
             record.BlUserId = null;
             record.LcDate = DateTime.UtcNow;
@@ -158,6 +176,8 @@ namespace EasyStock.API.Services
             if (record.Status == OrderStatus.Open || record.Status == OrderStatus.Partial)
             {
                 var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
+                if (product == null)
+                    throw new InvalidOperationException($"Product with ID {record.ProductId} not found when updating inbound stock.");
                 product.InboundStock += record.Quantity;
                 product.LcUserId = userName;
                 product.LcDate = DateTime.UtcNow;

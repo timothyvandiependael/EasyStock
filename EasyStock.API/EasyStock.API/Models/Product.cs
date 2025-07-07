@@ -16,7 +16,7 @@ namespace EasyStock.API.Models
 
         public string? Description { get; set; }
 
-        public byte[] Photo { get; set; }
+        public byte[]? Photo { get; set; }
 
 
         [Range(0, double.MaxValue)]
@@ -47,13 +47,13 @@ namespace EasyStock.API.Models
 
         public int? AutoRestockSupplierId { get; set; }
 
-        public Supplier AutoRestockSupplier { get; set; }
+        public Supplier? AutoRestockSupplier { get; set; }
 
         [Required]
         public int CategoryId { get; set; }
 
         [Required]
-        public Category Category { get; set; }
+        public required Category Category { get; set; }
 
     }
 }

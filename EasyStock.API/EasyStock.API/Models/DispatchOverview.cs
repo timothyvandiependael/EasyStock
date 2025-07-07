@@ -2,6 +2,6 @@
 {
     public class DispatchOverview : Dispatch
     {
-        public string ClientName { get; set; }
+        public required string ClientName { get; set; }
     }
 }

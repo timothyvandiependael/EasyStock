@@ -7,6 +7,6 @@ namespace EasyStock.API.Dtos
         public int Id { get; set; }
 
         [Required]
-        public string UserName { get; set; }
+        public required string UserName { get; set; }
     }
 }

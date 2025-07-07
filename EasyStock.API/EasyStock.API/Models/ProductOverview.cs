@@ -2,7 +2,7 @@
 {
     public class ProductOverview : Product
     {
-        public string AutoRestockSupplierName { get; set; }
-        public string CategoryName { get; set; }
+        public required string AutoRestockSupplierName { get; set; }
+        public required string CategoryName { get; set; }
     }
 }

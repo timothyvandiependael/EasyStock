@@ -13,7 +13,7 @@ namespace EasyStock.API.Dtos
 
         [Required]
         [MaxLength(200)]
-        public string Reason { get; set; }
+        public required string Reason { get; set; }
 
         public int? PurchaseOrderId { get; set; }
         public int? SalesOrderId { get; set; }

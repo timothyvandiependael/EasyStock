@@ -33,6 +33,8 @@ namespace EasyStock.API.Services
         public async Task BlockAsync(int id, string userName)
         {
             var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+                throw new InvalidOperationException($"Unable to block record with ID {id}");
             entity.BlDate = DateTime.UtcNow;
             entity.BlUserId = userName;
             await _repository.UpdateAsync(entity);
@@ -41,6 +43,8 @@ namespace EasyStock.API.Services
         public async Task UnblockAsync(int id, string userName)
         {
             var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+                throw new InvalidOperationException($"Unable to unblock record with ID {id}");
             entity.BlDate = null;
             entity.BlUserId = null;
             entity.LcDate = DateTime.Now;

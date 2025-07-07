@@ -12,7 +12,7 @@ namespace EasyStock.API.Extensions
                 return query;
 
             var parameter = Expression.Parameter(typeof(T), "x");
-            Expression finalExpr = null;
+            Expression? finalExpr = null;
 
             foreach (var filter in filters)
             {

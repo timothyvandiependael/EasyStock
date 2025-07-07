@@ -6,7 +6,7 @@ namespace EasyStock.API.Dtos
 {
     public class OutputProductOverviewDto : BaseOutputProductDto
     {
-        public string CategoryName { get; set; }
-        public string SupplierName { get; set; }
+        public required string CategoryName { get; set; }
+        public string? SupplierName { get; set; }
     }
 }

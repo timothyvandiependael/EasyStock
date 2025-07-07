@@ -2,6 +2,6 @@
 {
     public class OutputUserPermissionOverviewDto : BaseOutputUserPermissionDto
     {
-        public string UserName { get; set; }
+        public required string UserName { get; set; }
     }
 }

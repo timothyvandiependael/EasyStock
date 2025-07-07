@@ -6,6 +6,6 @@ namespace EasyStock.API.Dtos
     {
         [Required]
         [MaxLength(20)]
-        public string UserName { get; set; }
+        public required string UserName { get; set; }
     }
 }

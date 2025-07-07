@@ -2,7 +2,7 @@
 {
     public class OutputDispatchLineDetailDto : BaseOutputDispatchLineDto
     {
-        public OutputDispatchOverviewDto Dispatch { get; set; }
-        public OutputProductOverviewDto Product { get; set; }
+        public required OutputDispatchOverviewDto Dispatch { get; set; }
+        public required OutputProductOverviewDto Product { get; set; }
     }
 }

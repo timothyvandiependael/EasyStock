@@ -2,6 +2,6 @@
 {
     public class OutputPurchaseOrderOverviewDto : BaseOutputPurchaseOrderDto
     {
-        public string SupplierName { get; set; }
+        public required string SupplierName { get; set; }
     }
 }

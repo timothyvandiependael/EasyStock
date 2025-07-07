@@ -49,7 +49,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null) return BadRequest();
             var entity = _mapper.Map<ReceptionLine>(dto);
-            await _service.AddAsync(entity, HttpContext.User.Identity!.Name!);
+            await _receptionLineService.AddAsync(entity, HttpContext.User.Identity!.Name!);
 
             var resultDto = _mapper.Map<OutputReceptionLineDetailDto>(entity);
             return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
@@ -60,7 +60,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null || dto.Id != id) return BadRequest();
             var entity = _mapper.Map<ReceptionLine>(dto);
-            await _service.UpdateAsync(entity, HttpContext.User.Identity!.Name!);
+            await _receptionLineService.UpdateAsync(entity, HttpContext.User.Identity!.Name!);
 
             return NoContent();
         }
@@ -68,28 +68,28 @@ namespace EasyStock.API.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            await _service.DeleteAsync(id);
+            await _receptionLineService.DeleteAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 
         [HttpPost("block")]
         public async Task<ActionResult> Block(int id)
         {
-            await _service.BlockAsync(id, HttpContext.User.Identity!.Name!);
+            await _receptionLineService.BlockAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 
         [HttpPost("unblock")]
         public async Task<ActionResult> Unblock(int id)
         {
-            await _service.UnblockAsync(id, HttpContext.User.Identity!.Name!);
+            await _receptionLineService.UnblockAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 
         [HttpPost("advanced")]
         public async Task<ActionResult<PaginationResult<OutputReceptionLineOverviewDto>>> GetAdvanced([FromBody] AdvancedQueryParametersDto parameters)
         {
-            if (parameters == null) return BadRequest("Missing parameters");
+            if (parameters == null || parameters.Filters == null || parameters.Sorting == null) return BadRequest("Missing parameters");
 
             var result = await _receptionLineService.GetAdvancedAsync(parameters.Filters, parameters.Sorting, parameters.Pagination);
             var dtoItems = _mapper.Map<List<OutputReceptionLineOverviewDto>>(result.Data);

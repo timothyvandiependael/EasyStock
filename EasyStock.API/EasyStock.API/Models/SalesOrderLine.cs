@@ -7,13 +7,15 @@ namespace EasyStock.API.Models
     public class SalesOrderLine : ModelBase, IEntity
     {
         public int Id { get; set; }
+        [Required]
         public int SalesOrderId { get; set; }
-        public SalesOrder SalesOrder { get; set; }
+        public required SalesOrder SalesOrder { get; set; }
         public int LineNumber { get; set; }
         [MaxLength(1000)]
         public string? Comments { get; set; }
+        [Required]
         public int ProductId { get; set; }
-        public Product Product { get; set; }
+        public required Product Product { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]

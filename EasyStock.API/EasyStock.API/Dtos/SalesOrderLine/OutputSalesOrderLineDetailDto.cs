@@ -2,7 +2,7 @@
 {
     public class OutputSalesOrderLineDetailDto : BaseOutputSalesOrderLineDto
     {
-        public OutputSalesOrderOverviewDto SalesOrder { get; set; }
-        public OutputProductOverviewDto Product { get; set; }
+        public required OutputSalesOrderOverviewDto SalesOrder { get; set; }
+        public required OutputProductOverviewDto Product { get; set; }
     }
 }

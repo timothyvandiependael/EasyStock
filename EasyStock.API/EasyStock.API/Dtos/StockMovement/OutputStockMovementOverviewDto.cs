@@ -2,6 +2,6 @@
 {
     public class OutputStockMovementOverviewDto : BaseOutputStockMovementDto
     {
-        public string ProductName { get; set; }
+        public required string ProductName { get; set; }
     }
 }
