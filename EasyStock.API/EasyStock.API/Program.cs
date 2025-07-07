@@ -85,6 +85,8 @@ builder.Services.AddScoped<IStockMovementService, StockMovementService>();
 builder.Services.AddScoped<IOrderNumberCounterRepository, OrderNumberCounterRepository>();
 builder.Services.AddScoped<IOrderNumberCounterService, OrderNumberCounterService>();
 
+builder.Services.AddScoped<IRetryableTransactionService, IRetryableTransactionService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
