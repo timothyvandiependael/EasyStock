@@ -40,6 +40,9 @@ namespace EasyStock.API.Controllers
             var dto = _mapper.Map<OutputPurchaseOrderLineDetailDto>(entity);
             dto.PurchaseOrder = _mapper.Map<OutputPurchaseOrderOverviewDto>(entity.PurchaseOrder);
             dto.Product = _mapper.Map<OutputProductOverviewDto>(entity.Product);
+            dto.ReceptionLines = entity.ReceptionLines == null 
+                ? new List<OutputReceptionLineOverviewDto>()
+                : _mapper.Map<List<OutputReceptionLineOverviewDto>>(entity.ReceptionLines);
             return Ok(dto);
         }
 
@@ -59,7 +62,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null || dto.Id != id) return BadRequest();
             var entity = _mapper.Map<PurchaseOrderLine>(dto);
-            await _service.UpdateAsync(entity, HttpContext.User.Identity!.Name!);
+            await _purchaseOrderLineService.UpdateAsync(entity, HttpContext.User.Identity!.Name!);
 
             return NoContent();
         }
@@ -67,14 +70,22 @@ namespace EasyStock.API.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            await _service.DeleteAsync(id);
+
+            await _purchaseOrderLineService.DeleteAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 
         [HttpPost("block")]
         public async Task<ActionResult> Block(int id)
         {
-            await _service.BlockAsync(id, HttpContext.User.Identity!.Name!);
+            await _purchaseOrderLineService.BlockAsync(id, HttpContext.User.Identity!.Name!);
+            return NoContent();
+        }
+
+        [HttpPost("unblock")]
+        public async Task<ActionResult> Unblock(int id)
+        {
+            await _purchaseOrderLineService.UnblockAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 

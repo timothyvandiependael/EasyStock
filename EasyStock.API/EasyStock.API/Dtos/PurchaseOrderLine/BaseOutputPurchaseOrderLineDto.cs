@@ -10,6 +10,9 @@ namespace EasyStock.API.Dtos
         public int LineNumber { get; set; }
         public int ProductId { get; set; }
 
+        [MaxLength(1000)]
+        public string? Comments { get; set; }
+
         [Required]
         [Range(0, int.MaxValue)]
         public int Quantity { get; set; }

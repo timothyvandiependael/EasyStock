@@ -74,6 +74,13 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [HttpPost("unblock")]
+        public async Task<ActionResult> Unblock(int id)
+        {
+            await _service.UnblockAsync(id, HttpContext.User.Identity!.Name!);
+            return NoContent();
+        }
+
         [HttpPost("advanced")]
         public async Task<ActionResult<PaginationResult<OutputCategoryDto>>> GetAdvanced([FromBody] AdvancedQueryParametersDto parameters)
         {

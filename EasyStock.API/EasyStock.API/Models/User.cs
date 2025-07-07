@@ -7,6 +7,7 @@ namespace EasyStock.API.Models
         public int Id { get; set; }
 
         [Required]
+        [MaxLength(20)]
         public string UserName { get; set; }
 
         public ICollection<UserPermission> Permissions { get; set; }

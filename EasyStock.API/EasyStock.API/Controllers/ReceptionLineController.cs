@@ -40,6 +40,7 @@ namespace EasyStock.API.Controllers
             var dto = _mapper.Map<OutputReceptionLineDetailDto>(entity);
             dto.Reception = _mapper.Map<OutputReceptionOverviewDto>(entity.Reception);
             dto.Product = _mapper.Map<OutputProductOverviewDto>(entity.Product);
+            dto.PurchaseOrderLine = _mapper.Map<OutputPurchaseOrderLineOverviewDto>(entity.PurchaseOrderLine);
             return Ok(dto);
         }
 
@@ -75,6 +76,13 @@ namespace EasyStock.API.Controllers
         public async Task<ActionResult> Block(int id)
         {
             await _service.BlockAsync(id, HttpContext.User.Identity!.Name!);
+            return NoContent();
+        }
+
+        [HttpPost("unblock")]
+        public async Task<ActionResult> Unblock(int id)
+        {
+            await _service.UnblockAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 

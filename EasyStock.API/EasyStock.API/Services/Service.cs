@@ -38,6 +38,16 @@ namespace EasyStock.API.Services
             await _repository.UpdateAsync(entity);
         }
 
+        public async Task UnblockAsync(int id, string userName)
+        {
+            var entity = await _repository.GetByIdAsync(id);
+            entity.BlDate = null;
+            entity.BlUserId = null;
+            entity.LcDate = DateTime.Now;
+            entity.LcUserId = userName;
+            await _repository.UpdateAsync(entity);
+        }
+
         public async Task DeleteAsync(int id) 
         {
             await _repository.DeleteAsync(id); 

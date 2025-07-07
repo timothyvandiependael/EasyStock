@@ -13,6 +13,7 @@ namespace EasyStock.API.Models
         public int QuantityChange { get; set; }
 
         [Required]
+        [MaxLength(200)]
         public string Reason { get; set; }
 
         public int? PurchaseOrderId { get; set; }

@@ -8,14 +8,9 @@ namespace EasyStock.API.Dtos
         public int Id { get; set; }
         public int SalesOrderId { get; set; }
         public int LineNumber { get; set; }
+        public string? Comments { get; set; }
         public int ProductId { get; set; }
-
-        [Required]
-        [Range(0, int.MaxValue)]
         public int Quantity { get; set; }
-
-        [Required]
-        [Range(0, double.MaxValue)]
         public decimal UnitPrice { get; set; }
         public string Status { get; set; }
     }

@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EasyStock.API.Common;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EasyStock.API.Models
 {
@@ -8,6 +10,8 @@ namespace EasyStock.API.Models
         public int SalesOrderId { get; set; }
         public SalesOrder SalesOrder { get; set; }
         public int LineNumber { get; set; }
+        [MaxLength(1000)]
+        public string? Comments { get; set; }
         public int ProductId { get; set; }
         public Product Product { get; set; }
 
@@ -18,6 +22,8 @@ namespace EasyStock.API.Models
         [Required]
         [Range(0, double.MaxValue)]
         public decimal UnitPrice { get; set; }
-        public string Status { get; set; }
+
+        [Column(TypeName = "varchar(10)")]
+        public OrderStatus Status { get; set; }
     }
 }
