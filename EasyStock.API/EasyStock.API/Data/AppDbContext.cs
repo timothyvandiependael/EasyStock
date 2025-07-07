@@ -22,6 +22,7 @@ namespace EasyStock.API.Data
         public DbSet<Reception> Receptions => Set<Reception>();
         public DbSet<ReceptionLine> ReceptionLines => Set<ReceptionLine>();
         public DbSet<UserPermission> UserPermissions => Set<UserPermission>();
+        public DbSet<OrderNumberCounter> OrderNumberCounters => Set<OrderNumberCounter>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -43,6 +44,7 @@ namespace EasyStock.API.Data
             modelBuilder.Entity<Reception>().HasKey(o => o.Id);
             modelBuilder.Entity<ReceptionLine>().HasKey(o => o.Id);
             modelBuilder.Entity<UserPermission>().HasKey(o => o.Id);
+            modelBuilder.Entity<OrderNumberCounter>().HasKey(o => o.Id);
 
         }
     }

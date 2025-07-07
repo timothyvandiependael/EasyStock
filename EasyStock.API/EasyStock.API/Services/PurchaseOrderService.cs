@@ -19,5 +19,26 @@ namespace EasyStock.API.Services
         public async Task<PaginationResult<PurchaseOrderOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
             => await _purchaseOrderRepository.GetAdvancedAsync(filters, sorting, pagination);
 
+        public async Task AddAsync(PurchaseOrder entity, string userName)
+        {
+            entity.Status = OrderStatus.Open;
+        }
+
+        public async Task DeleteAsync(int id, string userName)
+        {
+
+        }
+
+        public async Task BlockAsync(int id, string userName)
+        {
+
+        }
+
+        public async Task UnblockAsync(int id, string userName)
+        {
+
+
+        }
+
     }
 }

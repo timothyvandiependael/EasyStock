@@ -11,8 +11,8 @@ namespace EasyStock.API.Services
         Task AddAsync(PurchaseOrderLine entity, string userName);
 
         Task UpdateAsync(PurchaseOrderLine entity, string userName);
-        Task DeleteAsync(int id);
-        Task BlockAsync(int id, string userName);
-        Task UnblockAsync(int id, string userName);
+        Task DeleteAsync(int id, string userName, bool manageTransaction = true);
+        Task BlockAsync(int id, string userName, bool manageTransaction = true);
+        Task UnblockAsync(int id, string userName, bool manageTransaction = true);
     }
 }

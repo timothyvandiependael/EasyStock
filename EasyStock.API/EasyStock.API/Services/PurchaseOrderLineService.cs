@@ -118,130 +118,169 @@ namespace EasyStock.API.Services
 
         }
 
-        public async Task DeleteAsync(int id, string userName)
+        public async Task DeleteAsync(int id, string userName, bool manageTransaction = true)
         {
-            var attempt = 1;
-            while (attempt <= 3)
+            if (manageTransaction)
             {
-                using var transaction = await _context.Database.BeginTransactionAsync();
-                try
+                var attempt = 1;
+                while (attempt <= 3)
                 {
-                    var record = await _repository.GetByIdAsync(id);
-                    if (record.Status == OrderStatus.Open || record.Status == OrderStatus.Partial)
+                    using var transaction = await _context.Database.BeginTransactionAsync();
+                    try
                     {
-                        var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
-                        product.InboundStock -= record.Quantity;
-                        product.LcUserId = userName;
-                        product.LcDate = DateTime.UtcNow;
-                        await _context.SaveChangesAsync();
+                        await DeleteInternalAsync(id, userName);
+
+                        await transaction.CommitAsync();
+                        break;
                     }
+                    catch (DbUpdateConcurrencyException ex)
+                    {
+                        await transaction.RollbackAsync();
 
-                    await _repository.DeleteAsync(id);
+                        if (++attempt > 3)
+                            throw;
 
-                    await transaction.CommitAsync();
-                    break;
-                }
-                catch (DbUpdateConcurrencyException ex)
-                {
-                    await transaction.RollbackAsync();
-
-                    if (++attempt > 3)
+                        await Task.Delay(100 * attempt);
+                    }
+                    catch (Exception ex)
+                    {
+                        await transaction.RollbackAsync();
                         throw;
+                    }
+                }
+            }
+            else
+            {
+                await DeleteInternalAsync(id, userName);
+            }
+            
+        }
 
-                    await Task.Delay(100 * attempt);
-                }
-                catch (Exception ex)
+        private async Task DeleteInternalAsync(int id, string userName)
+        {
+            var record = await _repository.GetByIdAsync(id);
+            if (record.Status == OrderStatus.Open || record.Status == OrderStatus.Partial)
+            {
+                var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
+                product.InboundStock -= record.Quantity;
+                product.LcUserId = userName;
+                product.LcDate = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+
+            await _repository.DeleteAsync(id);
+        }
+
+        public async Task BlockAsync(int id, string userName, bool manageTransaction = true)
+        {
+            if (manageTransaction)
+            {
+                var attempt = 1;
+                while (attempt <= 3)
                 {
-                    await transaction.RollbackAsync();
-                    throw;
+                    using var transaction = await _context.Database.BeginTransactionAsync();
+                    try
+                    {
+                        await BlockInternalAsync(id, userName);
+
+                        await transaction.CommitAsync();
+                        break;
+                    }
+                    catch (DbUpdateConcurrencyException ex)
+                    {
+                        await transaction.RollbackAsync();
+
+                        if (++attempt > 3)
+                            throw;
+
+                        await Task.Delay(100 * attempt);
+                    }
+                    catch (Exception ex)
+                    {
+                        await transaction.RollbackAsync();
+                        throw;
+                    }
                 }
+            }
+            else
+            {
+                await BlockInternalAsync(id, userName);
+            }
+            
+        }
+
+        private async Task BlockInternalAsync(int id, string userName)
+        {
+            var record = await _repository.GetByIdAsync(id);
+            record.BlDate = DateTime.UtcNow;
+            record.BlUserId = userName;
+            await _repository.UpdateAsync(record);
+
+            if (record.Status == OrderStatus.Open || record.Status == OrderStatus.Partial)
+            {
+                var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
+                product.InboundStock -= record.Quantity;
+                product.LcUserId = userName;
+                product.LcDate = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
             }
         }
 
-        public async Task BlockAsync(int id, string userName)
+        public async Task UnblockAsync(int id, string userName, bool manageTransaction = true)
         {
-            var attempt = 1;
-            while (attempt <= 3)
+            if (manageTransaction)
             {
-                using var transaction = await _context.Database.BeginTransactionAsync();
-                try
+                var attempt = 1;
+                while (attempt <= 3)
                 {
-                    var record = await _repository.GetByIdAsync(id);
-                    record.BlDate = DateTime.UtcNow;
-                    record.BlUserId = userName;
-                    await _repository.UpdateAsync(record);
-
-                    if (record.Status == OrderStatus.Open || record.Status == OrderStatus.Partial)
+                    using var transaction = await _context.Database.BeginTransactionAsync();
+                    try
                     {
-                        var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
-                        product.InboundStock -= record.Quantity;
-                        product.LcUserId = userName;
-                        product.LcDate = DateTime.UtcNow;
-                        await _context.SaveChangesAsync();
+                        await UnblockInternalAsync(id, userName);
+
+                        await transaction.CommitAsync();
+                        break;
                     }
+                    catch (DbUpdateConcurrencyException ex)
+                    {
+                        await transaction.RollbackAsync();
 
-                    await transaction.CommitAsync();
-                    break;
-                }
-                catch (DbUpdateConcurrencyException ex)
-                {
-                    await transaction.RollbackAsync();
+                        if (++attempt > 3)
+                            throw;
 
-                    if (++attempt > 3)
+                        await Task.Delay(100 * attempt);
+                    }
+                    catch (Exception ex)
+                    {
+                        await transaction.RollbackAsync();
                         throw;
-
-                    await Task.Delay(100 * attempt);
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
+                    }
                 }
             }
+            else
+            {
+                await UnblockInternalAsync(id, userName);
+            }
+            
         }
 
-        public async Task Unblock(int id, string userName)
+        private async Task UnblockInternalAsync(int id, string userName)
         {
-            var attempt = 1;
-            while (attempt <= 3)
+            var record = await _repository.GetByIdAsync(id);
+            record.BlDate = null;
+            record.BlUserId = null;
+            record.LcDate = DateTime.UtcNow;
+            record.LcUserId = userName;
+
+            await _repository.UpdateAsync(record);
+
+            if (record.Status == OrderStatus.Open || record.Status == OrderStatus.Partial)
             {
-                using var transaction = await _context.Database.BeginTransactionAsync();
-                try
-                {
-                    var record = await _repository.GetByIdAsync(id);
-                    record.BlDate = null;
-                    record.BlUserId = null;
-                    record.LcDate = DateTime.UtcNow;
-                    record.LcUserId = userName;
-
-                    await _repository.UpdateAsync(record);
-
-                    if (record.Status == OrderStatus.Open || record.Status == OrderStatus.Partial)
-                    {
-                        var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
-                        product.InboundStock += record.Quantity;
-                        product.LcUserId = userName;
-                        product.LcDate = DateTime.UtcNow;
-                        await _context.SaveChangesAsync();
-                    }
-
-                    await transaction.CommitAsync();
-                    break;
-                }
-                catch (DbUpdateConcurrencyException ex)
-                {
-                    await transaction.RollbackAsync();
-
-                    if (++attempt > 3)
-                        throw;
-
-                    await Task.Delay(100 * attempt);
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
-                }
+                var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
+                product.InboundStock += record.Quantity;
+                product.LcUserId = userName;
+                product.LcDate = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
             }
         }
     }

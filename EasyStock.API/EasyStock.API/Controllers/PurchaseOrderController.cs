@@ -50,7 +50,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null) return BadRequest();
             var entity = _mapper.Map<PurchaseOrder>(dto);
-            await _service.AddAsync(entity, HttpContext.User.Identity!.Name!);
+            await _purchaseOrderService.AddAsync(entity, HttpContext.User.Identity!.Name!);
 
             var resultDto = _mapper.Map<OutputPurchaseOrderDetailDto>(entity);
             return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
@@ -69,21 +69,21 @@ namespace EasyStock.API.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            await _service.DeleteAsync(id);
+            await _purchaseOrderService.DeleteAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 
         [HttpPost("block")]
         public async Task<ActionResult> Block(int id)
         {
-            await _service.BlockAsync(id, HttpContext.User.Identity!.Name!);
+            await _purchaseOrderService.BlockAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 
         [HttpPost("unblock")]
         public async Task<ActionResult> Unblock(int id)
         {
-            await _service.UnblockAsync(id, HttpContext.User.Identity!.Name!);
+            await _purchaseOrderService.UnblockAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 
