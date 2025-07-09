@@ -8,7 +8,7 @@ namespace EasyStock.API.Mapping
     {
         public SupplierMappingProfile()
         {
-            CreateMap<Supplier, OutputSupplierDto>();
+            CreateMap<Supplier, OutputSupplierOverviewDto>();
             CreateMap<CreateSupplierDto, Supplier>();
             CreateMap<UpdateSupplierDto, Supplier>();
         }

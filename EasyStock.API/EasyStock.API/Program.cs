@@ -87,6 +87,8 @@ builder.Services.AddScoped<IOrderNumberCounterService, OrderNumberCounterService
 
 builder.Services.AddScoped<IRetryableTransactionService, IRetryableTransactionService>();
 
+builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

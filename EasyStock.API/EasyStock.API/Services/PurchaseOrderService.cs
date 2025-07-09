@@ -13,14 +13,16 @@ namespace EasyStock.API.Services
         private readonly IRepository<PurchaseOrder> _repository;
         private readonly IRetryableTransactionService _retryableTransactionService;
         private readonly IPurchaseOrderLineService _purchaseOrderLineService;
+        private readonly ISupplierRepository _supplierRepository;
 
-        public PurchaseOrderService(IPurchaseOrderRepository purchaseOrderRepository, IOrderNumberCounterService orderNumberCounterService, IRepository<PurchaseOrder> repository, IRetryableTransactionService retryableTransactionService, IPurchaseOrderLineService purchaseOrderLineService)
+        public PurchaseOrderService(IPurchaseOrderRepository purchaseOrderRepository, IOrderNumberCounterService orderNumberCounterService, IRepository<PurchaseOrder> repository, IRetryableTransactionService retryableTransactionService, IPurchaseOrderLineService purchaseOrderLineService, ISupplierRepository supplierRepository)
         {
             _purchaseOrderRepository = purchaseOrderRepository;
             _orderNumberCounterService = orderNumberCounterService;
             _repository = repository;
             _retryableTransactionService = retryableTransactionService;
             _purchaseOrderLineService = purchaseOrderLineService;
+            _supplierRepository = supplierRepository;
         }
 
         public async Task<IEnumerable<PurchaseOrderOverview>> GetAllAsync()
@@ -95,5 +97,67 @@ namespace EasyStock.API.Services
             });
         }
 
+        public async Task<List<PurchaseOrder>> AddFromSalesOrder(int salesOrderId, Dictionary<int, int> productSuppliers, string userName)
+        {
+            var so = await _repository.GetByIdAsync(salesOrderId);
+            if (so == null)
+                throw new Exception($"Salesorder with id {salesOrderId} not found.");
+
+            var supplierIds = productSuppliers.Values.Distinct().ToList();
+            var suppliers = await _supplierRepository.GetByIds(supplierIds);
+
+            var groupBySupplier = productSuppliers.GroupBy(d => d.Value);
+
+            var purchaseOrders = new List<PurchaseOrder>();
+
+            await _retryableTransactionService.ExecuteAsync(async () =>
+            {
+                foreach (var supplierGroup in groupBySupplier)
+                {
+                    var supplierId = supplierGroup.Key;
+                    var supplier = suppliers.First(s => s.Id == supplierId);
+
+                    var po = new PurchaseOrder
+                    {
+                        OrderNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.PurchaseOrder),
+                        SupplierId = supplierId,
+                        Status = OrderStatus.Open,
+                        CrDate = DateTime.UtcNow,
+                        LcDate = DateTime.UtcNow,
+                        CrUserId = userName,
+                        LcUserId = userName,
+                        Supplier = supplier,
+                        Lines = new List<PurchaseOrderLine>()
+                    };
+
+                    var productIdsForSupplier = supplierGroup.Select(p => p.Key).ToList();
+
+                    foreach (var productId in productIdsForSupplier)
+                    {
+                        var soLine = so.Lines.First(l => l.ProductId == productId);
+
+                        var poLine = new PurchaseOrderLine
+                        {
+                            PurchaseOrder = po,
+                            ProductId = productId,
+                            Product = soLine.Product,
+                            Quantity = soLine.Quantity,
+                            UnitPrice = soLine.Product.CostPrice,
+                            Status = OrderStatus.Open,
+                            CrDate = DateTime.UtcNow,
+                            LcDate = DateTime.UtcNow,
+                            CrUserId = userName,
+                            LcUserId = userName,
+                        };
+                        po.Lines.Add(poLine);
+                    }
+
+                    await _repository.AddAsync(po);
+                    purchaseOrders.Add(po);
+                }
+            });
+
+            return purchaseOrders;
+        }
     }
 }

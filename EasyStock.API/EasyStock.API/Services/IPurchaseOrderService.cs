@@ -11,5 +11,6 @@ namespace EasyStock.API.Services
         Task DeleteAsync(int id, string userName);
         Task BlockAsync(int id, string userName);
         Task UnblockAsync(int id, string userName);
+        Task<List<PurchaseOrder>> AddFromSalesOrder(int salesOrderId, Dictionary<int, int> productSuppliers, string userName);
     }
 }

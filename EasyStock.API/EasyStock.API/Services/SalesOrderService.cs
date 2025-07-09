@@ -95,5 +95,17 @@ namespace EasyStock.API.Services
             });
         }
 
+        public async Task<List<Product>> GetProductsWithSuppliersForOrder(int id)
+        {
+            var products = new List<Product>();
+            var so = await _repository.GetByIdAsync(id);
+            foreach (var line in so.Lines)
+            {
+                products.Add(line.Product);
+            }
+
+            return products;
+        }
+
     }
 }

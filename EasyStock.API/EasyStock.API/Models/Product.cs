@@ -41,6 +41,9 @@ namespace EasyStock.API.Models
         public int AvailableStock { get; set; }
 
         [Range(0, int.MaxValue)]
+        public int BackOrderedStock { get; set; }
+
+        [Range(0, int.MaxValue)]
         public int MinimumStock { get; set; }
 
         public bool AutoRestock { get; set; }
@@ -54,6 +57,8 @@ namespace EasyStock.API.Models
 
         [Required]
         public required Category Category { get; set; }
+
+        public ICollection<Supplier> Suppliers { get; set; } = new List<Supplier>();
 
     }
 }

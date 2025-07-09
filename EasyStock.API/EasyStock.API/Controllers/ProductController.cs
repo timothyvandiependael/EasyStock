@@ -39,8 +39,9 @@ namespace EasyStock.API.Controllers
             var entity = await _service.GetByIdAsync(id);
             if (entity == null) return NotFound();
             var dto = _mapper.Map<OutputProductDetailDto>(entity);
-            dto.AutoRestockSupplier = entity.AutoRestockSupplier == null ? null! : _mapper.Map<OutputSupplierDto>(entity.AutoRestockSupplier);
+            dto.AutoRestockSupplier = entity.AutoRestockSupplier == null ? null! : _mapper.Map<OutputSupplierOverviewDto>(entity.AutoRestockSupplier);
             dto.Category = entity.Category == null ? null! : _mapper.Map<OutputCategoryDto>(entity.Category);
+            dto.Suppliers = _mapper.Map<List<OutputSupplierOverviewDto>>(entity.Suppliers);
             return Ok(dto);
         }
 

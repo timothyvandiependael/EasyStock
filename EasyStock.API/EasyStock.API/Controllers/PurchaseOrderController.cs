@@ -38,7 +38,7 @@ namespace EasyStock.API.Controllers
             var entity = await _service.GetByIdAsync(id);
             if (entity == null) return NotFound();
             var dto = _mapper.Map<OutputPurchaseOrderDetailDto>(entity);
-            dto.Supplier = _mapper.Map<OutputSupplierDto>(entity.Supplier);
+            dto.Supplier = _mapper.Map<OutputSupplierOverviewDto>(entity.Supplier);
             dto.Lines = _mapper.Map<List<OutputPurchaseOrderLineOverviewDto>>(entity.Lines);
 
 
@@ -54,6 +54,16 @@ namespace EasyStock.API.Controllers
 
             var resultDto = _mapper.Map<OutputPurchaseOrderDetailDto>(entity);
             return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
+        }
+
+        [HttpPost("fromsalesorder")]
+        public async Task<ActionResult> AddFromSalesOrder([FromBody] CreatePurchaseOrderFromSalesOrderDto dto)
+        {
+            if (dto == null) return BadRequest();
+            var resultList = await _purchaseOrderService.AddFromSalesOrder(dto.SalesOrderId, dto.ProductSuppliers, HttpContext.User.Identity!.Name!);
+
+            var resultDtoList = _mapper.Map<List<OutputPurchaseOrderDetailDto>>(resultList);
+            return Ok(resultDtoList);
         }
 
         [HttpPut("{id}")]

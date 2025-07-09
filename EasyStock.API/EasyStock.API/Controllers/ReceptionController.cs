@@ -38,7 +38,7 @@ namespace EasyStock.API.Controllers
             var entity = await _service.GetByIdAsync(id);
             if (entity == null) return NotFound();
             var dto = _mapper.Map<OutputReceptionDetailDto>(entity);
-            dto.Supplier = _mapper.Map<OutputSupplierDto>(entity.Supplier);
+            dto.Supplier = _mapper.Map<OutputSupplierOverviewDto>(entity.Supplier);
             dto.Lines = _mapper.Map<List<OutputReceptionLineOverviewDto>>(entity.Lines);
 
 

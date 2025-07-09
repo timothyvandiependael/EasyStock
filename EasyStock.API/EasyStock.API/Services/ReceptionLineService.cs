@@ -79,7 +79,24 @@ namespace EasyStock.API.Services
                 product.LcUserId = userName;
                 product.InboundStock -= entity.Quantity;
                 product.TotalStock += entity.Quantity;
-                product.AvailableStock += entity.Quantity;
+
+                product.AvailableStock +=
+                    product.BackOrderedStock > entity.Quantity
+                    ? 0
+                    : (entity.Quantity - product.BackOrderedStock);
+
+                product.ReservedStock +=
+                    product.BackOrderedStock > entity.Quantity
+                    ? entity.Quantity
+                    : product.BackOrderedStock;
+
+                if (product.BackOrderedStock > 0)
+                {
+                    product.BackOrderedStock -=
+                        product.BackOrderedStock > entity.Quantity
+                        ? entity.Quantity
+                        : product.BackOrderedStock;
+                }
 
                 await _repository.AddAsync(entity);
             });
@@ -108,7 +125,45 @@ namespace EasyStock.API.Services
                     product.LcUserId = userName;
                     product.InboundStock -= difference;
                     product.TotalStock += difference;
-                    product.AvailableStock += difference;
+
+                    if (difference > 0)
+                    {
+                        product.AvailableStock +=
+                        product.BackOrderedStock > difference
+                        ? 0
+                        : (difference - product.BackOrderedStock);
+
+                        product.ReservedStock +=
+                            product.BackOrderedStock > difference
+                            ? difference
+                            : product.BackOrderedStock;
+
+                        if (product.BackOrderedStock > 0)
+                        {
+                            product.BackOrderedStock -=
+                                product.BackOrderedStock > difference
+                                ? difference
+                                : product.BackOrderedStock;
+                        }
+                    }
+                    else
+                    {
+                        difference = Math.Abs(difference);
+                        var tmpAvailableStock = product.AvailableStock - difference;
+                        if (tmpAvailableStock < 0) // Meaning it came originally from backorder
+                        {
+                            var stockShortage = Math.Abs(tmpAvailableStock);
+                            product.AvailableStock = 0;
+                            product.ReservedStock -= stockShortage;
+                            product.BackOrderedStock += stockShortage;
+                        }
+                        else
+                        {
+                            product.AvailableStock -= difference;
+                        }
+                    }
+
+
                 }
 
                 await _repository.UpdateAsync(entity);
@@ -145,7 +200,19 @@ namespace EasyStock.API.Services
             product.LcUserId = userName;
             product.InboundStock += receptionLine.Quantity;
             product.TotalStock -= receptionLine.Quantity;
-            product.AvailableStock -= receptionLine.Quantity;
+
+            var tmpAvailableStock = product.AvailableStock - receptionLine.Quantity;
+            if (tmpAvailableStock < 0) // Meaning it came originally from backorder
+            {
+                var stockShortage = Math.Abs(tmpAvailableStock);
+                product.AvailableStock = 0;
+                product.ReservedStock -= stockShortage;
+                product.BackOrderedStock += stockShortage;
+            }
+            else
+            {
+                product.AvailableStock -= receptionLine.Quantity;
+            }
 
             await _repository.DeleteAsync(id);
         }
@@ -163,7 +230,7 @@ namespace EasyStock.API.Services
             {
                 await BlockInternalAsync(id, userName);
             }
-            
+
         }
 
         private async Task BlockInternalAsync(int id, string userName)
@@ -183,7 +250,19 @@ namespace EasyStock.API.Services
             product.LcUserId = userName;
             product.InboundStock += receptionLine.Quantity;
             product.TotalStock -= receptionLine.Quantity;
-            product.AvailableStock -= receptionLine.Quantity;
+
+            var tmpAvailableStock = product.AvailableStock - receptionLine.Quantity;
+            if (tmpAvailableStock < 0) // Meaning it came originally from backorder
+            {
+                var stockShortage = Math.Abs(tmpAvailableStock);
+                product.AvailableStock = 0;
+                product.ReservedStock -= stockShortage;
+                product.BackOrderedStock += stockShortage;
+            }
+            else
+            {
+                product.AvailableStock -= receptionLine.Quantity;
+            }
 
             await _repository.UpdateAsync(receptionLine);
         }
@@ -201,7 +280,7 @@ namespace EasyStock.API.Services
             {
                 await UnblockInternalAsync(id, userName);
             }
-            
+
         }
 
         private async Task UnblockInternalAsync(int id, string userName)
@@ -223,7 +302,24 @@ namespace EasyStock.API.Services
             product.LcUserId = userName;
             product.InboundStock -= receptionLine.Quantity;
             product.TotalStock += receptionLine.Quantity;
-            product.AvailableStock += receptionLine.Quantity;
+
+            product.AvailableStock +=
+                    product.BackOrderedStock > receptionLine.Quantity
+                    ? 0
+                    : (receptionLine.Quantity - product.BackOrderedStock);
+
+            product.ReservedStock +=
+                product.BackOrderedStock > receptionLine.Quantity
+                ? receptionLine.Quantity
+                : product.BackOrderedStock;
+
+            if (product.BackOrderedStock > 0)
+            {
+                product.BackOrderedStock -=
+                    product.BackOrderedStock > receptionLine.Quantity
+                    ? receptionLine.Quantity
+                    : product.BackOrderedStock;
+            }
 
             await _repository.UpdateAsync(receptionLine);
         }

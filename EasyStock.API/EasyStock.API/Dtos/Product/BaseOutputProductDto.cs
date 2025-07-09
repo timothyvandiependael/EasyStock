@@ -16,6 +16,7 @@ namespace EasyStock.API.Dtos
         public int ReservedStock { get; set; }
         public int InboundStock { get; set; }
         public int AvailableStock { get; set; }
+        public int BackOrderedStock { get; set; }
         public int MinimumStock { get; set; }
         public bool AutoRestock { get; set; }
         public int? AutoRestockSupplierId { get; set; }

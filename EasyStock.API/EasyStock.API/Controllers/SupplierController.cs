@@ -26,7 +26,7 @@ namespace EasyStock.API.Controllers
         public async Task<ActionResult<IEnumerable<Supplier>>> GetAll()
         {
             var entities = await _service.GetAllAsync();
-            var dtos = _mapper.Map<IEnumerable<OutputSupplierDto>>(entities);
+            var dtos = _mapper.Map<IEnumerable<OutputSupplierOverviewDto>>(entities);
             return Ok(dtos);
         }
 
@@ -35,7 +35,9 @@ namespace EasyStock.API.Controllers
         {
             var entity = await _service.GetByIdAsync(id);
             if (entity == null) return NotFound();
-            var dto = _mapper.Map<OutputSupplierDto>(entity);
+            var dto = _mapper.Map<OutputSupplierDetailDto>(entity);
+            dto.Products = _mapper.Map<List<OutputProductOverviewDto>>(entity.Products);
+            dto.PurchaseOrders = _mapper.Map<List<OutputPurchaseOrderOverviewDto>>(entity.PurchaseOrders);
             return Ok(dto);
         }
 
@@ -46,7 +48,7 @@ namespace EasyStock.API.Controllers
             var entity = _mapper.Map<Supplier>(dto);
             await _service.AddAsync(entity, HttpContext.User.Identity!.Name!);
 
-            var resultDto = _mapper.Map<OutputSupplierDto>(entity);
+            var resultDto = _mapper.Map<OutputSupplierOverviewDto>(entity);
             return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
         }
 
@@ -82,14 +84,14 @@ namespace EasyStock.API.Controllers
         }
 
         [HttpPost("advanced")]
-        public async Task<ActionResult<PaginationResult<OutputSupplierDto>>> GetAdvanced([FromBody] AdvancedQueryParametersDto parameters)
+        public async Task<ActionResult<PaginationResult<OutputSupplierOverviewDto>>> GetAdvanced([FromBody] AdvancedQueryParametersDto parameters)
         {
             if (parameters == null || parameters.Filters == null || parameters.Sorting == null) return BadRequest("Missing parameters");
 
             var result = await _service.GetAdvancedAsync(parameters.Filters, parameters.Sorting, parameters.Pagination);
-            var dtoItems = _mapper.Map<List<OutputSupplierDto>>(result.Data);
+            var dtoItems = _mapper.Map<List<OutputSupplierOverviewDto>>(result.Data);
 
-            return Ok(new PaginationResult<OutputSupplierDto>
+            return Ok(new PaginationResult<OutputSupplierOverviewDto>
             {
                 Data = dtoItems,
                 TotalCount = result.TotalCount

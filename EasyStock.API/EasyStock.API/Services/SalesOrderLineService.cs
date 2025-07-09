@@ -39,8 +39,19 @@ namespace EasyStock.API.Services
                 var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
                 if (product == null)
                     throw new InvalidOperationException($"Product with ID {entity.ProductId} not found when updating reserved stock.");
-                product.ReservedStock += entity.Quantity;
-                product.AvailableStock -= entity.Quantity;
+                
+                if (entity.Quantity > product.AvailableStock)
+                {
+                    product.ReservedStock = product.AvailableStock;
+                    product.BackOrderedStock = entity.Quantity - product.AvailableStock;
+                    product.AvailableStock = 0;
+                }
+                else
+                {
+                    product.ReservedStock += entity.Quantity;
+                    product.AvailableStock -= entity.Quantity;
+                }
+
                 product.LcUserId = userName;
                 product.LcDate = DateTime.UtcNow;
             });
@@ -67,8 +78,47 @@ namespace EasyStock.API.Services
                         var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
                         if (product == null)
                             throw new InvalidOperationException($"Product with ID {entity.ProductId} not found when updating reserved stock.");
-                        product.ReservedStock += difference;
-                        product.AvailableStock -= difference;
+
+                        if (difference > 0)
+                        {
+                            if (difference > product.AvailableStock)
+                            {
+                                product.ReservedStock += product.AvailableStock;
+                                product.BackOrderedStock += difference - product.AvailableStock;
+                                product.AvailableStock = 0;
+                            }
+                            else
+                            {
+                                product.ReservedStock += difference;
+                                product.AvailableStock -= difference;
+                            }
+                        }
+                        else
+                        {
+                            difference = Math.Abs(difference);
+
+                            if (product.BackOrderedStock > 0)
+                            {
+                                var tmpBackOrderedStock = product.BackOrderedStock - difference;
+                                if (tmpBackOrderedStock >= 0)
+                                {
+                                    product.BackOrderedStock = tmpBackOrderedStock;
+                                }
+                                else
+                                {
+                                    product.BackOrderedStock = 0;
+                                    tmpBackOrderedStock = Math.Abs(tmpBackOrderedStock);
+                                    product.ReservedStock -= tmpBackOrderedStock;
+                                    product.AvailableStock += tmpBackOrderedStock;
+                                }
+                            }
+                            else
+                            {
+                                product.ReservedStock -= difference;
+                                product.AvailableStock += difference;
+                            }
+                        }
+
                         product.LcUserId = userName;
                         product.LcDate = DateTime.UtcNow;
                     }
@@ -102,8 +152,28 @@ namespace EasyStock.API.Services
                 var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
                 if (product == null)
                     throw new InvalidOperationException($"Product with ID {record.ProductId} not found when updating reserved stock.");
-                product.ReservedStock -= record.Quantity;
-                product.AvailableStock += record.Quantity;
+
+                if (product.BackOrderedStock > 0)
+                {
+                    var tmpBackOrderedStock = product.BackOrderedStock - record.Quantity;
+                    if (tmpBackOrderedStock >= 0)
+                    {
+                        product.BackOrderedStock = tmpBackOrderedStock;
+                    }
+                    else
+                    {
+                        product.BackOrderedStock = 0;
+                        tmpBackOrderedStock = Math.Abs(tmpBackOrderedStock);
+                        product.ReservedStock -= tmpBackOrderedStock;
+                        product.AvailableStock += tmpBackOrderedStock;
+                    }
+                }
+                else
+                {
+                    product.ReservedStock -= record.Quantity;
+                    product.AvailableStock += record.Quantity;
+                }
+
                 product.LcUserId = userName;
                 product.LcDate = DateTime.UtcNow;
             }
@@ -140,8 +210,28 @@ namespace EasyStock.API.Services
                 var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
                 if (product == null)
                     throw new InvalidOperationException($"Product with ID {record.ProductId} not found when updating reserved stock.");
-                product.ReservedStock -= record.Quantity;
-                product.AvailableStock += record.Quantity;
+
+                if (product.BackOrderedStock > 0)
+                {
+                    var tmpBackOrderedStock = product.BackOrderedStock - record.Quantity;
+                    if (tmpBackOrderedStock >= 0)
+                    {
+                        product.BackOrderedStock = tmpBackOrderedStock;
+                    }
+                    else
+                    {
+                        product.BackOrderedStock = 0;
+                        tmpBackOrderedStock = Math.Abs(tmpBackOrderedStock);
+                        product.ReservedStock -= tmpBackOrderedStock;
+                        product.AvailableStock += tmpBackOrderedStock;
+                    }
+                }
+                else
+                {
+                    product.ReservedStock -= record.Quantity;
+                    product.AvailableStock += record.Quantity;
+                }
+
                 product.LcUserId = userName;
                 product.LcDate = DateTime.UtcNow;
             }
@@ -180,8 +270,19 @@ namespace EasyStock.API.Services
                 var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
                 if (product == null)
                     throw new InvalidOperationException($"Product with ID {record.ProductId} not found when updating reserved stock.");
-                product.ReservedStock += record.Quantity;
-                product.AvailableStock -= record.Quantity;
+
+                if (record.Quantity > product.AvailableStock)
+                {
+                    product.ReservedStock = product.AvailableStock;
+                    product.BackOrderedStock = record.Quantity - product.AvailableStock;
+                    product.AvailableStock = 0;
+                }
+                else
+                {
+                    product.ReservedStock += record.Quantity;
+                    product.AvailableStock -= record.Quantity;
+                }
+
                 product.LcUserId = userName;
                 product.LcDate = DateTime.UtcNow;
             }
