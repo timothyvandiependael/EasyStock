@@ -9,7 +9,6 @@ namespace EasyStock.API.Services
         Task<PaginationResult<PurchaseOrderLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination);
 
         Task AddAsync(PurchaseOrderLine entity, string userName);
-
         Task UpdateAsync(PurchaseOrderLine entity, string userName);
         Task DeleteAsync(int id, string userName, bool manageTransaction = true);
         Task BlockAsync(int id, string userName, bool manageTransaction = true);

@@ -27,5 +27,8 @@ namespace EasyStock.API.Models
 
         [Column(TypeName = "varchar(10)")]
         public OrderStatus Status { get; set; }
+        public ICollection<DispatchLine>? DispatchLines { get; set; }
+        public int DispatchedQuantity =>
+            DispatchLines?.Sum(rl => rl.Quantity) ?? 0;
     }
 }

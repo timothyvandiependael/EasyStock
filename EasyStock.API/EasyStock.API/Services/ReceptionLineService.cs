@@ -117,78 +117,115 @@ namespace EasyStock.API.Services
 
         public async Task DeleteAsync(int id, string userName, bool manageTransaction = true)
         {
-            await _retryableTransactionService.ExecuteAsync(async () =>
+            if (manageTransaction)
             {
-                var receptionLine = await _repository.GetByIdAsync(id);
-                if (receptionLine == null)
-                    throw new InvalidOperationException($"Unable to find record with ID {id}");
+                await _retryableTransactionService.ExecuteAsync(async () =>
+                {
+                    await DeleteInternalAsync(id, userName);
+                });
+            }
+            else
+            {
+                await DeleteInternalAsync(id, userName);
+            }
+        }
 
-                await SetPOStatusFields(0, receptionLine.PurchaseOrderLineId, userName);
+        private async Task DeleteInternalAsync(int id, string userName)
+        {
+            var receptionLine = await _repository.GetByIdAsync(id);
+            if (receptionLine == null)
+                throw new InvalidOperationException($"Unable to find record with ID {id}");
 
-                var product = await _genericProductRepository.GetByIdAsync(receptionLine.ProductId);
-                if (product == null)
-                    throw new InvalidOperationException($"Unable to find product with ID {receptionLine.ProductId}");
-                product.LcDate = DateTime.UtcNow;
-                product.LcUserId = userName;
-                product.InboundStock += receptionLine.Quantity;
-                product.TotalStock -= receptionLine.Quantity;
-                product.AvailableStock -= receptionLine.Quantity;
+            await SetPOStatusFields(0, receptionLine.PurchaseOrderLineId, userName);
 
-                await _repository.DeleteAsync(id);
-            });
+            var product = await _genericProductRepository.GetByIdAsync(receptionLine.ProductId);
+            if (product == null)
+                throw new InvalidOperationException($"Unable to find product with ID {receptionLine.ProductId}");
+            product.LcDate = DateTime.UtcNow;
+            product.LcUserId = userName;
+            product.InboundStock += receptionLine.Quantity;
+            product.TotalStock -= receptionLine.Quantity;
+            product.AvailableStock -= receptionLine.Quantity;
 
+            await _repository.DeleteAsync(id);
         }
 
         public async Task BlockAsync(int id, string userName, bool manageTransaction = true)
         {
-            await _retryableTransactionService.ExecuteAsync(async () =>
+            if (manageTransaction)
             {
-                var receptionLine = await _repository.GetByIdAsync(id);
-                if (receptionLine == null)
-                    throw new InvalidOperationException($"Unable to block record with ID {id}");
-                receptionLine.BlDate = DateTime.UtcNow;
-                receptionLine.BlUserId = userName;
+                await _retryableTransactionService.ExecuteAsync(async () =>
+                {
+                    await BlockInternalAsync(id, userName);
+                });
+            }
+            else
+            {
+                await BlockInternalAsync(id, userName);
+            }
+            
+        }
 
-                await SetPOStatusFields(0, receptionLine.PurchaseOrderLineId, userName);
+        private async Task BlockInternalAsync(int id, string userName)
+        {
+            var receptionLine = await _repository.GetByIdAsync(id);
+            if (receptionLine == null)
+                throw new InvalidOperationException($"Unable to block record with ID {id}");
+            receptionLine.BlDate = DateTime.UtcNow;
+            receptionLine.BlUserId = userName;
 
-                var product = await _genericProductRepository.GetByIdAsync(receptionLine.ProductId);
-                if (product == null)
-                    throw new InvalidOperationException($"Unable to find product with ID {receptionLine.ProductId}");
-                product.LcDate = DateTime.UtcNow;
-                product.LcUserId = userName;
-                product.InboundStock += receptionLine.Quantity;
-                product.TotalStock -= receptionLine.Quantity;
-                product.AvailableStock -= receptionLine.Quantity;
+            await SetPOStatusFields(0, receptionLine.PurchaseOrderLineId, userName);
 
-                await _repository.UpdateAsync(receptionLine);
-            });
+            var product = await _genericProductRepository.GetByIdAsync(receptionLine.ProductId);
+            if (product == null)
+                throw new InvalidOperationException($"Unable to find product with ID {receptionLine.ProductId}");
+            product.LcDate = DateTime.UtcNow;
+            product.LcUserId = userName;
+            product.InboundStock += receptionLine.Quantity;
+            product.TotalStock -= receptionLine.Quantity;
+            product.AvailableStock -= receptionLine.Quantity;
+
+            await _repository.UpdateAsync(receptionLine);
         }
 
         public async Task UnblockAsync(int id, string userName, bool manageTransaction = true)
         {
-            await _retryableTransactionService.ExecuteAsync(async () =>
+            if (manageTransaction)
             {
-                var receptionLine = await _repository.GetByIdAsync(id);
-                if (receptionLine == null)
-                    throw new InvalidOperationException($"Unable to unblock record with ID {id}");
-                receptionLine.BlDate = null;
-                receptionLine.BlUserId = null;
-                receptionLine.LcDate = DateTime.UtcNow;
-                receptionLine.LcUserId = userName;
+                await _retryableTransactionService.ExecuteAsync(async () =>
+                {
+                    await UnblockInternalAsync(id, userName);
+                });
+            }
+            else
+            {
+                await UnblockInternalAsync(id, userName);
+            }
+            
+        }
 
-                await SetPOStatusFields(receptionLine.Quantity, receptionLine.PurchaseOrderLineId, userName);
+        private async Task UnblockInternalAsync(int id, string userName)
+        {
+            var receptionLine = await _repository.GetByIdAsync(id);
+            if (receptionLine == null)
+                throw new InvalidOperationException($"Unable to unblock record with ID {id}");
+            receptionLine.BlDate = null;
+            receptionLine.BlUserId = null;
+            receptionLine.LcDate = DateTime.UtcNow;
+            receptionLine.LcUserId = userName;
 
-                var product = await _genericProductRepository.GetByIdAsync(receptionLine.ProductId);
-                if (product == null)
-                    throw new InvalidOperationException($"Unable to find product with ID {receptionLine.ProductId}");
-                product.LcDate = DateTime.UtcNow;
-                product.LcUserId = userName;
-                product.InboundStock -= receptionLine.Quantity;
-                product.TotalStock += receptionLine.Quantity;
-                product.AvailableStock += receptionLine.Quantity;
+            await SetPOStatusFields(receptionLine.Quantity, receptionLine.PurchaseOrderLineId, userName);
 
-                await _repository.UpdateAsync(receptionLine);
-            });
+            var product = await _genericProductRepository.GetByIdAsync(receptionLine.ProductId);
+            if (product == null)
+                throw new InvalidOperationException($"Unable to find product with ID {receptionLine.ProductId}");
+            product.LcDate = DateTime.UtcNow;
+            product.LcUserId = userName;
+            product.InboundStock -= receptionLine.Quantity;
+            product.TotalStock += receptionLine.Quantity;
+            product.AvailableStock += receptionLine.Quantity;
+
+            await _repository.UpdateAsync(receptionLine);
         }
     }
 }

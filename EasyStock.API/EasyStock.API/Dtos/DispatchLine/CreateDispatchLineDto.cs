@@ -13,5 +13,7 @@ namespace EasyStock.API.Dtos
         [Required]
         [Range(0, int.MaxValue)]
         public int Quantity { get; set; }
+        [Required]
+        public int SalesOrderLineId { get; set; }
     }
 }

@@ -17,5 +17,9 @@ namespace EasyStock.API.Models
         [Required]
         [Range(0, int.MaxValue)]
         public int Quantity { get; set; }
+
+        [Required]
+        public int SalesOrderLineId { get; set; }
+        public required SalesOrderLine SalesOrderLine { get; set; }
     }
 }
