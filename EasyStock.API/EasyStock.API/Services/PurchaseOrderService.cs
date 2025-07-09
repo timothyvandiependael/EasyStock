@@ -14,8 +14,10 @@ namespace EasyStock.API.Services
         private readonly IRetryableTransactionService _retryableTransactionService;
         private readonly IPurchaseOrderLineService _purchaseOrderLineService;
         private readonly ISupplierRepository _supplierRepository;
+        private readonly IRepository<Product> _genericProductRepository;
+        private readonly IRepository<Supplier> _genericSupplierRepository;
 
-        public PurchaseOrderService(IPurchaseOrderRepository purchaseOrderRepository, IOrderNumberCounterService orderNumberCounterService, IRepository<PurchaseOrder> repository, IRetryableTransactionService retryableTransactionService, IPurchaseOrderLineService purchaseOrderLineService, ISupplierRepository supplierRepository)
+        public PurchaseOrderService(IPurchaseOrderRepository purchaseOrderRepository, IOrderNumberCounterService orderNumberCounterService, IRepository<PurchaseOrder> repository, IRetryableTransactionService retryableTransactionService, IPurchaseOrderLineService purchaseOrderLineService, ISupplierRepository supplierRepository, IRepository<Product> genericProductRepository, IRepository<Supplier> genericSupplierRepository)
         {
             _purchaseOrderRepository = purchaseOrderRepository;
             _orderNumberCounterService = orderNumberCounterService;
@@ -23,6 +25,8 @@ namespace EasyStock.API.Services
             _retryableTransactionService = retryableTransactionService;
             _purchaseOrderLineService = purchaseOrderLineService;
             _supplierRepository = supplierRepository;
+            _genericProductRepository = genericProductRepository;
+            _genericSupplierRepository = genericSupplierRepository;
         }
 
         public async Task<IEnumerable<PurchaseOrderOverview>> GetAllAsync()
@@ -158,6 +162,57 @@ namespace EasyStock.API.Services
             });
 
             return purchaseOrders;
+        }
+
+        public async Task<PurchaseOrder?> AutoRestockProduct(int productId, string userName)
+        {
+            PurchaseOrder? po = null;
+
+            await _retryableTransactionService.ExecuteAsync(async () =>
+            {
+                var product = await _genericProductRepository.GetByIdAsync(productId);
+                if (product == null)
+                    throw new Exception($"Product with id {productId} not found.");
+                if (product.AutoRestockSupplierId == null)
+                    throw new Exception($"No autorestock supplier assigned for product with id {productId}");
+                if (product.AutoRestockSupplier == null)
+                    throw new Exception($"No supplier found for auto restock supplier id {product.AutoRestockSupplierId}");
+
+                po = new PurchaseOrder
+                {
+                    OrderNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.PurchaseOrder),
+                    SupplierId = product.AutoRestockSupplierId.Value,
+                    Status = OrderStatus.Open,
+                    CrDate = DateTime.UtcNow,
+                    LcDate = DateTime.UtcNow,
+                    CrUserId = userName,
+                    LcUserId = userName,
+                    Supplier = product.AutoRestockSupplier,
+                    Lines = new List<PurchaseOrderLine>()
+                };
+
+                var line = new PurchaseOrderLine
+                {
+                    PurchaseOrder = po,
+                    ProductId = productId,
+                    Product = product,
+                    Quantity = product.AutoRestockAmount,
+                    UnitPrice = product.CostPrice,
+                    Status = OrderStatus.Open,
+                    CrDate = DateTime.UtcNow,
+                    LcDate = DateTime.UtcNow,
+                    CrUserId = userName,
+                    LcUserId = userName,
+                };
+                po.Lines.Add(line);
+
+                await _repository.AddAsync(po);
+
+                
+            });
+
+            return po;
+
         }
     }
 }

@@ -16,12 +16,16 @@ namespace EasyStock.API.Controllers
         private readonly IService<SalesOrderLine> _service;
         private readonly IMapper _mapper;
         private readonly ISalesOrderLineService _salesOrderLineService;
+        private readonly IProductService _productService;
+        private readonly IPurchaseOrderService _purchaseOrderService;
 
-        public SalesOrderLineController(IService<SalesOrderLine> service, IMapper mapper, ISalesOrderLineService salesOrderLineService)
+        public SalesOrderLineController(IService<SalesOrderLine> service, IMapper mapper, ISalesOrderLineService salesOrderLineService, IProductService productService, IPurchaseOrderService purchaseOrderService)
         {
             _service = service;
             _mapper = mapper;
             _salesOrderLineService = salesOrderLineService;
+            _productService = productService;
+            _purchaseOrderService = purchaseOrderService;
         }
 
         [HttpGet]
@@ -49,8 +53,23 @@ namespace EasyStock.API.Controllers
             if (dto == null) return BadRequest();
             var entity = _mapper.Map<SalesOrderLine>(dto);
             await _service.AddAsync(entity, HttpContext.User.Identity!.Name!);
-
             var resultDto = _mapper.Map<OutputSalesOrderLineDetailDto>(entity);
+
+            var isBelowMinimumStock = await _productService.IsProductBelowMinimumStock(entity.ProductId);
+            if (isBelowMinimumStock)
+            {
+                resultDto.DecreasedStockBelowMinimum = true;
+                if (entity.Product.AutoRestock)
+                {
+                    var po = await _purchaseOrderService.AutoRestockProduct(entity.Product.Id, HttpContext.User.Identity!.Name!);
+                    if (po == null)
+                        throw new Exception("Error while creating purchase order for autorestock.");
+                    resultDto.AutoRestockPurchaseOrderId = po.Id;
+                    resultDto.AutoRestockPurchaseOrderNumber = po.OrderNumber;
+                    resultDto.AutoRestocked = true;
+                }
+            }
+
             return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
         }
 

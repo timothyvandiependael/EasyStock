@@ -51,6 +51,7 @@ namespace EasyStock.API.Models
         public int? AutoRestockSupplierId { get; set; }
 
         public Supplier? AutoRestockSupplier { get; set; }
+        public int AutoRestockAmount { get; set; }
 
         [Required]
         public int CategoryId { get; set; }

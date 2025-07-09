@@ -46,6 +46,16 @@ namespace EasyStock.API.Data
             modelBuilder.Entity<UserPermission>().HasKey(o => o.Id);
             modelBuilder.Entity<OrderNumberCounter>().HasKey(o => o.Id);
 
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.AutoRestockSupplier)
+                .WithMany()
+                .HasForeignKey(p => p.AutoRestockSupplierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Product>()
+                .HasMany(p => p.Suppliers)
+                .WithMany(s => s.Products);
+
         }
     }
 }
