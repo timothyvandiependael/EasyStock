@@ -6,6 +6,7 @@ namespace EasyStock.API.Models
     {
         public int Id { get; set; }
         public int DispatchId { get; set; }
+        public int LineNumber { get; set; }
         public required Dispatch Dispatch { get; set; }
 
 

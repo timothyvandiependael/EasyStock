@@ -13,8 +13,9 @@ namespace EasyStock.API.Services
         private readonly IRepository<Product> _genericProductRepository;
         private readonly IRepository<SalesOrderLine> _genericSalesOrderLineRepository;
         private readonly IRepository<SalesOrder> _genericSalesOrderRepository;
+        private readonly IDispatchService _dispatchService;
 
-        public DispatchLineService(IDispatchLineRepository dispatchLineRepository, IRetryableTransactionService retryableTransactionService, IRepository<DispatchLine> repository, IRepository<Product> genericProductRepository, IRepository<SalesOrder> genericSalesOrderRepository, IRepository<SalesOrderLine> genericSalesOrderLineRepository)
+        public DispatchLineService(IDispatchLineRepository dispatchLineRepository, IRetryableTransactionService retryableTransactionService, IRepository<DispatchLine> repository, IRepository<Product> genericProductRepository, IRepository<SalesOrder> genericSalesOrderRepository, IRepository<SalesOrderLine> genericSalesOrderLineRepository, IDispatchService dispatchService)
         {
             _dispatchLineRepository = dispatchLineRepository;
             _retryableTransactionService = retryableTransactionService;
@@ -22,6 +23,7 @@ namespace EasyStock.API.Services
             _genericProductRepository = genericProductRepository;
             _genericSalesOrderRepository = genericSalesOrderRepository;
             _genericSalesOrderLineRepository = genericSalesOrderLineRepository;
+            _dispatchService = dispatchService;
         }
 
         public async Task<IEnumerable<DispatchLineOverview>> GetAllAsync()
@@ -70,6 +72,7 @@ namespace EasyStock.API.Services
                 entity.LcDate = entity.CrDate;
                 entity.CrUserId = userName;
                 entity.LcUserId = userName;
+                entity.LineNumber = await _dispatchService.GetNextLineNumberAsync(entity.DispatchId);
 
                 await SetSOStatusFields(entity.Quantity, entity.SalesOrderLineId, userName);
 

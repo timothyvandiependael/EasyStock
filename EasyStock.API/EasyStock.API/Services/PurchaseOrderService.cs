@@ -136,6 +136,7 @@ namespace EasyStock.API.Services
 
                     var productIdsForSupplier = supplierGroup.Select(p => p.Key).ToList();
 
+                    var lineNumber = 1;
                     foreach (var productId in productIdsForSupplier)
                     {
                         var soLine = so.Lines.First(l => l.ProductId == productId);
@@ -152,8 +153,10 @@ namespace EasyStock.API.Services
                             LcDate = DateTime.UtcNow,
                             CrUserId = userName,
                             LcUserId = userName,
+                            LineNumber = lineNumber
                         };
                         po.Lines.Add(poLine);
+                        lineNumber++;
                     }
 
                     await _repository.AddAsync(po);
@@ -203,6 +206,7 @@ namespace EasyStock.API.Services
                     LcDate = DateTime.UtcNow,
                     CrUserId = userName,
                     LcUserId = userName,
+                    LineNumber = 1
                 };
                 po.Lines.Add(line);
 
@@ -213,6 +217,14 @@ namespace EasyStock.API.Services
 
             return po;
 
+        }
+
+        public async Task<int> GetNextLineNumberAsync(int id)
+        {
+            var po = await _repository.GetByIdAsync(id);
+            if (po == null) throw new Exception($"Purchase order with id {id} not found.");
+            var nextLineNumber = po.Lines.Any() ? po.Lines.Max(l => l.LineNumber) + 1 : 1;
+            return nextLineNumber;
         }
     }
 }

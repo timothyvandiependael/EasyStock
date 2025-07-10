@@ -15,11 +15,13 @@ namespace EasyStock.API.Controllers
     {
         private readonly IService<User> _service;
         private readonly IMapper _mapper;
+        private readonly IAuthService _authService;
 
-        public UserController(IService<User> service, IMapper mapper)
+        public UserController(IService<User> service, IMapper mapper, IAuthService authService)
         {
             _service = service;
             _mapper = mapper;
+            _authService = authService;
         }
 
         [HttpGet]
@@ -44,13 +46,22 @@ namespace EasyStock.API.Controllers
         public async Task<ActionResult> Add([FromBody] CreateUserDto dto)
         {
             if (dto == null) return BadRequest();
+            var userExists = await _authService.UserExists(dto.UserName);
+            if (userExists)
+            {
+                ModelState.AddModelError("userName", "Username already exists.");
+                return ValidationProblem(ModelState);
+            }
+
             var entity = _mapper.Map<User>(dto);
+            entity.Permissions = _mapper.Map<List<UserPermission>>(dto.Permissions);
+
             await _service.AddAsync(entity, HttpContext.User.Identity!.Name!);
 
-            // TODO : CUSTOM LOGIC FOR USER CREATION WITH PASSWORD, USER SERVICE?
+            var pw = await _authService.AddAsync(entity, dto.Role, HttpContext.User.Identity!.Name!);
 
             var resultDto = _mapper.Map<OutputUserDetailDto>(entity);
-            return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
+            return Ok(new { password = pw });
         }
 
         [HttpPut("{id}")]

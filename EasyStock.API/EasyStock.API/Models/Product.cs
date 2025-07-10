@@ -29,22 +29,22 @@ namespace EasyStock.API.Models
         public decimal Discount { get; set; }
 
         [Range(0, int.MaxValue)]
-        public int TotalStock { get; set; }
+        public int TotalStock { get; set; } = 0;
 
         [Range(0, int.MaxValue)]
-        public int ReservedStock { get; set; }
+        public int ReservedStock { get; set; } = 0;
 
         [Range(0, int.MaxValue)]
-        public int InboundStock { get; set; }
+        public int InboundStock { get; set; } = 0;
 
         [Range(0, int.MaxValue)]
-        public int AvailableStock { get; set; }
+        public int AvailableStock { get; set; } = 0;
 
         [Range(0, int.MaxValue)]
-        public int BackOrderedStock { get; set; }
+        public int BackOrderedStock { get; set; } = 0;
 
         [Range(0, int.MaxValue)]
-        public int MinimumStock { get; set; }
+        public int MinimumStock { get; set; } = 0;
 
         public bool AutoRestock { get; set; }
 

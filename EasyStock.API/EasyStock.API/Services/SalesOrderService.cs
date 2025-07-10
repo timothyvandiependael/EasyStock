@@ -95,16 +95,25 @@ namespace EasyStock.API.Services
             });
         }
 
-        public async Task<List<Product>> GetProductsWithSuppliersForOrder(int id)
+        public async Task<List<Product>> GetProductsWithSuppliersForOrderAsync(int id)
         {
             var products = new List<Product>();
             var so = await _repository.GetByIdAsync(id);
+            if (so == null) throw new Exception($"Salesorder with id {id} not found.");
             foreach (var line in so.Lines)
             {
                 products.Add(line.Product);
             }
 
             return products;
+        }
+
+        public async Task<int> GetNextLineNumberAsync(int id)
+        {
+            var so = await _repository.GetByIdAsync(id);
+            if (so == null) throw new Exception($"Salesorder with id {id} not found.");
+            var nextLineNumber = so.Lines.Any() ? so.Lines.Max(l => l.LineNumber) + 1 : 1;
+            return nextLineNumber;
         }
 
     }

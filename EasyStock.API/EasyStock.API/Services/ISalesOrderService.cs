@@ -11,6 +11,7 @@ namespace EasyStock.API.Services
         Task DeleteAsync(int id, string userName);
         Task BlockAsync(int id, string userName);
         Task UnblockAsync(int id, string userName);
-        Task<List<Product>> GetProductsWithSuppliersForOrder(int id);
+        Task<List<Product>> GetProductsWithSuppliersForOrderAsync(int id);
+        Task<int> GetNextLineNumberAsync(int id);
     }
 }

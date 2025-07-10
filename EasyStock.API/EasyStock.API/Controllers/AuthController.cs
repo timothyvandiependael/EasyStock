@@ -18,11 +18,28 @@ namespace EasyStock.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            var token = await _authService.AuthenticateAsync(dto.UserName, dto.Password);
-            if (token == null)
+            var result = await _authService.AuthenticateAsync(dto.UserName, dto.Password);
+            if (result == null)
                 return Unauthorized();
 
-            return Ok(new { token });
+            return Ok(result);
+        }
+
+        [HttpPost("changepassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            var result = await _authService.ChangePasswordAsync(dto.UserId, dto.OldPassword, dto.NewPassword);
+
+            if (!result.Success)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Value);
+                }
+                return ValidationProblem(ModelState);
+            }
+
+            return Ok("Password changed succesfully.");
         }
     }
 }

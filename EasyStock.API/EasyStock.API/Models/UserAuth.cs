@@ -14,5 +14,6 @@ namespace EasyStock.API.Models
         public required string PasswordHash { get; set; }
 
         public required string Role { get; set; }
+        public bool MustChangePassword { get; set; } = true;
     }
 }

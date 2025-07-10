@@ -22,7 +22,7 @@ namespace EasyStock.API.Extensions
 
                 var constant = Expression.Constant(typedValue, property.Type);
 
-                Expression comparison;
+                Expression? comparison;
 
                 if (propertyType == typeof(string))
                 {
@@ -39,12 +39,20 @@ namespace EasyStock.API.Extensions
                 }
                 else if (propertyType == typeof(bool))
                 {
-                    comparison = filter.Operator switch
+                    switch (filter.Operator)
                     {
-                        "true" => Expression.Equal(property, constant),
-                        "false" => Expression.NotEqual(property, constant),
-                        _ => throw new NotSupportedException("Only '=' and '!=' are supported for boolean fields.")
-                    };
+                        case "true":
+                            comparison = Expression.Equal(property, constant);
+                            break;
+                        case "false":
+                            comparison = Expression.NotEqual(property, constant);
+                            break;
+                        case "any":
+                            comparison = null;
+                            break;
+                        default:
+                            throw new NotSupportedException($"'{filter.Operator}' operator not supported for boolean fields.");
+                    }
                 }
                 else
                 {
@@ -59,7 +67,8 @@ namespace EasyStock.API.Extensions
                     };
                 }
 
-                finalExpr = finalExpr == null ? comparison : Expression.AndAlso(finalExpr, comparison);
+                if (comparison != null)
+                    finalExpr = finalExpr == null ? comparison : Expression.AndAlso(finalExpr, comparison);
             }
 
             if (finalExpr == null)

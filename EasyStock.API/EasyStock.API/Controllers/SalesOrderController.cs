@@ -105,7 +105,7 @@ namespace EasyStock.API.Controllers
         [HttpPost("getproductswithsuppliersfororder")]
         public async Task<ActionResult<List<OutputProductDetailDto>>> GetProductsWithSuppliersForOrder(int id)
         {
-            var products = await _salesOrderService.GetProductsWithSuppliersForOrder(id);
+            var products = await _salesOrderService.GetProductsWithSuppliersForOrderAsync(id);
 
             var productSuppliers = _mapper.Map<List<OutputProductDetailDto>>(products);
             

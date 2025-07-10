@@ -12,8 +12,9 @@ namespace EasyStock.API.Services
         private readonly IRepository<ReceptionLine> _repository;
         private readonly IRepository<Product> _genericProductRepository;
         private readonly IRepository<PurchaseOrder> _genericPurchaseOrderRepository;
+        private readonly IReceptionService _receptionService;
 
-        public ReceptionLineService(IReceptionLineRepository receptionLineRepository, IRetryableTransactionService retryableTransactionService, IRepository<PurchaseOrderLine> genericPurchaseOrderLineRepository, IRepository<ReceptionLine> repository, IRepository<Product> genericProductRepository, IRepository<PurchaseOrder> genericPurchaseOrderRepository)
+        public ReceptionLineService(IReceptionLineRepository receptionLineRepository, IRetryableTransactionService retryableTransactionService, IRepository<PurchaseOrderLine> genericPurchaseOrderLineRepository, IRepository<ReceptionLine> repository, IRepository<Product> genericProductRepository, IRepository<PurchaseOrder> genericPurchaseOrderRepository, IReceptionService receptionService)
         {
             _receptionLineRepository = receptionLineRepository;
             _retryableTransactionService = retryableTransactionService;
@@ -21,6 +22,7 @@ namespace EasyStock.API.Services
             _repository = repository;
             _genericProductRepository = genericProductRepository;
             _genericPurchaseOrderRepository = genericPurchaseOrderRepository;
+            _receptionService = receptionService;
         }
 
         public async Task<IEnumerable<ReceptionLineOverview>> GetAllAsync()
@@ -69,6 +71,7 @@ namespace EasyStock.API.Services
                 entity.LcDate = entity.CrDate;
                 entity.CrUserId = userName;
                 entity.LcUserId = userName;
+                entity.LineNumber = await _receptionService.GetNextLineNumberAsync(entity.ReceptionId);
 
                 await SetPOStatusFields(entity.Quantity, entity.PurchaseOrderLineId, userName);
 

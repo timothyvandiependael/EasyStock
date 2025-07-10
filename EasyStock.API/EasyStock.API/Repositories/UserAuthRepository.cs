@@ -17,5 +17,21 @@ namespace EasyStock.API.Repositories
         {
             return await _dbContext.UserAuths.SingleOrDefaultAsync(u => u.UserName == userName);
         }
+
+        public async Task<UserAuth?> GetByIdAsync(int id)
+        {
+            return await _dbContext.UserAuths.SingleOrDefaultAsync(u => u.Id == id);
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task AddAsync(UserAuth userAuth)
+        {
+            await _dbContext.UserAuths.AddAsync(userAuth);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

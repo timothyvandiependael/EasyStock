@@ -12,13 +12,15 @@ namespace EasyStock.API.Services
         private readonly IRepository<PurchaseOrderLine> _repository;
         private readonly IRepository<Product> _genericProductRepository;
         private readonly IRetryableTransactionService _retryableTransactionService;
+        private readonly IPurchaseOrderService _purchaseOrderService;
 
-        public PurchaseOrderLineService(IPurchaseOrderLineRepository purchaseOrderLineRepository, IRepository<PurchaseOrderLine> repository, IRetryableTransactionService retryableTransactionService, IRepository<Product> genericProductRepository)
+        public PurchaseOrderLineService(IPurchaseOrderLineRepository purchaseOrderLineRepository, IRepository<PurchaseOrderLine> repository, IRetryableTransactionService retryableTransactionService, IRepository<Product> genericProductRepository, IPurchaseOrderService purchaseOrderService)
         {
             _purchaseOrderLineRepository = purchaseOrderLineRepository;
             _repository = repository;
             _retryableTransactionService = retryableTransactionService;
             _genericProductRepository = genericProductRepository;
+            _purchaseOrderService = purchaseOrderService;
         }
 
         public async Task<IEnumerable<PurchaseOrderLineOverview>> GetAllAsync()
@@ -36,6 +38,7 @@ namespace EasyStock.API.Services
                 entity.CrUserId = userName;
                 entity.LcUserId = userName;
                 entity.Status = OrderStatus.Open;
+                entity.LineNumber = await _purchaseOrderService.GetNextLineNumberAsync(entity.PurchaseOrderId);
                 await _repository.AddAsync(entity);
 
                 var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);

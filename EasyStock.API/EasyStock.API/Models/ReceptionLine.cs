@@ -6,6 +6,7 @@ namespace EasyStock.API.Models
     {
         public int Id { get; set; }
         public int ReceptionId { get; set; }
+        public int LineNumber { get; set; }
 
         [MaxLength(1000)]
         public string? Comments { get; set; }

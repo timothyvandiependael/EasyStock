@@ -92,5 +92,13 @@ namespace EasyStock.API.Services
             });
         }
 
+        public async Task<int> GetNextLineNumberAsync(int id)
+        {
+            var re = await _repository.GetByIdAsync(id);
+            if (re == null) throw new Exception($"Reception with id {id} not found.");
+            var nextLineNumber = re.Lines.Any() ? re.Lines.Max(l => l.LineNumber) + 1 : 1;
+            return nextLineNumber;
+        }
+
     }
 }
