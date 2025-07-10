@@ -37,6 +37,7 @@ namespace EasyStock.API.Services
 
         public async Task AddAsync(PurchaseOrder entity, string userName)
         {
+
             entity.OrderNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.PurchaseOrder);
             entity.Status = OrderStatus.Open;
             entity.CrDate = DateTime.UtcNow;
@@ -44,7 +45,21 @@ namespace EasyStock.API.Services
             entity.CrUserId = userName;
             entity.LcUserId = userName;
 
+            var lineCounter = 1;
+            foreach (var line in entity.Lines)
+            {
+                line.CrDate = DateTime.UtcNow;
+                line.LcDate = line.CrDate;
+                line.CrUserId = userName;
+                line.LcUserId = userName;
+                line.LineNumber = lineCounter;
+                line.Status = OrderStatus.Open;
+
+                lineCounter++;
+            }
+
             await _repository.AddAsync(entity);
+
         }
 
         public async Task DeleteAsync(int id, string userName)
@@ -212,7 +227,7 @@ namespace EasyStock.API.Services
 
                 await _repository.AddAsync(po);
 
-                
+
             });
 
             return po;

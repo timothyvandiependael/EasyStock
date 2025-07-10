@@ -38,6 +38,19 @@ namespace EasyStock.API.Services
             entity.CrUserId = userName;
             entity.LcUserId = userName;
 
+            var lineCounter = 1;
+            foreach (var line in entity.Lines)
+            {
+                line.CrDate = DateTime.UtcNow;
+                line.LcDate = line.CrDate;
+                line.CrUserId = userName;
+                line.LcUserId = userName;
+                line.LineNumber = lineCounter;
+                line.Status = OrderStatus.Open;
+
+                lineCounter++;
+            }
+
             await _repository.AddAsync(entity);
         }
 
@@ -114,6 +127,19 @@ namespace EasyStock.API.Services
             if (so == null) throw new Exception($"Salesorder with id {id} not found.");
             var nextLineNumber = so.Lines.Any() ? so.Lines.Max(l => l.LineNumber) + 1 : 1;
             return nextLineNumber;
+        }
+
+        public async Task<bool> IsComplete(int id)
+        {
+            var so = await _repository.GetByIdAsync(id);
+            if (so == null) throw new Exception($"Sales order with id {id} not found.");
+            if (so.Status != OrderStatus.Complete) return false;
+            foreach (var line in so.Lines)
+            {
+                if (line.Status != OrderStatus.Complete) return false;
+            }
+
+            return true;
         }
 
     }

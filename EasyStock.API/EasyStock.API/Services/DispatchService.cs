@@ -11,15 +11,16 @@ namespace EasyStock.API.Services
         private readonly IRepository<Dispatch> _repository;
         private readonly IOrderNumberCounterService _orderNumberCounterService;
         private readonly IDispatchLineService _dispatchLineService;
+        private readonly IRepository<SalesOrder> _genericSalesOrderRepository;
 
-
-        public DispatchService(IDispatchRepository dispatchRepository, IDispatchLineService dispatchLineService, IRetryableTransactionService retryableTransactionService, IRepository<Dispatch> repository, IOrderNumberCounterService orderNumberCounterService)
+        public DispatchService(IDispatchRepository dispatchRepository, IDispatchLineService dispatchLineService, IRetryableTransactionService retryableTransactionService, IRepository<Dispatch> repository, IOrderNumberCounterService orderNumberCounterService, IRepository<SalesOrder> genericSalesOrderRepository)
         {
             _dispatchRepository = dispatchRepository;
             _dispatchLineService = dispatchLineService;
             _repository = repository;
             _retryableTransactionService = retryableTransactionService;
             _orderNumberCounterService = orderNumberCounterService;
+            _genericSalesOrderRepository = genericSalesOrderRepository;
 
         }
 
@@ -37,7 +38,66 @@ namespace EasyStock.API.Services
             entity.CrUserId = userName;
             entity.LcUserId = userName;
 
+            var lineCounter = 1;
+            foreach (var line in entity.Lines)
+            {
+                line.CrDate = DateTime.UtcNow;
+                line.LcDate = line.CrDate;
+                line.CrUserId = userName;
+                line.LcUserId = userName;
+                line.LineNumber = lineCounter;
+
+                lineCounter++;
+            }
+
             await _repository.AddAsync(entity);
+        }
+
+        public async Task<Dispatch?> AddFromSalesOrder(int salesOrderId, string userName)
+        {
+            Dispatch? dispatch = null;
+
+            await _retryableTransactionService.ExecuteAsync(async () =>
+            {
+                var so = await _genericSalesOrderRepository.GetByIdAsync(salesOrderId);
+                if (so == null) throw new Exception($"Sales order with id {salesOrderId} not found.");
+
+                dispatch = new Dispatch
+                {
+                    DispatchNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.Dispatch),
+                    ClientId = so.ClientId,
+                    Client = so.Client,
+                    CrDate = DateTime.UtcNow,
+                    LcDate = DateTime.UtcNow,
+                    CrUserId = userName,
+                    LcUserId = userName,
+                    Lines = new List<DispatchLine>()
+                };
+
+                foreach (var line in so.Lines)
+                {
+                    var dispatchLine = new DispatchLine
+                    {
+                        LineNumber = line.LineNumber,
+                        Dispatch = dispatch,
+                        ProductId = line.ProductId,
+                        Product = line.Product,
+                        Quantity = line.Quantity,
+                        SalesOrderLineId = line.Id,
+                        SalesOrderLine = line,
+                        CrDate = DateTime.UtcNow,
+                        LcDate = DateTime.UtcNow,
+                        CrUserId = userName,
+                        LcUserId = userName
+                    };
+                    dispatch.Lines.Add(dispatchLine);
+                }
+
+                await _repository.AddAsync(dispatch);
+
+            });
+
+            return dispatch;
         }
 
         public async Task DeleteAsync(int id, string userName)

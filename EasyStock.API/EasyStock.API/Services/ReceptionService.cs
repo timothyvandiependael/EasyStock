@@ -35,6 +35,18 @@ namespace EasyStock.API.Services
             entity.CrUserId = userName;
             entity.LcUserId = userName;
 
+            var lineCounter = 1;
+            foreach (var line in entity.Lines)
+            {
+                line.CrDate = DateTime.UtcNow;
+                line.LcDate = line.CrDate;
+                line.CrUserId = userName;
+                line.LcUserId = userName;
+                line.LineNumber = lineCounter;
+
+                lineCounter++;
+            }
+
             await _repository.AddAsync(entity);
         }
 

@@ -16,12 +16,14 @@ namespace EasyStock.API.Controllers
         private readonly IService<Dispatch> _service;
         private readonly IDispatchService _dispatchService;
         private readonly IMapper _mapper;
+        private readonly ISalesOrderService _salesOrderService;
 
-        public DispatchController(IService<Dispatch> service, IMapper mapper, IDispatchService DispatchService)
+        public DispatchController(IService<Dispatch> service, IMapper mapper, IDispatchService DispatchService, ISalesOrderService salesOrderService)
         {
             _service = service;
             _mapper = mapper;
             _dispatchService = DispatchService;
+            _salesOrderService = salesOrderService;
         }
 
         [HttpGet]
@@ -51,10 +53,27 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null) return BadRequest();
             var entity = _mapper.Map<Dispatch>(dto);
+            entity.Lines = _mapper.Map<List<DispatchLine>>(dto.Lines);
             await _service.AddAsync(entity, HttpContext.User.Identity!.Name!);
 
             var resultDto = _mapper.Map<OutputDispatchDetailDto>(entity);
             return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
+        }
+
+        [PermissionAuthorize("Dispatch", "add")]
+        [HttpPost]
+        public async Task<ActionResult> AddFromSalesOrder([FromBody] CreateDispatchFromSalesOrderDto dto)
+        {
+            if (dto == null) return BadRequest();
+
+            var isComplete = await _salesOrderService.IsComplete(dto.SalesOrderId);
+            if (!isComplete) return BadRequest($"Cannot make dispatch: Sales order with id {dto.SalesOrderId} is not complete.");
+
+            var result = await _dispatchService.AddFromSalesOrder(dto.SalesOrderId, HttpContext.User.Identity!.Name!);
+            if (result == null) throw new Exception($"Unable to create dispatch based on sales order with id {dto.SalesOrderId}");
+            var resultDto = _mapper.Map<OutputDispatchDetailDto>(result);
+            resultDto.Lines = _mapper.Map<List<OutputDispatchLineOverviewDto>>(result.Lines);
+            return Ok(resultDto);
         }
 
         [PermissionAuthorize("Dispatch", "edit")]

@@ -9,5 +9,7 @@ namespace EasyStock.API.Dtos
         public string? Comments { get; set; }
         public int SupplierId { get; set; }
 
+        public List<CreateReceptionLineDto> Lines { get; set; } = new List<CreateReceptionLineDto>();
+
     }
 }

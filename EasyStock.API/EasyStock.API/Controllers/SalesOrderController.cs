@@ -51,6 +51,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null) return BadRequest();
             var entity = _mapper.Map<SalesOrder>(dto);
+            entity.Lines = _mapper.Map<List<SalesOrderLine>>(dto.Lines);
             await _service.AddAsync(entity, HttpContext.User.Identity!.Name!);
 
             var resultDto = _mapper.Map<OutputSalesOrderDetailDto>(entity);

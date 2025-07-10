@@ -51,6 +51,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null) return BadRequest();
             var entity = _mapper.Map<PurchaseOrder>(dto);
+            entity.Lines = _mapper.Map<List<PurchaseOrderLine>>(dto.Lines);
             await _purchaseOrderService.AddAsync(entity, HttpContext.User.Identity!.Name!);
 
             var resultDto = _mapper.Map<OutputPurchaseOrderDetailDto>(entity);
@@ -64,7 +65,14 @@ namespace EasyStock.API.Controllers
             if (dto == null) return BadRequest();
             var resultList = await _purchaseOrderService.AddFromSalesOrder(dto.SalesOrderId, dto.ProductSuppliers, HttpContext.User.Identity!.Name!);
 
-            var resultDtoList = _mapper.Map<List<OutputPurchaseOrderDetailDto>>(resultList);
+            var resultDtoList = new List<OutputPurchaseOrderDetailDto>();
+            foreach (var result in resultList)
+            {
+                var resultDto = _mapper.Map<OutputPurchaseOrderDetailDto>(result);
+                resultDto.Lines = _mapper.Map<List<OutputPurchaseOrderLineOverviewDto>>(result.Lines);
+                resultDtoList.Add(resultDto);
+            }
+
             return Ok(resultDtoList);
         }
 

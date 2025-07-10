@@ -13,5 +13,6 @@ namespace EasyStock.API.Services
         Task UnblockAsync(int id, string userName);
         Task<List<Product>> GetProductsWithSuppliersForOrderAsync(int id);
         Task<int> GetNextLineNumberAsync(int id);
+        Task<bool> IsComplete(int id);
     }
 }
