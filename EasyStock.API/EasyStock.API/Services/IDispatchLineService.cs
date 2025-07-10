@@ -7,7 +7,7 @@ namespace EasyStock.API.Services
     {
         Task<IEnumerable<DispatchLineOverview>> GetAllAsync();
         Task<PaginationResult<DispatchLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination);
-        Task AddAsync(DispatchLine entity, string userName);
+        Task AddAsync(DispatchLine entity, string userName, bool fromParent = false);
         Task UpdateAsync(DispatchLine entity, string userName);
         Task DeleteAsync(int id, string userName, bool manageTransaction = true);
         Task BlockAsync(int id, string userName, bool manageTransaction = true);

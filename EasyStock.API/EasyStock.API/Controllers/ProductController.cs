@@ -63,7 +63,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null || dto.Id != id) return BadRequest();
             var entity = _mapper.Map<Product>(dto);
-            await _service.UpdateAsync(entity, HttpContext.User.Identity!.Name!);
+            await _productService.UpdateAsync(entity, HttpContext.User.Identity!.Name!);
 
             return NoContent();
         }

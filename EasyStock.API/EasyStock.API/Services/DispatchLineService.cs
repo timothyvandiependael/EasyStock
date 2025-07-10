@@ -14,8 +14,9 @@ namespace EasyStock.API.Services
         private readonly IRepository<SalesOrderLine> _genericSalesOrderLineRepository;
         private readonly IRepository<SalesOrder> _genericSalesOrderRepository;
         private readonly IDispatchService _dispatchService;
+        private readonly IRepository<StockMovement> _genericStockMovementRepository;
 
-        public DispatchLineService(IDispatchLineRepository dispatchLineRepository, IRetryableTransactionService retryableTransactionService, IRepository<DispatchLine> repository, IRepository<Product> genericProductRepository, IRepository<SalesOrder> genericSalesOrderRepository, IRepository<SalesOrderLine> genericSalesOrderLineRepository, IDispatchService dispatchService)
+        public DispatchLineService(IDispatchLineRepository dispatchLineRepository, IRetryableTransactionService retryableTransactionService, IRepository<DispatchLine> repository, IRepository<Product> genericProductRepository, IRepository<SalesOrder> genericSalesOrderRepository, IRepository<SalesOrderLine> genericSalesOrderLineRepository, IDispatchService dispatchService, IRepository<StockMovement> genericStockMovementRepository)
         {
             _dispatchLineRepository = dispatchLineRepository;
             _retryableTransactionService = retryableTransactionService;
@@ -24,6 +25,7 @@ namespace EasyStock.API.Services
             _genericSalesOrderRepository = genericSalesOrderRepository;
             _genericSalesOrderLineRepository = genericSalesOrderLineRepository;
             _dispatchService = dispatchService;
+            _genericStockMovementRepository = genericStockMovementRepository;
         }
 
         public async Task<IEnumerable<DispatchLineOverview>> GetAllAsync()
@@ -64,28 +66,57 @@ namespace EasyStock.API.Services
             }
         }
 
-        public async Task AddAsync(DispatchLine entity, string userName)
+        public async Task AddAsync(DispatchLine entity, string userName, bool fromParent = false)
         {
-            await _retryableTransactionService.ExecuteAsync(async () =>
+            if (!fromParent)
             {
-                entity.CrDate = DateTime.UtcNow;
-                entity.LcDate = entity.CrDate;
-                entity.CrUserId = userName;
-                entity.LcUserId = userName;
+                await _retryableTransactionService.ExecuteAsync(async () =>
+                {
+                    await AddInternalAsync(entity, userName, fromParent);
+                });
+            }
+            else
+            {
+                await AddInternalAsync(entity, userName, fromParent);
+            }
+            
+        }
+
+        private async Task AddInternalAsync(DispatchLine entity, string userName, bool fromParent)
+        {
+            entity.CrDate = DateTime.UtcNow;
+            entity.LcDate = entity.CrDate;
+            entity.CrUserId = userName;
+            entity.LcUserId = userName;
+            if (!fromParent)
                 entity.LineNumber = await _dispatchService.GetNextLineNumberAsync(entity.DispatchId);
 
-                await SetSOStatusFields(entity.Quantity, entity.SalesOrderLineId, userName);
+            await SetSOStatusFields(entity.Quantity, entity.SalesOrderLineId, userName);
 
-                var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
-                if (product == null)
-                    throw new InvalidOperationException($"Unable to find product with ID {entity.ProductId}");
-                product.LcDate = DateTime.UtcNow;
-                product.LcUserId = userName;
-                product.ReservedStock -= entity.Quantity;
-                product.TotalStock -= entity.Quantity;
+            var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
+            if (product == null)
+                throw new InvalidOperationException($"Unable to find product with ID {entity.ProductId}");
+            product.LcDate = DateTime.UtcNow;
+            product.LcUserId = userName;
+            product.ReservedStock -= entity.Quantity;
+            product.TotalStock -= entity.Quantity;
 
-                await _repository.AddAsync(entity);
-            });
+            await _repository.AddAsync(entity);
+
+            var stockMovement = new StockMovement
+            {
+                ProductId = product.Id,
+                Product = product,
+                QuantityChange = 0 - entity.Quantity,
+                Reason = "Dispatch",
+                CrDate = DateTime.UtcNow,
+                LcDate = DateTime.UtcNow,
+                CrUserId = userName,
+                LcUserId = userName,
+                SalesOrderId = entity.SalesOrderLine.SalesOrderId
+            };
+
+            await _genericStockMovementRepository.AddAsync(stockMovement);
         }
 
         public async Task UpdateAsync(DispatchLine entity, string userName)
@@ -111,6 +142,21 @@ namespace EasyStock.API.Services
                     product.LcUserId = userName;
                     product.ReservedStock -= difference;
                     product.TotalStock -= difference;
+
+                    var stockMovement = new StockMovement
+                    {
+                        ProductId = product.Id,
+                        Product = product,
+                        QuantityChange = 0 - difference,
+                        Reason = "Correction of dispatch line",
+                        CrDate = DateTime.UtcNow,
+                        LcDate = DateTime.UtcNow,
+                        CrUserId = userName,
+                        LcUserId = userName,
+                        SalesOrderId = entity.SalesOrderLine.SalesOrderId
+                    };
+
+                    await _genericStockMovementRepository.AddAsync(stockMovement);
                 }
 
                 await _repository.UpdateAsync(entity);
@@ -149,6 +195,21 @@ namespace EasyStock.API.Services
             product.TotalStock += dispatchLine.Quantity;
 
             await _repository.DeleteAsync(id);
+
+            var stockMovement = new StockMovement
+            {
+                ProductId = product.Id,
+                Product = product,
+                QuantityChange = dispatchLine.Quantity,
+                Reason = "Deletion of dispatch line",
+                CrDate = DateTime.UtcNow,
+                LcDate = DateTime.UtcNow,
+                CrUserId = userName,
+                LcUserId = userName,
+                SalesOrderId = dispatchLine.SalesOrderLine.SalesOrderId
+            };
+
+            await _genericStockMovementRepository.AddAsync(stockMovement);
         }
 
         public async Task BlockAsync(int id, string userName, bool manageTransaction = true)
@@ -186,6 +247,21 @@ namespace EasyStock.API.Services
             product.TotalStock += dispatchLine.Quantity;
 
             await _repository.UpdateAsync(dispatchLine);
+
+            var stockMovement = new StockMovement
+            {
+                ProductId = product.Id,
+                Product = product,
+                QuantityChange = dispatchLine.Quantity,
+                Reason = "Blocking of dispatch line",
+                CrDate = DateTime.UtcNow,
+                LcDate = DateTime.UtcNow,
+                CrUserId = userName,
+                LcUserId = userName,
+                SalesOrderId = dispatchLine.SalesOrderLine.SalesOrderId
+            };
+
+            await _genericStockMovementRepository.AddAsync(stockMovement);
         }
 
         public async Task UnblockAsync(int id, string userName, bool manageTransaction = true)
@@ -225,6 +301,21 @@ namespace EasyStock.API.Services
             product.TotalStock -= dispatchLine.Quantity;
 
             await _repository.UpdateAsync(dispatchLine);
+
+            var stockMovement = new StockMovement
+            {
+                ProductId = product.Id,
+                Product = product,
+                QuantityChange = 0 - dispatchLine.Quantity,
+                Reason = "Unblocking of dispatch line",
+                CrDate = DateTime.UtcNow,
+                LcDate = DateTime.UtcNow,
+                CrUserId = userName,
+                LcUserId = userName,
+                SalesOrderId = dispatchLine.SalesOrderLine.SalesOrderId
+            };
+
+            await _genericStockMovementRepository.AddAsync(stockMovement);
         }
     }
 }

@@ -31,27 +31,31 @@ namespace EasyStock.API.Services
 
         public async Task AddAsync(SalesOrder entity, string userName)
         {
-            entity.OrderNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.SalesOrder);
-            entity.Status = OrderStatus.Open;
-            entity.CrDate = DateTime.UtcNow;
-            entity.LcDate = entity.CrDate;
-            entity.CrUserId = userName;
-            entity.LcUserId = userName;
-
-            var lineCounter = 1;
-            foreach (var line in entity.Lines)
+            await _retryableTransactionService.ExecuteAsync(async () =>
             {
-                line.CrDate = DateTime.UtcNow;
-                line.LcDate = line.CrDate;
-                line.CrUserId = userName;
-                line.LcUserId = userName;
-                line.LineNumber = lineCounter;
-                line.Status = OrderStatus.Open;
+                entity.OrderNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.SalesOrder);
+                entity.Status = OrderStatus.Open;
+                entity.CrDate = DateTime.UtcNow;
+                entity.LcDate = entity.CrDate;
+                entity.CrUserId = userName;
+                entity.LcUserId = userName;
 
-                lineCounter++;
-            }
+                var lines = entity.Lines.ToList();
+                entity.Lines.Clear();
 
-            await _repository.AddAsync(entity);
+                var lineCounter = 1;
+                foreach (var line in lines)
+                {
+                    line.LineNumber = lineCounter;
+
+                    await _salesOrderLineService.AddAsync(line, userName, true);
+
+                    lineCounter++;
+                }
+
+                await _repository.AddAsync(entity);
+            });
+  
         }
 
         public async Task DeleteAsync(int id, string userName)

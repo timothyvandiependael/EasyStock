@@ -29,25 +29,28 @@ namespace EasyStock.API.Services
 
         public async Task AddAsync(Reception entity, string userName)
         {
-            entity.ReceptionNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.Reception);
-            entity.CrDate = DateTime.UtcNow;
-            entity.LcDate = entity.CrDate;
-            entity.CrUserId = userName;
-            entity.LcUserId = userName;
-
-            var lineCounter = 1;
-            foreach (var line in entity.Lines)
+            await _retryableTransactionService.ExecuteAsync(async () =>
             {
-                line.CrDate = DateTime.UtcNow;
-                line.LcDate = line.CrDate;
-                line.CrUserId = userName;
-                line.LcUserId = userName;
-                line.LineNumber = lineCounter;
+                entity.ReceptionNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.Reception);
+                entity.CrDate = DateTime.UtcNow;
+                entity.LcDate = entity.CrDate;
+                entity.CrUserId = userName;
+                entity.LcUserId = userName;
 
-                lineCounter++;
-            }
+                var lines = entity.Lines.ToList();
+                entity.Lines.Clear();
 
-            await _repository.AddAsync(entity);
+                var lineCounter = 1;
+                foreach (var line in lines)
+                {
+                    line.LineNumber = lineCounter;
+                    await _receptionLineService.AddAsync(line, userName, true);
+
+                    lineCounter++;
+                }
+
+                await _repository.AddAsync(entity);
+            });  
         }
 
         public async Task DeleteAsync(int id, string userName)

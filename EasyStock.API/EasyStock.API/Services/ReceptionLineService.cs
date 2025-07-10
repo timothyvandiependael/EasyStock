@@ -13,8 +13,9 @@ namespace EasyStock.API.Services
         private readonly IRepository<Product> _genericProductRepository;
         private readonly IRepository<PurchaseOrder> _genericPurchaseOrderRepository;
         private readonly IReceptionService _receptionService;
+        private readonly IRepository<StockMovement> _genericStockMovementRepository;
 
-        public ReceptionLineService(IReceptionLineRepository receptionLineRepository, IRetryableTransactionService retryableTransactionService, IRepository<PurchaseOrderLine> genericPurchaseOrderLineRepository, IRepository<ReceptionLine> repository, IRepository<Product> genericProductRepository, IRepository<PurchaseOrder> genericPurchaseOrderRepository, IReceptionService receptionService)
+        public ReceptionLineService(IReceptionLineRepository receptionLineRepository, IRetryableTransactionService retryableTransactionService, IRepository<PurchaseOrderLine> genericPurchaseOrderLineRepository, IRepository<ReceptionLine> repository, IRepository<Product> genericProductRepository, IRepository<PurchaseOrder> genericPurchaseOrderRepository, IReceptionService receptionService, IRepository<StockMovement> genericStockMovementRepository)
         {
             _receptionLineRepository = receptionLineRepository;
             _retryableTransactionService = retryableTransactionService;
@@ -23,6 +24,7 @@ namespace EasyStock.API.Services
             _genericProductRepository = genericProductRepository;
             _genericPurchaseOrderRepository = genericPurchaseOrderRepository;
             _receptionService = receptionService;
+            _genericStockMovementRepository = genericStockMovementRepository;
         }
 
         public async Task<IEnumerable<ReceptionLineOverview>> GetAllAsync()
@@ -63,46 +65,75 @@ namespace EasyStock.API.Services
             }
         }
 
-        public async Task AddAsync(ReceptionLine entity, string userName)
+        public async Task AddAsync(ReceptionLine entity, string userName, bool fromParent = false)
         {
-            await _retryableTransactionService.ExecuteAsync(async () =>
+            if (!fromParent)
             {
-                entity.CrDate = DateTime.UtcNow;
-                entity.LcDate = entity.CrDate;
-                entity.CrUserId = userName;
-                entity.LcUserId = userName;
+                await _retryableTransactionService.ExecuteAsync(async () =>
+                {
+                    await AddInternalAsync(entity, userName, fromParent);
+                });
+            }
+            else
+            {
+                await AddInternalAsync(entity, userName, fromParent);
+            }
+            
+        }
+
+        private async Task AddInternalAsync(ReceptionLine entity, string userName, bool fromParent)
+        {
+            entity.CrDate = DateTime.UtcNow;
+            entity.LcDate = entity.CrDate;
+            entity.CrUserId = userName;
+            entity.LcUserId = userName;
+            if (!fromParent)
                 entity.LineNumber = await _receptionService.GetNextLineNumberAsync(entity.ReceptionId);
 
-                await SetPOStatusFields(entity.Quantity, entity.PurchaseOrderLineId, userName);
+            await SetPOStatusFields(entity.Quantity, entity.PurchaseOrderLineId, userName);
 
-                var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
-                if (product == null)
-                    throw new InvalidOperationException($"Unable to find product with ID {entity.ProductId}");
-                product.LcDate = DateTime.UtcNow;
-                product.LcUserId = userName;
-                product.InboundStock -= entity.Quantity;
-                product.TotalStock += entity.Quantity;
+            var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
+            if (product == null)
+                throw new InvalidOperationException($"Unable to find product with ID {entity.ProductId}");
+            product.LcDate = DateTime.UtcNow;
+            product.LcUserId = userName;
+            product.InboundStock -= entity.Quantity;
+            product.TotalStock += entity.Quantity;
 
-                product.AvailableStock +=
-                    product.BackOrderedStock > entity.Quantity
-                    ? 0
-                    : (entity.Quantity - product.BackOrderedStock);
+            product.AvailableStock +=
+                product.BackOrderedStock > entity.Quantity
+                ? 0
+                : (entity.Quantity - product.BackOrderedStock);
 
-                product.ReservedStock +=
+            product.ReservedStock +=
+                product.BackOrderedStock > entity.Quantity
+                ? entity.Quantity
+                : product.BackOrderedStock;
+
+            if (product.BackOrderedStock > 0)
+            {
+                product.BackOrderedStock -=
                     product.BackOrderedStock > entity.Quantity
                     ? entity.Quantity
                     : product.BackOrderedStock;
+            }
 
-                if (product.BackOrderedStock > 0)
-                {
-                    product.BackOrderedStock -=
-                        product.BackOrderedStock > entity.Quantity
-                        ? entity.Quantity
-                        : product.BackOrderedStock;
-                }
+            await _repository.AddAsync(entity);
 
-                await _repository.AddAsync(entity);
-            });
+            var stockMovement = new StockMovement
+            {
+                ProductId = product.Id,
+                Product = product,
+                QuantityChange = entity.Quantity,
+                Reason = "Reception",
+                CrDate = DateTime.UtcNow,
+                LcDate = DateTime.UtcNow,
+                CrUserId = userName,
+                LcUserId = userName,
+                PurchaseOrderId = entity.PurchaseOrderLine.PurchaseOrderId
+            };
+
+            await _genericStockMovementRepository.AddAsync(stockMovement);
         }
 
         public async Task UpdateAsync(ReceptionLine entity, string userName)
@@ -128,6 +159,21 @@ namespace EasyStock.API.Services
                     product.LcUserId = userName;
                     product.InboundStock -= difference;
                     product.TotalStock += difference;
+
+                    var stockMovement = new StockMovement
+                    {
+                        ProductId = product.Id,
+                        Product = product,
+                        QuantityChange = difference,
+                        Reason = "Reception line update",
+                        CrDate = DateTime.UtcNow,
+                        LcDate = DateTime.UtcNow,
+                        CrUserId = userName,
+                        LcUserId = userName,
+                        PurchaseOrderId = entity.PurchaseOrderLine.PurchaseOrderId
+                    };
+
+                    await _genericStockMovementRepository.AddAsync(stockMovement);
 
                     if (difference > 0)
                     {
@@ -165,8 +211,6 @@ namespace EasyStock.API.Services
                             product.AvailableStock -= difference;
                         }
                     }
-
-
                 }
 
                 await _repository.UpdateAsync(entity);
@@ -203,6 +247,21 @@ namespace EasyStock.API.Services
             product.LcUserId = userName;
             product.InboundStock += receptionLine.Quantity;
             product.TotalStock -= receptionLine.Quantity;
+
+            var stockMovement = new StockMovement
+            {
+                ProductId = product.Id,
+                Product = product,
+                QuantityChange = 0 - receptionLine.Quantity,
+                Reason = "Reception Line deletion",
+                CrDate = DateTime.UtcNow,
+                LcDate = DateTime.UtcNow,
+                CrUserId = userName,
+                LcUserId = userName,
+                PurchaseOrderId = receptionLine.PurchaseOrderLine.PurchaseOrderId
+            };
+
+            await _genericStockMovementRepository.AddAsync(stockMovement);
 
             var tmpAvailableStock = product.AvailableStock - receptionLine.Quantity;
             if (tmpAvailableStock < 0) // Meaning it came originally from backorder
@@ -253,6 +312,21 @@ namespace EasyStock.API.Services
             product.LcUserId = userName;
             product.InboundStock += receptionLine.Quantity;
             product.TotalStock -= receptionLine.Quantity;
+
+            var stockMovement = new StockMovement
+            {
+                ProductId = product.Id,
+                Product = product,
+                QuantityChange = 0 - receptionLine.Quantity,
+                Reason = "Reception Line blocked",
+                CrDate = DateTime.UtcNow,
+                LcDate = DateTime.UtcNow,
+                CrUserId = userName,
+                LcUserId = userName,
+                PurchaseOrderId = receptionLine.PurchaseOrderLine.PurchaseOrderId
+            };
+
+            await _genericStockMovementRepository.AddAsync(stockMovement);
 
             var tmpAvailableStock = product.AvailableStock - receptionLine.Quantity;
             if (tmpAvailableStock < 0) // Meaning it came originally from backorder
@@ -305,6 +379,21 @@ namespace EasyStock.API.Services
             product.LcUserId = userName;
             product.InboundStock -= receptionLine.Quantity;
             product.TotalStock += receptionLine.Quantity;
+
+            var stockMovement = new StockMovement
+            {
+                ProductId = product.Id,
+                Product = product,
+                QuantityChange = receptionLine.Quantity,
+                Reason = "Reception Line unblocked",
+                CrDate = DateTime.UtcNow,
+                LcDate = DateTime.UtcNow,
+                CrUserId = userName,
+                LcUserId = userName,
+                PurchaseOrderId = receptionLine.PurchaseOrderLine.PurchaseOrderId
+            };
+
+            await _genericStockMovementRepository.AddAsync(stockMovement);
 
             product.AvailableStock +=
                     product.BackOrderedStock > receptionLine.Quantity

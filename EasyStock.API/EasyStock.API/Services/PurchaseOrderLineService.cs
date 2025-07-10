@@ -29,25 +29,38 @@ namespace EasyStock.API.Services
         public async Task<PaginationResult<PurchaseOrderLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
             => await _purchaseOrderLineRepository.GetAdvancedAsync(filters, sorting, pagination);
 
-        public async Task AddAsync(PurchaseOrderLine entity, string userName)
+        public async Task AddAsync(PurchaseOrderLine entity, string userName, bool fromParent = false)
         {
-            await _retryableTransactionService.ExecuteAsync(async () =>
+            if (!fromParent)
             {
-                entity.CrDate = DateTime.UtcNow;
-                entity.LcDate = entity.CrDate;
-                entity.CrUserId = userName;
-                entity.LcUserId = userName;
-                entity.Status = OrderStatus.Open;
-                entity.LineNumber = await _purchaseOrderService.GetNextLineNumberAsync(entity.PurchaseOrderId);
-                await _repository.AddAsync(entity);
+                await _retryableTransactionService.ExecuteAsync(async () =>
+                {
+                    await AddInternalAsync(entity, userName, fromParent);
+                });
+            }
+            else
+            {
+                await AddInternalAsync(entity, userName, fromParent);
+            }
+        }
 
-                var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
-                if (product == null)
-                    throw new InvalidOperationException($"Product with ID {entity.ProductId} not found when updating inbound stock.");
-                product.InboundStock += entity.Quantity;
-                product.LcUserId = userName;
-                product.LcDate = DateTime.UtcNow;
-            });
+        private async Task AddInternalAsync(PurchaseOrderLine entity, string userName, bool fromParent)
+        {
+            entity.CrDate = DateTime.UtcNow;
+            entity.LcDate = entity.CrDate;
+            entity.CrUserId = userName;
+            entity.LcUserId = userName;
+            entity.Status = OrderStatus.Open;
+            if (!fromParent)
+                entity.LineNumber = await _purchaseOrderService.GetNextLineNumberAsync(entity.PurchaseOrderId);
+            await _repository.AddAsync(entity);
+
+            var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
+            if (product == null)
+                throw new InvalidOperationException($"Product with ID {entity.ProductId} not found when updating inbound stock.");
+            product.InboundStock += entity.Quantity;
+            product.LcUserId = userName;
+            product.LcDate = DateTime.UtcNow;
         }
 
         public async Task UpdateAsync(PurchaseOrderLine entity, string userName)

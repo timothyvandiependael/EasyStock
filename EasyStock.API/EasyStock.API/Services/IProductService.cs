@@ -9,5 +9,7 @@ namespace EasyStock.API.Services
         Task<PaginationResult<ProductOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination);
 
         Task<bool> IsProductBelowMinimumStock(int id);
+
+        Task UpdateAsync(Product product, string userName);
     }
 }

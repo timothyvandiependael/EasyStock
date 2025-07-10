@@ -37,28 +37,30 @@ namespace EasyStock.API.Services
 
         public async Task AddAsync(PurchaseOrder entity, string userName)
         {
-
-            entity.OrderNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.PurchaseOrder);
-            entity.Status = OrderStatus.Open;
-            entity.CrDate = DateTime.UtcNow;
-            entity.LcDate = entity.CrDate;
-            entity.CrUserId = userName;
-            entity.LcUserId = userName;
-
-            var lineCounter = 1;
-            foreach (var line in entity.Lines)
+            await _retryableTransactionService.ExecuteAsync(async () =>
             {
-                line.CrDate = DateTime.UtcNow;
-                line.LcDate = line.CrDate;
-                line.CrUserId = userName;
-                line.LcUserId = userName;
-                line.LineNumber = lineCounter;
-                line.Status = OrderStatus.Open;
+                entity.OrderNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.PurchaseOrder);
+                entity.Status = OrderStatus.Open;
+                entity.CrDate = DateTime.UtcNow;
+                entity.LcDate = entity.CrDate;
+                entity.CrUserId = userName;
+                entity.LcUserId = userName;
 
-                lineCounter++;
-            }
+                var lineCounter = 1;
+                var lines = entity.Lines.ToList();
+                entity.Lines.Clear();
 
-            await _repository.AddAsync(entity);
+                foreach (var line in lines)
+                {
+                    line.LineNumber = lineCounter;
+                    await _purchaseOrderLineService.AddAsync(line, userName, true);
+
+                    lineCounter++;
+                }
+
+                await _repository.AddAsync(entity);
+            });
+            
 
         }
 
@@ -170,12 +172,18 @@ namespace EasyStock.API.Services
                             LcUserId = userName,
                             LineNumber = lineNumber
                         };
-                        po.Lines.Add(poLine);
+
+                        await _purchaseOrderLineService.AddAsync(poLine, userName, true);
+
                         lineNumber++;
                     }
 
                     await _repository.AddAsync(po);
-                    purchaseOrders.Add(po);
+
+                    // Get with lazy loaded lines
+                    po = await _repository.GetByIdAsync(po.Id);
+                    if (po != null)
+                        purchaseOrders.Add(po);
                 }
             });
 

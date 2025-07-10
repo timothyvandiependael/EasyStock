@@ -27,37 +27,50 @@ namespace EasyStock.API.Services
         public async Task<PaginationResult<SalesOrderLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
             => await _SalesOrderLineRepository.GetAdvancedAsync(filters, sorting, pagination);
 
-        public async Task AddAsync(SalesOrderLine entity, string userName)
+        public async Task AddAsync(SalesOrderLine entity, string userName, bool fromParent = false)
         {
-            await _retryableTransactionService.ExecuteAsync(async () =>
+            if (!fromParent)
             {
-                entity.CrDate = DateTime.UtcNow;
-                entity.LcDate = entity.CrDate;
-                entity.CrUserId = userName;
-                entity.LcUserId = userName;
-                entity.Status = OrderStatus.Open;
+                await _retryableTransactionService.ExecuteAsync(async () =>
+                {
+                    await AddInternalAsync(entity, userName, fromParent);
+                });
+            }
+            else
+            {
+                await AddInternalAsync(entity, userName, fromParent);
+            }
+        }
+
+        private async Task AddInternalAsync(SalesOrderLine entity, string userName, bool fromParent)
+        {
+            entity.CrDate = DateTime.UtcNow;
+            entity.LcDate = entity.CrDate;
+            entity.CrUserId = userName;
+            entity.LcUserId = userName;
+            entity.Status = OrderStatus.Open;
+            if (!fromParent) 
                 entity.LineNumber = await _salesOrderService.GetNextLineNumberAsync(entity.SalesOrderId);
-                await _repository.AddAsync(entity);
+            await _repository.AddAsync(entity);
 
-                var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
-                if (product == null)
-                    throw new InvalidOperationException($"Product with ID {entity.ProductId} not found when updating reserved stock.");
-                
-                if (entity.Quantity > product.AvailableStock)
-                {
-                    product.ReservedStock = product.AvailableStock;
-                    product.BackOrderedStock = entity.Quantity - product.AvailableStock;
-                    product.AvailableStock = 0;
-                }
-                else
-                {
-                    product.ReservedStock += entity.Quantity;
-                    product.AvailableStock -= entity.Quantity;
-                }
+            var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
+            if (product == null)
+                throw new InvalidOperationException($"Product with ID {entity.ProductId} not found when updating reserved stock.");
 
-                product.LcUserId = userName;
-                product.LcDate = DateTime.UtcNow;
-            });
+            if (entity.Quantity > product.AvailableStock)
+            {
+                product.ReservedStock = product.AvailableStock;
+                product.BackOrderedStock = entity.Quantity - product.AvailableStock;
+                product.AvailableStock = 0;
+            }
+            else
+            {
+                product.ReservedStock += entity.Quantity;
+                product.AvailableStock -= entity.Quantity;
+            }
+
+            product.LcUserId = userName;
+            product.LcDate = DateTime.UtcNow;
         }
 
         public async Task UpdateAsync(SalesOrderLine entity, string userName)

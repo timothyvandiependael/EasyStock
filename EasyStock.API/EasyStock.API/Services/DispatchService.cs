@@ -32,25 +32,28 @@ namespace EasyStock.API.Services
 
         public async Task AddAsync(Dispatch entity, string userName)
         {
-            entity.DispatchNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.Dispatch);
-            entity.CrDate = DateTime.UtcNow;
-            entity.LcDate = entity.CrDate;
-            entity.CrUserId = userName;
-            entity.LcUserId = userName;
-
-            var lineCounter = 1;
-            foreach (var line in entity.Lines)
+            await _retryableTransactionService.ExecuteAsync(async () =>
             {
-                line.CrDate = DateTime.UtcNow;
-                line.LcDate = line.CrDate;
-                line.CrUserId = userName;
-                line.LcUserId = userName;
-                line.LineNumber = lineCounter;
+                entity.DispatchNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.Dispatch);
+                entity.CrDate = DateTime.UtcNow;
+                entity.LcDate = entity.CrDate;
+                entity.CrUserId = userName;
+                entity.LcUserId = userName;
 
-                lineCounter++;
-            }
+                var lines = entity.Lines.ToList();
+                entity.Lines.Clear();
+                var lineCounter = 1;
+                foreach (var line in lines)
+                {
+                    line.LineNumber = lineCounter;
 
-            await _repository.AddAsync(entity);
+                    await _dispatchLineService.AddAsync(line, userName, true);
+
+                    lineCounter++;
+                }
+
+                await _repository.AddAsync(entity);
+            });            
         }
 
         public async Task<Dispatch?> AddFromSalesOrder(int salesOrderId, string userName)
@@ -90,10 +93,13 @@ namespace EasyStock.API.Services
                         CrUserId = userName,
                         LcUserId = userName
                     };
-                    dispatch.Lines.Add(dispatchLine);
+                    await _dispatchLineService.AddAsync(dispatchLine, userName, true);
                 }
 
                 await _repository.AddAsync(dispatch);
+
+                // loading with lazy loaded lines
+                dispatch = await _repository.GetByIdAsync(dispatch.Id);
 
             });
 
