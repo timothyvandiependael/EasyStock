@@ -1,5 +1,6 @@
 ﻿using EasyStock.API.Dtos;
 using EasyStock.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EasyStock.API.Controllers
@@ -25,6 +26,7 @@ namespace EasyStock.API.Controllers
             return Ok(result);
         }
 
+        [Authorize]
         [HttpPost("changepassword")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {

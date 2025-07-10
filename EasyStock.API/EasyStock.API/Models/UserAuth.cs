@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EasyStock.API.Common;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EasyStock.API.Models
 {
@@ -13,7 +15,8 @@ namespace EasyStock.API.Models
         [Required]
         public required string PasswordHash { get; set; }
 
-        public required string Role { get; set; }
+        [Column(TypeName = "varchar(10)")]
+        public UserRole Role { get; set; }
         public bool MustChangePassword { get; set; } = true;
     }
 }

@@ -45,6 +45,7 @@ namespace EasyStock.API.Controllers
             return Ok(dto);
         }
 
+        [PermissionAuthorize("Dispatch", "add")]
         [HttpPost]
         public async Task<ActionResult> Add([FromBody] CreateDispatchDto dto)
         {
@@ -56,6 +57,7 @@ namespace EasyStock.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
         }
 
+        [PermissionAuthorize("Dispatch", "edit")]
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(int id, [FromBody] UpdateDispatchDto dto)
         {
@@ -66,6 +68,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
@@ -73,6 +76,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [PermissionAuthorize("Dispatch", "delete")]
         [HttpPost("block")]
         public async Task<ActionResult> Block(int id)
         {
@@ -80,6 +84,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [PermissionAuthorize("Dispatch", "delete")]
         [HttpPost("unblock")]
         public async Task<ActionResult> Unblock(int id)
         {

@@ -42,6 +42,7 @@ namespace EasyStock.API.Controllers
             return Ok(dto);
         }
 
+        [PermissionAuthorize("StockMovement", "add")]
         [HttpPost]
         public async Task<ActionResult> Add([FromBody] CreateStockMovementDto dto)
         {
@@ -53,6 +54,7 @@ namespace EasyStock.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
         }
 
+        [PermissionAuthorize("StockMovement", "edit")]
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(int id, [FromBody] UpdateStockMovementDto dto)
         {
@@ -63,6 +65,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
@@ -70,6 +73,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [PermissionAuthorize("StockMovement", "delete")]
         [HttpPost("block")]
         public async Task<ActionResult> Block(int id)
         {
@@ -77,6 +81,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [PermissionAuthorize("StockMovement", "delete")]
         [HttpPost("unblock")]
         public async Task<ActionResult> Unblock(int id)
         {

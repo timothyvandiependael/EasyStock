@@ -45,6 +45,7 @@ namespace EasyStock.API.Controllers
             return Ok(dto);
         }
 
+        [PermissionAuthorize("PurchaseOrder", "add")]
         [HttpPost]
         public async Task<ActionResult> Add([FromBody] CreatePurchaseOrderDto dto)
         {
@@ -56,6 +57,7 @@ namespace EasyStock.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
         }
 
+        [PermissionAuthorize("PurchaseOrder", "add")]
         [HttpPost("fromsalesorder")]
         public async Task<ActionResult> AddFromSalesOrder([FromBody] CreatePurchaseOrderFromSalesOrderDto dto)
         {
@@ -66,6 +68,7 @@ namespace EasyStock.API.Controllers
             return Ok(resultDtoList);
         }
 
+        [PermissionAuthorize("PurchaseOrder", "edit")]
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(int id, [FromBody] UpdatePurchaseOrderDto dto)
         {
@@ -76,6 +79,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
@@ -83,6 +87,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [PermissionAuthorize("PurchaseOrder", "delete")]
         [HttpPost("block")]
         public async Task<ActionResult> Block(int id)
         {
@@ -90,6 +95,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [PermissionAuthorize("PurchaseOrder", "delete")]
         [HttpPost("unblock")]
         public async Task<ActionResult> Unblock(int id)
         {

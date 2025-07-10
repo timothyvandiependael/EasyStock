@@ -1,6 +1,7 @@
 ﻿using EasyStock.API.Models;
 using EasyStock.API.Dtos;
 using EasyStock.API.Dtos.Auth;
+using EasyStock.API.Common;
 
 namespace EasyStock.API.Services
 {
@@ -9,7 +10,7 @@ namespace EasyStock.API.Services
         Task<AuthResultDto?> AuthenticateAsync(string userName, string password);
         string HashPassword(UserAuth userAuth, string password);
         Task<ChangePasswordResultDto> ChangePasswordAsync(int userId, string oldPassword, string newPassword);
-        Task<string> AddAsync(User user, string role, string creationUserName);
+        Task<string> AddAsync(User user, UserRole role, string creationUserName);
         Task<bool> UserExists(string userName);
     }
 }

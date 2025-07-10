@@ -82,5 +82,13 @@ namespace EasyStock.API.Repositories
                 Data = data
             };
         }
+
+        public async Task<List<UserPermission>> GetPermissionsForUser(string userName)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.UserName == userName);
+            if (user == null) throw new Exception($"user {userName} not found.");
+
+            return await _context.UserPermissions.Where(p => p.UserId == user.Id).ToListAsync();
+        }
     }
 }

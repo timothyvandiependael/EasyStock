@@ -7,5 +7,6 @@ namespace EasyStock.API.Repositories
     {
         Task<IEnumerable<UserPermissionOverview>> GetAllAsync();
         Task<PaginationResult<UserPermissionOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination);
+        Task<List<UserPermission>> GetPermissionsForUser(string userName);
     }
 }

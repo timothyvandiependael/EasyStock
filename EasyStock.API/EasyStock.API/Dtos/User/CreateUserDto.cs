@@ -7,7 +7,7 @@ namespace EasyStock.API.Dtos
         [Required]
         [MaxLength(20)]
         public required string UserName { get; set; }
-        public string Role { get; set; }
+        public required string Role { get; set; }
 
         public ICollection<CreateUserPermissionDto> Permissions { get; set; } = new List<CreateUserPermissionDto>();
     }

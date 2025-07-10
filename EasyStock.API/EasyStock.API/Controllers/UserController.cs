@@ -24,6 +24,7 @@ namespace EasyStock.API.Controllers
             _authService = authService;
         }
 
+        [PermissionAuthorize("User", "view")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetAll()
         {
@@ -32,6 +33,7 @@ namespace EasyStock.API.Controllers
             return Ok(dtos);
         }
 
+        [PermissionAuthorize("User", "view")]
         [HttpGet("id/{id}")]
         public async Task<ActionResult<User?>> GetById(int id)
         {
@@ -42,6 +44,7 @@ namespace EasyStock.API.Controllers
             return Ok(dto);
         }
 
+        [PermissionAuthorize("User", "add")]
         [HttpPost]
         public async Task<ActionResult> Add([FromBody] CreateUserDto dto)
         {
@@ -58,12 +61,13 @@ namespace EasyStock.API.Controllers
 
             await _service.AddAsync(entity, HttpContext.User.Identity!.Name!);
 
-            var pw = await _authService.AddAsync(entity, dto.Role, HttpContext.User.Identity!.Name!);
+            var pw = await _authService.AddAsync(entity, Enum.Parse<UserRole>(dto.Role), HttpContext.User.Identity!.Name!);
 
             var resultDto = _mapper.Map<OutputUserDetailDto>(entity);
             return Ok(new { password = pw });
         }
 
+        [PermissionAuthorize("User", "edit")]
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(int id, [FromBody] UpdateUserDto dto)
         {
@@ -74,6 +78,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
@@ -81,6 +86,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [PermissionAuthorize("User", "delete")]
         [HttpPost("block")]
         public async Task<ActionResult> Block(int id)
         {
@@ -88,6 +94,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [PermissionAuthorize("User", "delete")]
         [HttpPost("unblock")]
         public async Task<ActionResult> Unblock(int id)
         {
@@ -95,6 +102,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [PermissionAuthorize("User", "view")]
         [HttpPost("advanced")]
         public async Task<ActionResult<PaginationResult<OutputUserOverviewDto>>> GetAdvanced([FromBody] AdvancedQueryParametersDto parameters)
         {

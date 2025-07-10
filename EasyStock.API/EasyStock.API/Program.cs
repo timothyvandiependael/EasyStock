@@ -89,6 +89,8 @@ builder.Services.AddScoped<IRetryableTransactionService, IRetryableTransactionSe
 
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 
+builder.Services.AddScoped<IPermissionService, PermissionService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

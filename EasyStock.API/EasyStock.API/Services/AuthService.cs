@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using EasyStock.API.Dtos;
 using System.Security.Cryptography;
 using EasyStock.API.Dtos.Auth;
+using EasyStock.API.Common;
 
 namespace EasyStock.API.Services
 {
@@ -16,11 +17,13 @@ namespace EasyStock.API.Services
         private readonly IUserAuthRepository _userAuthRepository;
         private readonly IConfiguration _configuration;
         private readonly PasswordHasher<UserAuth> _passwordHasher;
+        private readonly IUserPermissionRepository _userPermissionRepository;
 
-        public AuthService(IUserAuthRepository userAuthRepository, IConfiguration configuration)
+        public AuthService(IUserAuthRepository userAuthRepository, IConfiguration configuration, IUserPermissionRepository userPermissionRepository)
         {
             _userAuthRepository = userAuthRepository;
             _configuration = configuration;
+            _userPermissionRepository = userPermissionRepository;
             _passwordHasher = new PasswordHasher<UserAuth>();
         }
 
@@ -61,11 +64,11 @@ namespace EasyStock.API.Services
             var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var claims = new List<Claim>()
             {
                 new Claim(JwtRegisteredClaimNames.Sub, userAuth.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Role, userAuth.Role)
+                new Claim(ClaimTypes.Role, userAuth.Role.ToString())
             };
 
             var token = new JwtSecurityToken(
@@ -104,7 +107,7 @@ namespace EasyStock.API.Services
             return result;
         }
 
-        public async Task<string> AddAsync(User user, string role, string creationUserName)
+        public async Task<string> AddAsync(User user, UserRole role, string creationUserName)
         {
             var pw = GenerateTempPassword();
 

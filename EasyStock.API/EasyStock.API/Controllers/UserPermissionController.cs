@@ -24,6 +24,7 @@ namespace EasyStock.API.Controllers
             _userPermissionService = userPermissionService;
         }
 
+        [PermissionAuthorize("UserPermission", "view")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserPermission>>> GetAll()
         {
@@ -32,6 +33,7 @@ namespace EasyStock.API.Controllers
             return Ok(dtos);
         }
 
+        [PermissionAuthorize("UserPermission", "view")]
         [HttpGet("id/{id}")]
         public async Task<ActionResult<UserPermission?>> GetById(int id)
         {
@@ -42,6 +44,7 @@ namespace EasyStock.API.Controllers
             return Ok(dto);
         }
 
+        [PermissionAuthorize("UserPermission", "add")]
         [HttpPost]
         public async Task<ActionResult> Add([FromBody] CreateUserPermissionDto dto)
         {
@@ -53,6 +56,7 @@ namespace EasyStock.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
         }
 
+        [PermissionAuthorize("UserPermission", "edit")]
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(int id, [FromBody] UpdateUserPermissionDto dto)
         {
@@ -63,6 +67,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
@@ -70,6 +75,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [PermissionAuthorize("UserPermission", "delete")]
         [HttpPost("block")]
         public async Task<ActionResult> Block(int id)
         {
@@ -77,6 +83,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [PermissionAuthorize("UserPermission", "delete")]
         [HttpPost("unblock")]
         public async Task<ActionResult> Unblock(int id)
         {
@@ -84,6 +91,7 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [PermissionAuthorize("UserPermission", "view")]
         [HttpPost("advanced")]
         public async Task<ActionResult<PaginationResult<OutputUserPermissionOverviewDto>>> GetAdvanced([FromBody] AdvancedQueryParametersDto parameters)
         {

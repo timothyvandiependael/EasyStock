@@ -10,6 +10,6 @@
         public bool DecreasedStockBelowMinimum { get; set; } = false;
         public bool AutoRestocked { get; set; } = false;
         public int AutoRestockPurchaseOrderId { get; set; }
-        public string AutoRestockPurchaseOrderNumber { get; set; }
+        public string? AutoRestockPurchaseOrderNumber { get; set; }
     }
 }
