@@ -1,0 +1,14 @@
+<nav [class.w-64]="!collapsed" [class.w-16]="collapsed"
+    class="h-full flex flex-col transition-width duration-300 overflow-hidden">
+    <ul class="flex flex-col mt-4 space-y-2">
+        @for (item of navItems; track item.label) {
+            <li routerLinkActive="bg-gray-700" class="flex items-center cursor-pointer px-4 py-3 hover:bg-gray-700"
+                [routerLink]="item.route">
+                <span class="text-lg">{{ item.icon }}</span>
+                @if (!collapsed) {
+                <span class="ml-3 text-white font-medium select-none">{{ item.label }}</span>
+                }
+            </li>
+        }
+    </ul>
+</nav>
