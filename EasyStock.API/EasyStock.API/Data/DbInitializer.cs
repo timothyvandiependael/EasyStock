@@ -38,7 +38,9 @@ namespace EasyStock.API.Data
                     MustChangePassword = true
                 };
 
-                newAuthUser.PasswordHash = authService.HashPassword(newAuthUser, "EersteWachtwoord123!");
+                var seedPassword = Environment.GetEnvironmentVariable("SEED_USER_PASSWORD") ?? "DefaultDemoPassword";
+
+                newAuthUser.PasswordHash = authService.HashPassword(newAuthUser, seedPassword);
 
                 await userAuthRepo.AddAsync(newAuthUser);
 
