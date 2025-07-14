@@ -13,14 +13,16 @@ namespace EasyStock.API.Services
         private readonly IRepository<Product> _genericProductRepository;
         private readonly IRetryableTransactionService _retryableTransactionService;
         private readonly IPurchaseOrderService _purchaseOrderService;
+        private readonly IPurchaseOrderLineProcessor _purchaseOrderLineProcessor;
 
-        public PurchaseOrderLineService(IPurchaseOrderLineRepository purchaseOrderLineRepository, IRepository<PurchaseOrderLine> repository, IRetryableTransactionService retryableTransactionService, IRepository<Product> genericProductRepository, IPurchaseOrderService purchaseOrderService)
+        public PurchaseOrderLineService(IPurchaseOrderLineRepository purchaseOrderLineRepository, IRepository<PurchaseOrderLine> repository, IRetryableTransactionService retryableTransactionService, IRepository<Product> genericProductRepository, IPurchaseOrderService purchaseOrderService, IPurchaseOrderLineProcessor purchaseOrderLineProcessor)
         {
             _purchaseOrderLineRepository = purchaseOrderLineRepository;
             _repository = repository;
             _retryableTransactionService = retryableTransactionService;
             _genericProductRepository = genericProductRepository;
             _purchaseOrderService = purchaseOrderService;
+            _purchaseOrderLineProcessor = purchaseOrderLineProcessor;
         }
 
         public async Task<IEnumerable<PurchaseOrderLineOverview>> GetAllAsync()
@@ -29,38 +31,12 @@ namespace EasyStock.API.Services
         public async Task<PaginationResult<PurchaseOrderLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
             => await _purchaseOrderLineRepository.GetAdvancedAsync(filters, sorting, pagination);
 
-        public async Task AddAsync(PurchaseOrderLine entity, string userName, bool fromParent = false)
+        public async Task AddAsync(PurchaseOrderLine entity, string userName)
         {
-            if (!fromParent)
+            await _retryableTransactionService.ExecuteAsync(async () =>
             {
-                await _retryableTransactionService.ExecuteAsync(async () =>
-                {
-                    await AddInternalAsync(entity, userName, fromParent);
-                });
-            }
-            else
-            {
-                await AddInternalAsync(entity, userName, fromParent);
-            }
-        }
-
-        private async Task AddInternalAsync(PurchaseOrderLine entity, string userName, bool fromParent)
-        {
-            entity.CrDate = DateTime.UtcNow;
-            entity.LcDate = entity.CrDate;
-            entity.CrUserId = userName;
-            entity.LcUserId = userName;
-            entity.Status = OrderStatus.Open;
-            if (!fromParent)
-                entity.LineNumber = await _purchaseOrderService.GetNextLineNumberAsync(entity.PurchaseOrderId);
-            await _repository.AddAsync(entity);
-
-            var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
-            if (product == null)
-                throw new InvalidOperationException($"Product with ID {entity.ProductId} not found when updating inbound stock.");
-            product.InboundStock += entity.Quantity;
-            product.LcUserId = userName;
-            product.LcDate = DateTime.UtcNow;
+                await _purchaseOrderLineProcessor.AddAsync(entity, userName, _purchaseOrderService.GetNextLineNumberAsync);
+            });
         }
 
         public async Task UpdateAsync(PurchaseOrderLine entity, string userName)
@@ -92,114 +68,35 @@ namespace EasyStock.API.Services
             });
         }
 
-        public async Task DeleteAsync(int id, string userName, bool manageTransaction = true)
+        public async Task DeleteAsync(int id, string userName)
         {
-            if (manageTransaction)
+
+            await _retryableTransactionService.ExecuteAsync(async () =>
             {
-                await _retryableTransactionService.ExecuteAsync(async () =>
-                {
-                    await DeleteInternalAsync(id, userName);
-                });
-            }
-            else
-            {
-                await DeleteInternalAsync(id, userName);
-            }
-            
+                await _purchaseOrderLineProcessor.DeleteAsync(id, userName);
+            });
+
         }
 
-        private async Task DeleteInternalAsync(int id, string userName)
+        public async Task BlockAsync(int id, string userName)
         {
-            var record = await _repository.GetByIdAsync(id);
-            if (record == null)
-                throw new InvalidOperationException($"Unable to delete record with ID {id}");
-            if (record.Status == OrderStatus.Open || record.Status == OrderStatus.Partial)
-            {
-                var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
-                if (product == null)
-                    throw new InvalidOperationException($"Product with ID {record.ProductId} not found when updating inbound stock.");
-                product.InboundStock -= record.Quantity;
-                product.LcUserId = userName;
-                product.LcDate = DateTime.UtcNow;
-            }
 
-            await _repository.DeleteAsync(id);
+            await _retryableTransactionService.ExecuteAsync(async () =>
+            {
+                await _purchaseOrderLineProcessor.BlockAsync(id, userName);
+            });
+
         }
 
-        public async Task BlockAsync(int id, string userName, bool manageTransaction = true)
+        public async Task UnblockAsync(int id, string userName)
         {
-            if (manageTransaction)
+            await _retryableTransactionService.ExecuteAsync(async () =>
             {
-                await _retryableTransactionService.ExecuteAsync(async () =>
-                {
-                    await BlockInternalAsync(id, userName);
-                });
-            }
-            else
-            {
-                await BlockInternalAsync(id, userName);
-            }
-            
+                await _purchaseOrderLineProcessor.UnblockAsync(id, userName);
+            });
+
         }
 
-        private async Task BlockInternalAsync(int id, string userName)
-        {
-            var record = await _repository.GetByIdAsync(id);
-            if (record == null)
-                throw new InvalidOperationException($"Unable to block record with ID {id}");
-            record.BlDate = DateTime.UtcNow;
-            record.BlUserId = userName;
-
-            if (record.Status == OrderStatus.Open || record.Status == OrderStatus.Partial)
-            {
-                var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
-                if (product == null)
-                    throw new InvalidOperationException($"Product with ID {record.ProductId} not found when updating inbound stock.");
-                product.InboundStock -= record.Quantity;
-                product.LcUserId = userName;
-                product.LcDate = DateTime.UtcNow;
-            }
-
-            await _repository.UpdateAsync(record);
-        }
-
-        public async Task UnblockAsync(int id, string userName, bool manageTransaction = true)
-        {
-            if (manageTransaction)
-            {
-                await _retryableTransactionService.ExecuteAsync(async () =>
-                {
-                    await UnblockInternalAsync(id, userName);
-                });
-            }
-            else
-            {
-                await UnblockInternalAsync(id, userName);
-            }
-            
-        }
-
-        private async Task UnblockInternalAsync(int id, string userName)
-        {
-            var record = await _repository.GetByIdAsync(id);
-            if (record == null)
-                throw new InvalidOperationException($"Unable to unblock record with ID {id}");
-            record.BlDate = null;
-            record.BlUserId = null;
-            record.LcDate = DateTime.UtcNow;
-            record.LcUserId = userName;
-
-            if (record.Status == OrderStatus.Open || record.Status == OrderStatus.Partial)
-            {
-                var product = await _genericProductRepository.GetByIdAsync(record.ProductId);
-                if (product == null)
-                    throw new InvalidOperationException($"Product with ID {record.ProductId} not found when updating inbound stock.");
-                product.InboundStock += record.Quantity;
-                product.LcUserId = userName;
-                product.LcDate = DateTime.UtcNow;
-            }
-
-            await _repository.UpdateAsync(record);
-        }
+        
     }
 }

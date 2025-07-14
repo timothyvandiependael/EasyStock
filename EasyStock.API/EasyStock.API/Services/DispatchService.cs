@@ -10,18 +10,17 @@ namespace EasyStock.API.Services
         private readonly IRetryableTransactionService _retryableTransactionService;
         private readonly IRepository<Dispatch> _repository;
         private readonly IOrderNumberCounterService _orderNumberCounterService;
-        private readonly IDispatchLineService _dispatchLineService;
         private readonly IRepository<SalesOrder> _genericSalesOrderRepository;
+        private readonly IDispatchLineProcessor _dispatchLineProcessor;
 
-        public DispatchService(IDispatchRepository dispatchRepository, IDispatchLineService dispatchLineService, IRetryableTransactionService retryableTransactionService, IRepository<Dispatch> repository, IOrderNumberCounterService orderNumberCounterService, IRepository<SalesOrder> genericSalesOrderRepository)
+        public DispatchService(IDispatchRepository dispatchRepository, IRetryableTransactionService retryableTransactionService, IRepository<Dispatch> repository, IOrderNumberCounterService orderNumberCounterService, IRepository<SalesOrder> genericSalesOrderRepository, IDispatchLineProcessor dispatchLineProcessor)
         {
             _dispatchRepository = dispatchRepository;
-            _dispatchLineService = dispatchLineService;
             _repository = repository;
             _retryableTransactionService = retryableTransactionService;
             _orderNumberCounterService = orderNumberCounterService;
             _genericSalesOrderRepository = genericSalesOrderRepository;
-
+            _dispatchLineProcessor = dispatchLineProcessor;
         }
 
         public async Task<IEnumerable<DispatchOverview>> GetAllAsync()
@@ -47,7 +46,7 @@ namespace EasyStock.API.Services
                 {
                     line.LineNumber = lineCounter;
 
-                    await _dispatchLineService.AddAsync(line, userName, true);
+                    await _dispatchLineProcessor.AddAsync(line, userName, null, true);
 
                     lineCounter++;
                 }
@@ -93,7 +92,7 @@ namespace EasyStock.API.Services
                         CrUserId = userName,
                         LcUserId = userName
                     };
-                    await _dispatchLineService.AddAsync(dispatchLine, userName, true);
+                    await _dispatchLineProcessor.AddAsync(dispatchLine, userName, null, true);
                 }
 
                 await _repository.AddAsync(dispatch);
@@ -116,7 +115,7 @@ namespace EasyStock.API.Services
 
                 foreach (var line in entity.Lines)
                 {
-                    await _dispatchLineService.DeleteAsync(line.Id, userName, false);
+                    await _dispatchLineProcessor.DeleteAsync(line.Id, userName);
                 }
                 await _repository.DeleteAsync(id);
             });
@@ -134,7 +133,7 @@ namespace EasyStock.API.Services
 
                 foreach (var line in entity.Lines)
                 {
-                    await _dispatchLineService.BlockAsync(line.Id, userName, false);
+                    await _dispatchLineProcessor.BlockAsync(line.Id, userName);
                 }
                 await _repository.UpdateAsync(entity);
             });
@@ -154,7 +153,7 @@ namespace EasyStock.API.Services
 
                 foreach (var line in entity.Lines)
                 {
-                    await _dispatchLineService.UnblockAsync(line.Id, userName, false);
+                    await _dispatchLineProcessor.UnblockAsync(line.Id, userName);
                 }
                 await _repository.UpdateAsync(entity);
             });

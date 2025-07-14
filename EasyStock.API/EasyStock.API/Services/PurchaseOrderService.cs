@@ -12,21 +12,21 @@ namespace EasyStock.API.Services
         private readonly IOrderNumberCounterService _orderNumberCounterService;
         private readonly IRepository<PurchaseOrder> _repository;
         private readonly IRetryableTransactionService _retryableTransactionService;
-        private readonly IPurchaseOrderLineService _purchaseOrderLineService;
         private readonly ISupplierRepository _supplierRepository;
         private readonly IRepository<Product> _genericProductRepository;
         private readonly IRepository<Supplier> _genericSupplierRepository;
+        private readonly IPurchaseOrderLineProcessor _purchaseOrderLineProcessor;
 
-        public PurchaseOrderService(IPurchaseOrderRepository purchaseOrderRepository, IOrderNumberCounterService orderNumberCounterService, IRepository<PurchaseOrder> repository, IRetryableTransactionService retryableTransactionService, IPurchaseOrderLineService purchaseOrderLineService, ISupplierRepository supplierRepository, IRepository<Product> genericProductRepository, IRepository<Supplier> genericSupplierRepository)
+        public PurchaseOrderService(IPurchaseOrderRepository purchaseOrderRepository, IOrderNumberCounterService orderNumberCounterService, IRepository<PurchaseOrder> repository, IRetryableTransactionService retryableTransactionService, ISupplierRepository supplierRepository, IRepository<Product> genericProductRepository, IRepository<Supplier> genericSupplierRepository, IPurchaseOrderLineProcessor purchaseOrderLineProcessor)
         {
             _purchaseOrderRepository = purchaseOrderRepository;
             _orderNumberCounterService = orderNumberCounterService;
             _repository = repository;
             _retryableTransactionService = retryableTransactionService;
-            _purchaseOrderLineService = purchaseOrderLineService;
             _supplierRepository = supplierRepository;
             _genericProductRepository = genericProductRepository;
             _genericSupplierRepository = genericSupplierRepository;
+            _purchaseOrderLineProcessor = purchaseOrderLineProcessor;
         }
 
         public async Task<IEnumerable<PurchaseOrderOverview>> GetAllAsync()
@@ -53,7 +53,7 @@ namespace EasyStock.API.Services
                 foreach (var line in lines)
                 {
                     line.LineNumber = lineCounter;
-                    await _purchaseOrderLineService.AddAsync(line, userName, true);
+                    await _purchaseOrderLineProcessor.AddAsync(line, userName, null, true);
 
                     lineCounter++;
                 }
@@ -74,7 +74,7 @@ namespace EasyStock.API.Services
 
                 foreach (var line in entity.Lines)
                 {
-                    await _purchaseOrderLineService.DeleteAsync(line.Id, userName, false);
+                    await _purchaseOrderLineProcessor.DeleteAsync(line.Id, userName);
                 }
                 await _repository.DeleteAsync(id);
             });
@@ -92,7 +92,7 @@ namespace EasyStock.API.Services
 
                 foreach (var line in entity.Lines)
                 {
-                    await _purchaseOrderLineService.BlockAsync(line.Id, userName, false);
+                    await _purchaseOrderLineProcessor.BlockAsync(line.Id, userName);
                 }
                 await _repository.UpdateAsync(entity);
             });
@@ -112,7 +112,7 @@ namespace EasyStock.API.Services
 
                 foreach (var line in entity.Lines)
                 {
-                    await _purchaseOrderLineService.UnblockAsync(line.Id, userName, false);
+                    await _purchaseOrderLineProcessor.UnblockAsync(line.Id, userName);
                 }
                 await _repository.UpdateAsync(entity);
             });
@@ -173,7 +173,7 @@ namespace EasyStock.API.Services
                             LineNumber = lineNumber
                         };
 
-                        await _purchaseOrderLineService.AddAsync(poLine, userName, true);
+                        await _purchaseOrderLineProcessor.AddAsync(poLine, userName, null, true);
 
                         lineNumber++;
                     }
@@ -231,11 +231,11 @@ namespace EasyStock.API.Services
                     LcUserId = userName,
                     LineNumber = 1
                 };
-                po.Lines.Add(line);
+
+                await _purchaseOrderLineProcessor.AddAsync(line, userName, null, true);
 
                 await _repository.AddAsync(po);
-
-
+                po = await _repository.GetByIdAsync(po.Id);
             });
 
             return po;

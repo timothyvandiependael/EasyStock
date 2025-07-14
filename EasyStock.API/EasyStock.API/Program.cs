@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -47,7 +48,7 @@ builder.Services.AddScoped<IUserAuthRepository, UserAuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped(typeof(IService<>), typeof(IService<>));
+builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
@@ -57,24 +58,28 @@ builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
 
 builder.Services.AddScoped<IPurchaseOrderLineRepository, PurchaseOrderLineRepository>();
 builder.Services.AddScoped<IPurchaseOrderLineService, PurchaseOrderLineService>();
+builder.Services.AddScoped<IPurchaseOrderLineProcessor, PurchaseOrderLineProcessor>();
 
 builder.Services.AddScoped<ISalesOrderRepository, SalesOrderRepository>();
 builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
 
 builder.Services.AddScoped<ISalesOrderLineRepository, SalesOrderLineRepository>();
 builder.Services.AddScoped<ISalesOrderLineService, SalesOrderLineService>();
+builder.Services.AddScoped<ISalesOrderLineProcessor, SalesOrderLineProcessor>();
 
 builder.Services.AddScoped<IDispatchRepository, DispatchRepository>();
 builder.Services.AddScoped<IDispatchService, DispatchService>();
 
 builder.Services.AddScoped<IDispatchLineRepository, DispatchLineRepository>();
 builder.Services.AddScoped<IDispatchLineService, DispatchLineService>();
+builder.Services.AddScoped<IDispatchLineProcessor, DispatchLineProcessor>();
 
 builder.Services.AddScoped<IReceptionRepository, ReceptionRepository>();
 builder.Services.AddScoped<IReceptionService, ReceptionService>();
 
 builder.Services.AddScoped<IReceptionLineRepository, ReceptionLineRepository>();
 builder.Services.AddScoped<IReceptionLineService, ReceptionLineService>();
+builder.Services.AddScoped<IReceptionLineProcessor, ReceptionLineProcessor>();
 
 builder.Services.AddScoped<IUserPermissionRepository, UserPermissionRepository>();
 builder.Services.AddScoped<IUserPermissionService, UserPermissionService>();
@@ -85,7 +90,7 @@ builder.Services.AddScoped<IStockMovementService, StockMovementService>();
 builder.Services.AddScoped<IOrderNumberCounterRepository, OrderNumberCounterRepository>();
 builder.Services.AddScoped<IOrderNumberCounterService, OrderNumberCounterService>();
 
-builder.Services.AddScoped<IRetryableTransactionService, IRetryableTransactionService>();
+builder.Services.AddScoped<IRetryableTransactionService, RetryableTransactionService>();
 
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 
@@ -110,3 +115,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+

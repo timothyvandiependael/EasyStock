@@ -61,7 +61,7 @@ namespace EasyStock.API.Controllers
         }
 
         [PermissionAuthorize("Dispatch", "add")]
-        [HttpPost]
+        [HttpPost("fromsalesorder")]
         public async Task<ActionResult> AddFromSalesOrder([FromBody] CreateDispatchFromSalesOrderDto dto)
         {
             if (dto == null) return BadRequest();

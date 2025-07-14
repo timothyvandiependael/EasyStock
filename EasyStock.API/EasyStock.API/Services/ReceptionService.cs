@@ -10,15 +10,15 @@ namespace EasyStock.API.Services
         private readonly IOrderNumberCounterService _orderNumberCounterService;
         private readonly IRepository<Reception> _repository;
         private readonly IRetryableTransactionService _retryableTransactionService;
-        private readonly IReceptionLineService _receptionLineService;
+        private readonly IReceptionLineProcessor _receptionLineProcessor;
 
-        public ReceptionService(IReceptionRepository receptionRepository, IOrderNumberCounterService orderNumberCounterService, IRepository<Reception> repository, IRetryableTransactionService retryableTransactionService, IReceptionLineService receptionLineService)
+        public ReceptionService(IReceptionRepository receptionRepository, IOrderNumberCounterService orderNumberCounterService, IRepository<Reception> repository, IRetryableTransactionService retryableTransactionService, IReceptionLineProcessor receptionLineProcessor)
         {
             _receptionRepository = receptionRepository;
             _orderNumberCounterService = orderNumberCounterService;
             _repository = repository;
             _retryableTransactionService = retryableTransactionService;
-            _receptionLineService = receptionLineService;
+            _receptionLineProcessor = receptionLineProcessor;
         }
 
         public async Task<IEnumerable<ReceptionOverview>> GetAllAsync()
@@ -44,7 +44,7 @@ namespace EasyStock.API.Services
                 foreach (var line in lines)
                 {
                     line.LineNumber = lineCounter;
-                    await _receptionLineService.AddAsync(line, userName, true);
+                    await _receptionLineProcessor.AddAsync(line, userName, null, true);
 
                     lineCounter++;
                 }
@@ -63,7 +63,7 @@ namespace EasyStock.API.Services
 
                 foreach (var line in entity.Lines)
                 {
-                    await _receptionLineService.DeleteAsync(line.Id, userName, false);
+                    await _receptionLineProcessor.DeleteAsync(line.Id, userName);
                 }
                 await _repository.DeleteAsync(id);
             });
@@ -81,7 +81,7 @@ namespace EasyStock.API.Services
 
                 foreach (var line in entity.Lines)
                 {
-                    await _receptionLineService.BlockAsync(line.Id, userName, false);
+                    await _receptionLineProcessor.BlockAsync(line.Id, userName);
                 }
                 await _repository.UpdateAsync(entity);
             });
@@ -101,7 +101,7 @@ namespace EasyStock.API.Services
 
                 foreach (var line in entity.Lines)
                 {
-                    await _receptionLineService.UnblockAsync(line.Id, userName, false);
+                    await _receptionLineProcessor.UnblockAsync(line.Id, userName);
                 }
                 await _repository.UpdateAsync(entity);
             });

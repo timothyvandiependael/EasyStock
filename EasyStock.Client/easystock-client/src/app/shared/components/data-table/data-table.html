@@ -1,1 +1,26 @@
-<p>data-table works!</p>
+<div class="overflow-x-auto border rounded-md shadow-sm">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                @for (col of columns; track col) {
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {{ col }}
+                </th>
+                }
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            @for (row of data; track row) {
+            <tr class="hover:bg-gray-50">
+                @for (col of columns; track col) {
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    {{ row[col] }}
+                </td>
+                }
+
+            </tr>
+            }
+
+        </tbody>
+    </table>
+</div>

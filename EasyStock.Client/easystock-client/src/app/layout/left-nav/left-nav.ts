@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-left-nav',
@@ -14,6 +15,6 @@ export class LeftNav {
     { label: 'Dashboard', route: '/app/startup', icon: '🏠' },
     { label: 'Products', route: '/app/products', icon: '📦' },
     { label: 'Customers', route: '/app/customers', icon: '👥' },
-    // add more modules here
+    // TODO actual modules
   ];
 }
