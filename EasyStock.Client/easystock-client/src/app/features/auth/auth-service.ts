@@ -4,6 +4,7 @@ import { Observable, tap, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LoginDto } from './login.dto';
 import { jwtDecode } from 'jwt-decode';
+import { ChangePasswordDto } from './change-password.dto';
 
 interface AuthResult {
   token: string;
@@ -35,6 +36,10 @@ export class AuthService {
     }))
   }
 
+  changePassword(dto: ChangePasswordDto): Observable<any> {
+    return this.http.post(this.apiUrl + 'changepassword', dto);
+  }
+
   isLoggedIn(): boolean {
     const token = this.getToken();
     if (!token) return false;
@@ -45,6 +50,19 @@ export class AuthService {
       return decoded.exp > currentTime;
     } catch(e) {
       return false;
+    }
+  }
+
+  getUserName(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const decoded: any = jwtDecode(token);
+
+      return decoded.sub || null;
+    } catch (e) {
+      return null;
     }
   }
 

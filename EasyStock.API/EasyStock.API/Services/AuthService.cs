@@ -43,12 +43,6 @@ namespace EasyStock.API.Services
                 MustChangePassword = authUser.MustChangePassword
             };
 
-            if (authUser.MustChangePassword)
-            {
-                authUser.MustChangePassword = false;
-                await _userAuthRepository.SaveChangesAsync();
-            }
-
             return authResult;
         }
 
@@ -82,22 +76,35 @@ namespace EasyStock.API.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public async Task<ChangePasswordResultDto> ChangePasswordAsync(int userId, string oldPassword, string newPassword)
+        public async Task<ChangePasswordResultDto> ChangePasswordAsync(string userName, string oldPassword, string newPassword)
         {
             var result = new ChangePasswordResultDto();
 
-            var user = await _userAuthRepository.GetByIdAsync(userId);
+            var user = await _userAuthRepository.GetByUserNameAsync(userName);
             if (user == null)
             {
                 result.Errors.Add("userId", "User not found");
                 return result;
             }
 
-            var verification = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, oldPassword);
-            if (verification == PasswordVerificationResult.Failed)
+            if (user.MustChangePassword)
             {
-                result.Errors.Add("oldPassword", "The given old password was incorrect.");
-                return result;
+                user.MustChangePassword = false;
+                await _userAuthRepository.SaveChangesAsync();
+            }
+            else
+            {
+                if (oldPassword == null)
+                {
+                    result.Errors.Add("oldPassword", "no old password provided.");
+                    return result;
+                }
+                var verification = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, oldPassword);
+                if (verification == PasswordVerificationResult.Failed)
+                {
+                    result.Errors.Add("oldPassword", "The given old password was incorrect.");
+                    return result;
+                }
             }
 
             user.PasswordHash = HashPassword(user, newPassword);

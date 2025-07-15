@@ -1,4 +1,5 @@
 import { Component, Output, EventEmitter } from '@angular/core';
+import { AuthService } from '../../features/auth/auth-service';
 
 @Component({
   selector: 'app-top-bar',
@@ -9,5 +10,14 @@ import { Component, Output, EventEmitter } from '@angular/core';
 export class TopBar {
   @Output() toggleNav = new EventEmitter<void>();
 
-  userName = 'John Doe'; // TODO user info
+  userName = '';
+
+  constructor(private authService: AuthService) {
+    var usr = authService.getUserName();
+    if (usr != null) {
+      this.userName = usr;
+    }
+  }
+
+  
 }

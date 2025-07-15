@@ -9,7 +9,7 @@ namespace EasyStock.API.Services
     {
         Task<AuthResultDto?> AuthenticateAsync(string userName, string password);
         string HashPassword(UserAuth userAuth, string password);
-        Task<ChangePasswordResultDto> ChangePasswordAsync(int userId, string oldPassword, string newPassword);
+        Task<ChangePasswordResultDto> ChangePasswordAsync(string userName, string oldPassword, string newPassword);
         Task<string> AddAsync(User user, UserRole role, string creationUserName);
         Task<bool> UserExists(string userName);
     }

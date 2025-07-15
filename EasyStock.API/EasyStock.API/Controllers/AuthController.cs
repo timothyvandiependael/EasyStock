@@ -22,7 +22,6 @@ namespace EasyStock.API.Controllers
             var result = await _authService.AuthenticateAsync(dto.UserName, dto.Password);
             if (result == null)
                 return Unauthorized();
-
             return Ok(result);
         }
 
@@ -30,7 +29,7 @@ namespace EasyStock.API.Controllers
         [HttpPost("changepassword")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
-            var result = await _authService.ChangePasswordAsync(dto.UserId, dto.OldPassword, dto.NewPassword);
+            var result = await _authService.ChangePasswordAsync(dto.UserName, dto.OldPassword, dto.NewPassword);
 
             if (!result.Success)
             {
@@ -41,7 +40,7 @@ namespace EasyStock.API.Controllers
                 return ValidationProblem(ModelState);
             }
 
-            return Ok("Password changed succesfully.");
+            return Ok(new { message = "Password changed successfully." });
         }
     }
 }
