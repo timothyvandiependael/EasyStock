@@ -1,4 +1,7 @@
-﻿namespace EasyStock.API.Dtos
+﻿using EasyStock.API.Common;
+using EasyStock.API.Models;
+
+namespace EasyStock.API.Dtos
 {
     public class OutputDtoBase
     {

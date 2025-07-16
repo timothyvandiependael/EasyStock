@@ -7,6 +7,7 @@ namespace EasyStock.API.Dtos
     {
         public int Id { get; set; }
         public int ReceptionId { get; set; }
+        public int LineNumber { get; set; }
         public string? Comments { get; set; }
         public int ProductId { get; set; }
         public int Quantity { get; set; }

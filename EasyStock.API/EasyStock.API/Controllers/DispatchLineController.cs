@@ -43,6 +43,12 @@ namespace EasyStock.API.Controllers
             return Ok(dto);
         }
 
+        [HttpGet("columns")]
+        public ActionResult<List<ColumnMetaData>> GetColumns()
+        {
+            return Ok(OutputDispatchLineColumnDto.Columns);
+        }
+
         [PermissionAuthorize("DispatchLine", "add")]
         [HttpPost]
         public async Task<ActionResult> Add([FromBody] CreateDispatchLineDto dto)

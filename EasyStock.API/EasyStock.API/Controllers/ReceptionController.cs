@@ -45,6 +45,12 @@ namespace EasyStock.API.Controllers
             return Ok(dto);
         }
 
+        [HttpGet("columns")]
+        public ActionResult<List<ColumnMetaData>> GetColumns()
+        {
+            return Ok(OutputReceptionColumnDto.Columns);
+        }
+
         [PermissionAuthorize("Reception", "add")]
         [HttpPost]
         public async Task<ActionResult> Add([FromBody] CreateReceptionDto dto)
