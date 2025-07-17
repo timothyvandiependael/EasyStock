@@ -1,0 +1,13 @@
+<app-data-table
+  [data]="data"
+  [columnsMeta]="columnsMeta"
+  [displayedColumns]="displayedColumns"
+  [totalCount]="totalCount"
+  [pageSize]="pageSize"
+  [pageIndex]="pageIndex"
+  [buttons]="buttons"
+  (buttonClicked)="onButtonClicked($event)"
+  (sortChanged)="onSortChanged($event)"
+  (pageChanged)="onPageChanged($event)">
+</app-data-table>
+

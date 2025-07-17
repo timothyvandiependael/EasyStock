@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { PageEvent } from '@angular/material/paginator';
-import { ButtonConfig } from '../../shared/button-config.model';
+import { ButtonConfig } from '../../../shared/button-config.model';
 import { PurchaseOrderService } from './purchase-order-service';
-import { ColumnMetaData } from '../../shared/column-meta-data';
+import { ColumnMetaData } from '../../../shared/column-meta-data';
 import { Subscription } from 'rxjs';
-import { AdvancedQueryParametersDto, SortOption } from '../../shared/query';
-import { DataTable } from '../../shared/components/data-table/data-table';
+import { AdvancedQueryParametersDto, FilterCondition, SortOption } from '../../../shared/query';
+import { DataTable } from '../../../shared/components/data-table/data-table';
 
 @Component({
   selector: 'app-purchase-order-overview',
@@ -24,11 +24,12 @@ export class PurchaseOrderOverview {
   totalCount = 0;
   pageSize = 10;
   pageIndex = 0;
+  filters: FilterCondition[] = [];
 
   buttons: ButtonConfig[] = [
     { label: 'Add', icon: 'add', action: 'add', color: 'primary' },
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
-    { label: 'Delete', icon: 'delete', action: 'delete', color: 'warn', disabled: true }
+    { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true }
   ]
 
   currentSort: Sort = { active: '', direction: '' };
@@ -48,7 +49,7 @@ export class PurchaseOrderOverview {
     this.getColumnsSub = this.purchaseOrderService.getColumns().subscribe({
       next: (columns: ColumnMetaData[]) => {
         this.columnsMeta = columns;
-        this.displayedColumns= columns.map(c => c.name);
+        this.displayedColumns = columns.map(c => c.name);
 
         this.loadData();
       },
@@ -66,7 +67,7 @@ export class PurchaseOrderOverview {
       : [];
 
     const query: AdvancedQueryParametersDto = {
-      filters: [],
+      filters: this.filters,
       sorting: sortOptions,
       pagination: {
         pageIndex: this.pageIndex,
@@ -98,6 +99,12 @@ export class PurchaseOrderOverview {
   onPageChanged(event: PageEvent) {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
+    this.loadData();
+  }
+
+  onFilterChanged(filterPayload: FilterCondition[]) {
+    this.filters = filterPayload;
+    this.pageIndex = 0;
     this.loadData();
   }
 }

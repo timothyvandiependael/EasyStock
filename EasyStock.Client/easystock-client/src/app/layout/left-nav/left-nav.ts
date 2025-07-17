@@ -32,7 +32,7 @@ export class LeftNav {
     { section: 'Admin', label: 'Users', route: '/app/users', icon: '👤' },
     { section: 'Admin', label: 'Suppliers', route: '/app/suppliers', icon: '🏭' },
     { section: 'Admin', label: 'Clients', route: '/app/clients', icon: '👥' },
-    { section: 'Admin', label: 'Categories', route: '/app/categories', icon: '📂' },
+    { section: 'Admin', label: 'Categories', route: '/app/category', icon: '📂' },
   ];
 
   private transitionEndHandler = (event: TransitionEvent) => {

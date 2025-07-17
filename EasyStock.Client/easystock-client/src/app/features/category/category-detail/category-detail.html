@@ -1,0 +1,16 @@
+@if(detailMode === 'add') {
+<h2 class="text-2xl font-semibold text-gray-800 pb-2 mb-6 border-b border-gray-300">Add Category</h2>
+}
+@else {
+<h2 class="text-2xl font-semibold text-gray-800 pb-2 mb-6 border-b border-gray-300">Edit Category</h2>
+}
+
+<app-detail-view
+  [metaData]="columnMetaData"
+  [mode]="detailMode"
+  [model]="selectedCategory"
+  (saveAndAddAnother)="handleSaveAndAddAnother($event)"
+  (saveNewAndExit)="handleSaveNewAndExit($event)"
+  (saveAndExit)="handleSaveAndExit($event)"
+  (cancel)="handleCancel()">
+</app-detail-view>

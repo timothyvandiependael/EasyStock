@@ -19,3 +19,8 @@ export interface AdvancedQueryParametersDto {
   sorting?: SortOption[];
   pagination: Pagination;
 }
+
+export interface PaginationResult<T> {
+  totalCount: number;
+  data: T[];
+}
