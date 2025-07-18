@@ -20,6 +20,13 @@ export class CategoryService {
   }
 
   getAdvanced(params: AdvancedQueryParametersDto): Observable<PaginationResult<CategoryOverviewDto>> {
+    if (params.filters) {
+      params.filters = params.filters.map(f => ({
+        field: f.field,
+        operator: f.operator,
+        value: f.value != null ? f.value.toString() : ''
+      }));
+    }
     return this.http.post<PaginationResult<CategoryOverviewDto>>(this.apiUrl + 'advanced', params);
   }
 

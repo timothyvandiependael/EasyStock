@@ -76,16 +76,18 @@ namespace EasyStock.API.Repositories
 
             // Pagination
             var totalCount = await query.CountAsync();
+
             var data = await query
-                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
-                .Take(pagination.PageSize)
-                .ToListAsync();
+            .Skip((pagination.PageNumber) * pagination.PageSize)
+            .Take(pagination.PageSize)
+            .ToListAsync();
 
             return new PaginationResult<T>
             {
                 TotalCount = totalCount,
                 Data = data
             };
+
         }
     }
 }

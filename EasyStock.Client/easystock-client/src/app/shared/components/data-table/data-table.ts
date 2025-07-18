@@ -12,11 +12,13 @@ import { FormsModule } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { FilterCondition } from '../../query';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-data-table',
   templateUrl: './data-table.html',
   styleUrls: ['./data-table.css'],
+  providers: [DatePipe],
   imports: [
     MatTableModule,
     MatPaginatorModule,
@@ -43,7 +45,12 @@ export class DataTable {
   @Output() pageChanged = new EventEmitter<PageEvent>();
   @Output() filterChanged = new EventEmitter<FilterCondition[]>();
 
+  filterColumns: string[] = [];
+
+  constructor(private datePipe: DatePipe) { }
+
   ngOnInit() {
+    this.filterColumns = this.columnsMeta.map(c => 'filter_' + c.name);
     this.filterSubject.pipe(debounceTime(300)).subscribe(() => {
       const filterPayload: FilterCondition[] = Object.entries(this.filters)
         .filter(([_, val]) => {
@@ -62,6 +69,8 @@ export class DataTable {
   }
 
   ngOnChanges() {
+    this.filterColumns = this.columnsMeta.map(c => 'filter_' + c.name);
+
     for (const col of this.columnsMeta) {
       if (col.isFilterable) {
         if (!this.filters[col.name]) {
@@ -98,6 +107,10 @@ export class DataTable {
     }
   }
 
+  getMeta(columnName: string) {
+    return this.columnsMeta.find(c => c.name === columnName);
+  }
+
   onButtonClick(btn: ButtonConfig) {
     if (!btn.disabled && !btn.hidden) {
       this.buttonClicked.emit(btn.action);
@@ -113,7 +126,22 @@ export class DataTable {
   }
 
   onFilterChange(columnName: string) {
-  this.filterSubject.next();
-}
+    this.filterSubject.next();
+  }
+
+  formatDateIfPossible(value: any): string {
+    if (!value) return '';
+
+    // Check if value is ISO date string
+    // A quick and safe way: try parsing it to Date and check if valid
+    const date = new Date(value);
+    if (!isNaN(date.getTime())) {
+      // Format the date as yyyy-MM-dd or whatever you want
+      return this.datePipe.transform(date, 'dd/MM/yyyy') || '';
+    }
+
+    // Not a date, just return as is
+    return value;
+  }
 
 }

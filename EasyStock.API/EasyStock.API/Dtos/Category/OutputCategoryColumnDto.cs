@@ -7,7 +7,7 @@ namespace EasyStock.API.Dtos
         public static readonly List<ColumnMetaData> Columns = new List<ColumnMetaData>()
         {
             new ColumnMetaData {
-                Name = "Id",
+                Name = "id",
                 Type = "number",
                 IsEditable = false,
                 IsFilterable = true,
@@ -15,12 +15,17 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Id"
             },
             new ColumnMetaData {
-                Name = "Name",
+                Name = "name",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Name"
+                DisplayName = "Name",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true,
+                    MaxLength = 100
+                }
             }
         }.Concat(OutputColumnDtoBase.Columns).ToList();
     }

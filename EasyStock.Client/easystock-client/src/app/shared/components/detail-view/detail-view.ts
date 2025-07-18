@@ -31,7 +31,7 @@ export class DetailView<T> {
     }
   }
 
-  private systemFields: string[] = ['Id', 'CrDate', 'CrUserId', 'LcDate', 'LcUserId', 'BlDate', 'BlUserId'];
+  private systemFields: string[] = ['id', 'crDate', 'crUserId', 'lcDate', 'lcUserId', 'blDate', 'blUserId'];
 
   private buildForm() {
     const group: Record<string, FormControl> = {};

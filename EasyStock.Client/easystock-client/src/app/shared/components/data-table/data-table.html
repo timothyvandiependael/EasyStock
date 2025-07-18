@@ -17,6 +17,8 @@
 <!-- Table -->
 <div class="overflow-x-auto rounded-lg border border-gray-300">
     <table mat-table [dataSource]="data" matSort (matSortChange)="onSortChange($event)" class="min-w-full">
+
+        <!-- Column definition -->
         @for(col of columnsMeta; track col) {
         <ng-container [matColumnDef]="col.name">
             <th mat-header-cell *matHeaderCellDef [mat-sort-header]="col.isSortable ? col.name : ''"
@@ -25,61 +27,56 @@
             </th>
 
             <td mat-cell *matCellDef="let row" class="px-4 py-2 border-t border-gray-200">
-                {{ row[col.name] }}
+                {{ col.name.includes('Date') ? formatDateIfPossible(row[col.name]) : row[col.name] }}
             </td>
         </ng-container>
         }
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns" class="border-b border-gray-300"></tr>
-
-        <tr class="bg-gray-50 border-b border-gray-200">
-            <th *ngFor="let col of columnsMeta" class="px-2 py-1" style="min-width: 120px;">
-
+        @for(col of columnsMeta; track col) {
+        <ng-container [matColumnDef]="'filter_' + col.name">
+            <th mat-header-cell *matHeaderCellDef class="px-2 py-1" style="min-width:120px;">
                 <ng-container *ngIf="col.isFilterable; else noFilter">
-                    <div class="flex space-x-1">
-
+                    <div class="flex space-x-1 -ml-2">
                         <!-- Operator dropdown -->
                         <select class="border rounded px-2 py-1 text-xs" [(ngModel)]="filters[col.name].operator"
                             (change)="onFilterChange(col.name)">
-                            <option *ngFor="let op of getOperatorsForType(col.type)" [value]="op.value">{{ op.label }}
+                            <option *ngFor="let op of getOperatorsForType(col.type)" [value]="op.value">
+                                {{ op.label }}
                             </option>
                         </select>
 
-                        <!-- Input controls based on type -->
-                        <ng-container [ngSwitch]="col.type.toLowerCase()">
-
-                            <!-- String input -->
+                        <!-- Input controls -->
+                        <ng-container [ngSwitch]="getMeta(col.name)?.type?.toLowerCase()">
                             <input *ngSwitchCase="'string'" type="text"
                                 class="border rounded px-2 py-1 text-xs flex-grow" [(ngModel)]="filters[col.name].value"
                                 (ngModelChange)="onFilterChange(col.name)" placeholder="Filter..." />
-
-                            <!-- Number input -->
                             <input *ngSwitchCase="'number'" type="number"
                                 class="border rounded px-2 py-1 text-xs flex-grow" [(ngModel)]="filters[col.name].value"
                                 (ngModelChange)="onFilterChange(col.name)" placeholder="Filter..." />
-
-                            <!-- Date input -->
                             <input *ngSwitchCase="'date'" type="date" class="border rounded px-2 py-1 text-xs flex-grow"
                                 [(ngModel)]="filters[col.name].value" (ngModelChange)="onFilterChange(col.name)" />
-
-                            <!-- Boolean checkbox -->
                             <select *ngSwitchCase="'boolean'" class="border rounded px-2 py-1 text-xs flex-grow"
                                 [(ngModel)]="filters[col.name].value" (change)="onFilterChange(col.name)">
                                 <option value="All">All</option>
                                 <option value="True">True</option>
                                 <option value="False">False</option>
                             </select>
-
-                            <!-- Fallback -->
                             <input *ngSwitchDefault type="text" class="border rounded px-2 py-1 text-xs flex-grow"
                                 [(ngModel)]="filters[col.name].value" (ngModelChange)="onFilterChange(col.name)"
                                 placeholder="Filter..." />
                         </ng-container>
                     </div>
                 </ng-container>
-
                 <ng-template #noFilter>&nbsp;</ng-template>
             </th>
+        </ng-container>
+        }
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns" class="border-b border-gray-300"></tr>
+
+        <!-- ✅ SECOND header row: filters -->
+        <tr mat-header-row *matHeaderRowDef="filterColumns; sticky: true"
+            class="bg-gray-50 border-b border-gray-200 filter-row">
         </tr>
 
         <tr mat-row *matRowDef="let row; columns: displayedColumns" class="hover:bg-gray-50 transition-colors"></tr>

@@ -30,7 +30,7 @@ export class CategoryOverview {
   buttons: ButtonConfig[]= [
     { label: 'Add', icon: 'add', action: 'add', color: 'primary' },
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
-    { label: 'Delete', icon: 'delete', action: 'delete', color: 'warn', disabled: true }
+    { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true }
   ]
 
   currentSort: Sort = { active: '', direction: '' };
@@ -51,7 +51,7 @@ export class CategoryOverview {
       next: (columns: ColumnMetaData[]) => {
         this.columnsMeta = columns;
         this.displayedColumns = columns.map(c => c.name);
-
+        
         this.loadData();
       },
       error: (err) => {

@@ -7,39 +7,56 @@ namespace EasyStock.API.Dtos
         public static List<ColumnMetaData> Columns = new()
         {
             new ColumnMetaData {
-                Name = "CrDate",
+                Name = "crDate",
                 Type = "date",
                 IsEditable = false,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Created At"
+                DisplayName = "Created At",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true
+                }
+                
             },
             new ColumnMetaData {
-                Name = "CrUserId",
+                Name = "crUserId",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Created By"
+                DisplayName = "Created By",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true
+                }
             },
             new ColumnMetaData {
-                Name = "LcDate",
+                Name = "lcDate",
                 Type = "date",
                 IsEditable = false,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Last Modified"
+                DisplayName = "Last Modified",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true
+                }
             },
             new ColumnMetaData {
-                Name = "LcUserId",
+                Name = "lcUserId",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Modified By"
+                DisplayName = "Modified By",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true
+                }
             },
             new ColumnMetaData {
-                Name = "BlDate",
+                Name = "blDate",
                 Type = "date",
                 IsEditable = false,
                 IsFilterable = true,
@@ -47,7 +64,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Blocked At"
             },
             new ColumnMetaData {
-                Name = "BlUserId",
+                Name = "blUserId",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,

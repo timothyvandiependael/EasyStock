@@ -10,5 +10,6 @@
         public string? DisplayName { get; set; }
         public bool IsLookup { get; set; } = false;
         public string? LookupIdField { get; set; }
+        public ValidationRules ValidationRules { get; set; } = new ValidationRules();
     }
 }
