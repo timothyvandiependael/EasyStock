@@ -59,7 +59,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null) return BadRequest();
             var entity = _mapper.Map<SalesOrderLine>(dto);
-            await _service.AddAsync(entity, HttpContext.User.Identity!.Name!);
+            await _salesOrderLineService.AddAsync(entity, HttpContext.User.Identity!.Name!);
             var resultDto = _mapper.Map<OutputSalesOrderLineDetailDto>(entity);
 
             var isBelowMinimumStock = await _productService.IsProductBelowMinimumStock(entity.ProductId);
@@ -86,7 +86,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null || dto.Id != id) return BadRequest();
             var entity = _mapper.Map<SalesOrderLine>(dto);
-            await _service.UpdateAsync(entity, HttpContext.User.Identity!.Name!);
+            await _salesOrderLineService.UpdateAsync(entity, HttpContext.User.Identity!.Name!);
 
             return NoContent();
         }
@@ -95,7 +95,7 @@ namespace EasyStock.API.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            await _service.DeleteAsync(id);
+            await _salesOrderLineService.DeleteAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 
@@ -103,7 +103,7 @@ namespace EasyStock.API.Controllers
         [HttpPost("block")]
         public async Task<ActionResult> Block(int id)
         {
-            await _service.BlockAsync(id, HttpContext.User.Identity!.Name!);
+            await _salesOrderLineService.BlockAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 
@@ -111,7 +111,7 @@ namespace EasyStock.API.Controllers
         [HttpPost("unblock")]
         public async Task<ActionResult> Unblock(int id)
         {
-            await _service.UnblockAsync(id, HttpContext.User.Identity!.Name!);
+            await _salesOrderLineService.UnblockAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 

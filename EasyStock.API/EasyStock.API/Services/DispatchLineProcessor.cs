@@ -31,24 +31,27 @@ namespace EasyStock.API.Services
             {
                 soLine.Status = OrderStatus.Partial;
             }
-
-            else
+            else if (quantity == soLine.Quantity) 
             {
                 soLine.Status = OrderStatus.Complete;
             }
-
-            var po = await _genericSalesOrderRepository.GetByIdAsync(soLine.SalesOrderId);
-            if (po == null)
-                throw new InvalidOperationException($"Unable to find sales order with ID {soLine.SalesOrderId}");
-            po.LcDate = DateTime.UtcNow;
-            po.LcUserId = userName;
-            if (po.Lines.Any(l => l.Status == OrderStatus.Partial || l.Status == OrderStatus.Open))
+            else
             {
-                po.Status = OrderStatus.Partial;
+                throw new InvalidOperationException($"Input quantity for dispatch line is greater than quantity on sales order line {salesOrderLineId}");
+            }
+
+                var so = await _genericSalesOrderRepository.GetByIdAsync(soLine.SalesOrderId);
+            if (so == null)
+                throw new InvalidOperationException($"Unable to find sales order with ID {soLine.SalesOrderId}");
+            so.LcDate = DateTime.UtcNow;
+            so.LcUserId = userName;
+            if (so.Lines.Any(l => l.Status == OrderStatus.Partial || l.Status == OrderStatus.Open))
+            {
+                so.Status = OrderStatus.Partial;
             }
             else
             {
-                po.Status = OrderStatus.Complete;
+                so.Status = OrderStatus.Complete;
             }
         }
 

@@ -48,44 +48,49 @@ namespace EasyStock.API.Services
         {
             await _retryableTransactionService.ExecuteAsync(async () =>
             {
-                entity.LcDate = entity.CrDate;
-                entity.LcUserId = userName;
-
-                var ogRecord = await _repository.GetByIdAsync(entity.Id);
-                if (ogRecord == null)
-                    throw new InvalidOperationException($"Unable to find dispatch line with ID {entity.Id}");
-                if (ogRecord.Quantity != entity.Quantity)
-                {
-                    var difference = entity.Quantity - ogRecord.Quantity;
-
-                    await _dispatchLineProcessor.SetSOStatusFields(entity.Quantity, entity.SalesOrderLineId, userName);
-
-                    var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
-                    if (product == null)
-                        throw new InvalidOperationException($"Unable to update product with ID {entity.ProductId}");
-                    product.LcDate = DateTime.UtcNow;
-                    product.LcUserId = userName;
-                    product.ReservedStock -= difference;
-                    product.TotalStock -= difference;
-
-                    var stockMovement = new StockMovement
-                    {
-                        ProductId = product.Id,
-                        Product = product,
-                        QuantityChange = 0 - difference,
-                        Reason = "Correction of dispatch line",
-                        CrDate = DateTime.UtcNow,
-                        LcDate = DateTime.UtcNow,
-                        CrUserId = userName,
-                        LcUserId = userName,
-                        SalesOrderId = entity.SalesOrderLine.SalesOrderId
-                    };
-
-                    await _genericStockMovementRepository.AddAsync(stockMovement);
-                }
-
-                await _repository.UpdateAsync(entity);
+                await UpdateAsyncProcess(entity, userName);
             });
+        }
+
+        public async Task UpdateAsyncProcess(DispatchLine entity, string userName)
+        {
+            entity.LcDate = DateTime.UtcNow;
+            entity.LcUserId = userName;
+
+            var ogRecord = await _repository.GetByIdAsync(entity.Id);
+            if (ogRecord == null)
+                throw new InvalidOperationException($"Unable to find dispatch line with ID {entity.Id}");
+            if (ogRecord.Quantity != entity.Quantity)
+            {
+                var difference = entity.Quantity - ogRecord.Quantity;
+
+                await _dispatchLineProcessor.SetSOStatusFields(entity.Quantity, entity.SalesOrderLineId, userName);
+
+                var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
+                if (product == null)
+                    throw new InvalidOperationException($"Unable to update product with ID {entity.ProductId}");
+                product.LcDate = DateTime.UtcNow;
+                product.LcUserId = userName;
+                product.ReservedStock -= difference;
+                product.TotalStock -= difference;
+
+                var stockMovement = new StockMovement
+                {
+                    ProductId = product.Id,
+                    Product = product,
+                    QuantityChange = 0 - difference,
+                    Reason = "Correction of dispatch line",
+                    CrDate = DateTime.UtcNow,
+                    LcDate = DateTime.UtcNow,
+                    CrUserId = userName,
+                    LcUserId = userName,
+                    SalesOrderId = entity.SalesOrderLine.SalesOrderId
+                };
+
+                await _genericStockMovementRepository.AddAsync(stockMovement);
+            }
+
+            await _repository.UpdateAsync(entity);
         }
 
         public async Task DeleteAsync(int id, string userName)

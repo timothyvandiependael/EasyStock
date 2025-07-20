@@ -55,7 +55,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null) return BadRequest();
             var entity = _mapper.Map<DispatchLine>(dto);
-            await _service.AddAsync(entity, HttpContext.User.Identity!.Name!);
+            await _dispatchLineService.AddAsync(entity, HttpContext.User.Identity!.Name!);
 
             var resultDto = _mapper.Map<OutputDispatchLineDetailDto>(entity);
             return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
@@ -67,7 +67,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null || dto.Id != id) return BadRequest();
             var entity = _mapper.Map<DispatchLine>(dto);
-            await _service.UpdateAsync(entity, HttpContext.User.Identity!.Name!);
+            await _dispatchLineService.UpdateAsync(entity, HttpContext.User.Identity!.Name!);
 
             return NoContent();
         }
@@ -84,7 +84,7 @@ namespace EasyStock.API.Controllers
         [HttpPost("block")]
         public async Task<ActionResult> Block(int id)
         {
-            await _service.BlockAsync(id, HttpContext.User.Identity!.Name!);
+            await _dispatchLineService.BlockAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 
@@ -92,7 +92,7 @@ namespace EasyStock.API.Controllers
         [HttpPost("unblock")]
         public async Task<ActionResult> Unblock(int id)
         {
-            await _service.UnblockAsync(id, HttpContext.User.Identity!.Name!);
+            await _dispatchLineService.UnblockAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 

@@ -76,7 +76,7 @@ namespace EasyStock.API.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public async Task<ChangePasswordResultDto> ChangePasswordAsync(string userName, string oldPassword, string newPassword)
+        public async Task<ChangePasswordResultDto> ChangePasswordAsync(string userName, string? oldPassword, string newPassword)
         {
             var result = new ChangePasswordResultDto();
 
@@ -90,7 +90,6 @@ namespace EasyStock.API.Services
             if (user.MustChangePassword)
             {
                 user.MustChangePassword = false;
-                await _userAuthRepository.SaveChangesAsync();
             }
             else
             {
