@@ -21,7 +21,7 @@ namespace EasyStock.API.Services
             if (user.Role == Common.UserRole.Admin) return true;
 
             var permissions = await _userPermissionRepository.GetPermissionsForUser(userName);
-            if (permissions == null) return false;
+            if (permissions == null || permissions.Count == 0) return false;
 
             return action.ToLower() switch
             {

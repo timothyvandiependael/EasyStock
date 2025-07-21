@@ -19,7 +19,7 @@ namespace EasyStock.API.Extensions
             {
                 var property = Expression.Property(parameter, filter.Field);
                 var propertyType = Nullable.GetUnderlyingType(property.Type) ?? property.Type;
-                var typedValue = Convert.ChangeType(filter.Value, propertyType);
+                var typedValue = propertyType == typeof(DateTime) ? "" : Convert.ChangeType(filter.Value, propertyType);
 
                 var constant = Expression.Constant(typedValue, property.Type);
 
@@ -53,10 +53,10 @@ namespace EasyStock.API.Extensions
                     switch (filter.Operator.ToLower())
                     {
                         case "true":
-                            comparison = Expression.Equal(property, constant);
+                            comparison = Expression.Equal(property, Expression.Constant(true));
                             break;
                         case "false":
-                            comparison = Expression.NotEqual(property, constant);
+                            comparison = Expression.NotEqual(property, Expression.Constant(true));
                             break;
                         case "any":
                         case "all":

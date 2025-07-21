@@ -39,33 +39,46 @@ namespace EasyStock.API.Services
             });
         }
 
-        public async Task UpdateAsync(PurchaseOrderLine entity, string userName)
+        public async Task UpdateAsync(PurchaseOrderLine entity, string userName, bool useTransaction = true)
         {
-            await _retryableTransactionService.ExecuteAsync(async () =>
+            if (useTransaction)
             {
-                entity.LcDate = DateTime.UtcNow;
-                entity.LcUserId = userName;
-                await _repository.AddAsync(entity);
-
-                var oldRecord = await _repository.GetByIdAsync(entity.Id);
-                if (oldRecord == null)
-                    throw new InvalidOperationException($"Purchase order line with ID {entity.Id} not found when trying to update it.");
-
-                if (oldRecord.Quantity != entity.Quantity)
+                await _retryableTransactionService.ExecuteAsync(async () =>
                 {
-                    if (entity.Status == OrderStatus.Open || entity.Status == OrderStatus.Partial)
-                    {
-                        var difference = entity.Quantity - oldRecord.Quantity;
+                    await UpdateAsyncInternal(entity, userName);
+                });
+            }
+            else
+            {
+                await UpdateAsyncInternal(entity, userName);
+            }
+               
+        }
 
-                        var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
-                        if (product == null)
-                            throw new InvalidOperationException($"Product with ID {entity.ProductId} not found when updating inbound stock.");
-                        product.InboundStock += difference;
-                        product.LcUserId = userName;
-                        product.LcDate = DateTime.UtcNow;
-                    }
+        private async Task UpdateAsyncInternal(PurchaseOrderLine entity, string userName)
+        {
+            entity.LcDate = DateTime.UtcNow;
+            entity.LcUserId = userName;
+            await _repository.AddAsync(entity);
+
+            var oldRecord = await _repository.GetByIdAsync(entity.Id);
+            if (oldRecord == null)
+                throw new InvalidOperationException($"Purchase order line with ID {entity.Id} not found when trying to update it.");
+
+            if (oldRecord.Quantity != entity.Quantity)
+            {
+                if (entity.Status == OrderStatus.Open || entity.Status == OrderStatus.Partial)
+                {
+                    var difference = entity.Quantity - oldRecord.Quantity;
+
+                    var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
+                    if (product == null)
+                        throw new InvalidOperationException($"Product with ID {entity.ProductId} not found when updating inbound stock.");
+                    product.InboundStock += difference;
+                    product.LcUserId = userName;
+                    product.LcDate = DateTime.UtcNow;
                 }
-            });
+            }
         }
 
         public async Task DeleteAsync(int id, string userName)

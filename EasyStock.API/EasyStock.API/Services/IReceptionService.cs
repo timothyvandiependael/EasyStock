@@ -7,10 +7,10 @@ namespace EasyStock.API.Services
     {
         Task<IEnumerable<ReceptionOverview>> GetAllAsync();
         Task<PaginationResult<ReceptionOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination);
-        Task AddAsync(Reception entity, string userName);
-        Task DeleteAsync(int id, string userName);
-        Task BlockAsync(int id, string userName);
-        Task UnblockAsync(int id, string userName);
+        Task AddAsync(Reception entity, string userName, bool useTransaction = true);
+        Task DeleteAsync(int id, string userName, bool useTransaction = true);
+        Task BlockAsync(int id, string userName, bool useTransaction = true);
+        Task UnblockAsync(int id, string userName, bool useTransaction = true);
         Task<int> GetNextLineNumberAsync(int id);
     }
 }

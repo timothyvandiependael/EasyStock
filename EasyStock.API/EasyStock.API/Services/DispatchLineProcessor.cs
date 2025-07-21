@@ -131,6 +131,9 @@ namespace EasyStock.API.Services
             var dispatchLine = await _repository.GetByIdAsync(id);
             if (dispatchLine == null)
                 throw new InvalidOperationException($"Unable to block record with ID {id}");
+
+            if (dispatchLine.BlDate != null) return;
+
             dispatchLine.BlDate = DateTime.UtcNow;
             dispatchLine.BlUserId = userName;
 
@@ -167,6 +170,8 @@ namespace EasyStock.API.Services
             var dispatchLine = await _repository.GetByIdAsync(id);
             if (dispatchLine == null)
                 throw new InvalidOperationException($"Unable to unblock record with ID {id}");
+
+            if (dispatchLine.BlDate == null) return;
             dispatchLine.BlDate = null;
             dispatchLine.BlUserId = null;
             dispatchLine.LcDate = DateTime.UtcNow;

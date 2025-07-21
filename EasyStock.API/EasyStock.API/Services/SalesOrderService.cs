@@ -28,87 +28,137 @@ namespace EasyStock.API.Services
         public async Task<PaginationResult<SalesOrderOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
             => await _salesOrderRepository.GetAdvancedAsync(filters, sorting, pagination);
 
-        public async Task AddAsync(SalesOrder entity, string userName)
+        public async Task AddAsync(SalesOrder entity, string userName, bool useTransaction = true)
         {
-            await _retryableTransactionService.ExecuteAsync(async () =>
+            if (useTransaction)
             {
-                entity.OrderNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.SalesOrder);
-                entity.Status = OrderStatus.Open;
-                entity.CrDate = DateTime.UtcNow;
-                entity.LcDate = entity.CrDate;
-                entity.CrUserId = userName;
-                entity.LcUserId = userName;
-
-                var lines = entity.Lines.ToList();
-                entity.Lines.Clear();
-
-                var lineCounter = 1;
-                foreach (var line in lines)
+                await _retryableTransactionService.ExecuteAsync(async () =>
                 {
-                    line.LineNumber = lineCounter;
-
-                    await _salesOrderLineProcessor.AddAsync(line, userName, null, true);
-
-                    lineCounter++;
-                }
-
-                await _repository.AddAsync(entity);
-            });
-  
+                    await AddAsyncInternal(entity, userName);
+                });
+            }
+            else
+            {
+                await AddAsyncInternal(entity, userName);
+            }
         }
 
-        public async Task DeleteAsync(int id, string userName)
+        private async Task AddAsyncInternal(SalesOrder entity, string userName)
         {
-            await _retryableTransactionService.ExecuteAsync(async () =>
-            {
-                var entity = await _repository.GetByIdAsync(id);
-                if (entity == null)
-                    throw new InvalidOperationException($"Unable to delete record with ID {id}");
+            entity.OrderNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.SalesOrder);
+            entity.Status = OrderStatus.Open;
+            entity.CrDate = DateTime.UtcNow;
+            entity.LcDate = entity.CrDate;
+            entity.CrUserId = userName;
+            entity.LcUserId = userName;
 
-                foreach (var line in entity.Lines)
-                {
-                    await _salesOrderLineProcessor.DeleteAsync(line.Id, userName);
-                }
-                await _repository.DeleteAsync(id);
-            });
+            var lines = entity.Lines.ToList();
+            entity.Lines.Clear();
+
+            var lineCounter = 1;
+            foreach (var line in lines)
+            {
+                line.LineNumber = lineCounter;
+
+                await _salesOrderLineProcessor.AddAsync(line, userName, null, true);
+
+                lineCounter++;
+            }
+
+            await _repository.AddAsync(entity);
         }
 
-        public async Task BlockAsync(int id, string userName)
-        {
-            await _retryableTransactionService.ExecuteAsync(async () =>
-            {
-                var entity = await _repository.GetByIdAsync(id);
-                if (entity == null)
-                    throw new InvalidOperationException($"Unable to block record with ID {id}");
-                entity.BlDate = DateTime.UtcNow;
-                entity.BlUserId = userName;
 
-                foreach (var line in entity.Lines)
+        public async Task DeleteAsync(int id, string userName, bool useTransaction = true)
+        {
+            if (useTransaction)
+            {
+                await _retryableTransactionService.ExecuteAsync(async () =>
                 {
-                    await _salesOrderLineProcessor.BlockAsync(line.Id, userName);
-                }
-                await _repository.UpdateAsync(entity);
-            });
+                    await DeleteAsyncInternal(id, userName);
+                });
+            }
+            else
+            {
+                await DeleteAsyncInternal(id, userName);
+            }
+                
         }
 
-        public async Task UnblockAsync(int id, string userName)
+        private async Task DeleteAsyncInternal(int id, string userName)
         {
-            await _retryableTransactionService.ExecuteAsync(async () =>
-            {
-                var entity = await _repository.GetByIdAsync(id);
-                if (entity == null)
-                    throw new InvalidOperationException($"Unable to unblock record with ID {id}");
-                entity.BlDate = null;
-                entity.BlUserId = null;
-                entity.LcDate = DateTime.UtcNow;
-                entity.LcUserId = userName;
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+                throw new InvalidOperationException($"Unable to delete record with ID {id}");
 
-                foreach (var line in entity.Lines)
+            foreach (var line in entity.Lines)
+            {
+                await _salesOrderLineProcessor.DeleteAsync(line.Id, userName);
+            }
+            await _repository.DeleteAsync(id);
+        }
+
+        public async Task BlockAsync(int id, string userName, bool useTransaction = true)
+        {
+            if (useTransaction)
+            {
+                await _retryableTransactionService.ExecuteAsync(async () =>
                 {
-                    await _salesOrderLineProcessor.UnblockAsync(line.Id, userName);
-                }
-                await _repository.UpdateAsync(entity);
-            });
+                    await BlockAsyncInternal(id, userName);
+                });
+            }
+            else
+            {
+                await BlockAsyncInternal(id, userName);
+            }     
+        }
+
+        private async Task BlockAsyncInternal(int id, string userName)
+        {
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+                throw new InvalidOperationException($"Unable to block record with ID {id}");
+            entity.BlDate = DateTime.UtcNow;
+            entity.BlUserId = userName;
+
+            foreach (var line in entity.Lines)
+            {
+                await _salesOrderLineProcessor.BlockAsync(line.Id, userName);
+            }
+            await _repository.UpdateAsync(entity);
+        }
+
+        public async Task UnblockAsync(int id, string userName, bool useTransaction = true)
+        {
+            if (useTransaction)
+            {
+                await _retryableTransactionService.ExecuteAsync(async () =>
+                {
+                    await UnblockAsyncInternal(id, userName);
+                });
+            }
+            else
+            {
+                await UnblockAsyncInternal(id, userName);
+            }
+                
+        }
+
+        private async Task UnblockAsyncInternal(int id, string userName)
+        {
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+                throw new InvalidOperationException($"Unable to unblock record with ID {id}");
+            entity.BlDate = null;
+            entity.BlUserId = null;
+            entity.LcDate = DateTime.UtcNow;
+            entity.LcUserId = userName;
+
+            foreach (var line in entity.Lines)
+            {
+                await _salesOrderLineProcessor.UnblockAsync(line.Id, userName);
+            }
+            await _repository.UpdateAsync(entity);
         }
 
         public async Task<List<Product>> GetProductsWithSuppliersForOrderAsync(int id)

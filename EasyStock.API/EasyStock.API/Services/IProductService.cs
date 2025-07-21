@@ -10,6 +10,6 @@ namespace EasyStock.API.Services
 
         Task<bool> IsProductBelowMinimumStock(int id);
 
-        Task UpdateAsync(Product product, string userName);
+        Task UpdateAsync(Product product, string userName, bool useTransaction = true);
     }
 }

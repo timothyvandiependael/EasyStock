@@ -33,48 +33,60 @@ namespace EasyStock.API.Services
             return product.MinimumStock > product.AvailableStock;
         }
 
-        public async Task UpdateAsync(Product product, string userName)
+        public async Task UpdateAsync(Product product, string userName, bool useTransaction = true)
         {
-            await _retryableTransactionService.ExecuteAsync(async () =>
-            {
-                var oldProduct = await _repository.GetByIdAsync(product.Id);
-                if (oldProduct == null) throw new Exception($"Product with id {product.Id} not found.");
-                if (oldProduct.TotalStock != product.TotalStock)
+            if (useTransaction) {
+                await _retryableTransactionService.ExecuteAsync(async () =>
                 {
-                    var difference = product.TotalStock - oldProduct.TotalStock;
-                    var tmpAvailableStock = product.AvailableStock - difference;
-                    if (tmpAvailableStock < 0)
-                    {
-                        product.AvailableStock = 0;
-                        var minusAvailableStock = Math.Abs(tmpAvailableStock);
-                        product.BackOrderedStock += minusAvailableStock;
-                    }
-                    else
-                    {
-                        product.AvailableStock -= difference;
-                    }
+                    await UpdateAsyncInternal(product, userName);
+                });
+            }
+            else
+            {
+                await UpdateAsyncInternal(product, userName); 
+            }
+            
+            
+        }
 
-                    var stockMovement = new StockMovement
-                    {
-                        ProductId = product.Id,
-                        Product = product,
-                        QuantityChange = difference,
-                        Reason = "Stock correction",
-                        CrDate = DateTime.UtcNow,
-                        LcDate = DateTime.UtcNow,
-                        CrUserId = userName,
-                        LcUserId = userName
-                    };
-
-                    await _genericStockMovementRepository.AddAsync(stockMovement);
+        private async Task UpdateAsyncInternal(Product product, string userName)
+        {
+            var oldProduct = await _repository.GetByIdAsync(product.Id);
+            if (oldProduct == null) throw new Exception($"Product with id {product.Id} not found.");
+            if (oldProduct.TotalStock != product.TotalStock)
+            {
+                var difference = product.TotalStock - oldProduct.TotalStock;
+                var tmpAvailableStock = product.AvailableStock - difference;
+                if (tmpAvailableStock < 0)
+                {
+                    product.AvailableStock = 0;
+                    var minusAvailableStock = Math.Abs(tmpAvailableStock);
+                    product.BackOrderedStock += minusAvailableStock;
+                }
+                else
+                {
+                    product.AvailableStock -= difference;
                 }
 
-                product.LcDate = DateTime.UtcNow;
-                product.LcUserId = userName;
+                var stockMovement = new StockMovement
+                {
+                    ProductId = product.Id,
+                    Product = product,
+                    QuantityChange = difference,
+                    Reason = "Stock correction",
+                    CrDate = DateTime.UtcNow,
+                    LcDate = DateTime.UtcNow,
+                    CrUserId = userName,
+                    LcUserId = userName
+                };
 
-                await _repository.UpdateAsync(product);
-            });
-            
+                await _genericStockMovementRepository.AddAsync(stockMovement);
+            }
+
+            product.LcDate = DateTime.UtcNow;
+            product.LcUserId = userName;
+
+            await _repository.UpdateAsync(product);
         }
 
     }

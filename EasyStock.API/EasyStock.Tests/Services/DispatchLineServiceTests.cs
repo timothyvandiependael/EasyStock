@@ -6,6 +6,7 @@ using Xunit;
 using EasyStock.API.Models;
 using EasyStock.API.Repositories;
 using EasyStock.API.Services;
+using EasyStock.Tests.TestHelpers;
 
 namespace EasyStock.Tests.Services
 {
@@ -21,11 +22,8 @@ namespace EasyStock.Tests.Services
         private readonly Mock<IRepository<StockMovement>> _stockMovementRepoMock = new();
         private readonly Mock<IDispatchLineProcessor> _dispatchLineProcessorMock = new();
 
-        private readonly DispatchLineService _service;
-
-        private readonly DispatchLine _dispatchLine;
-        private readonly Product _product;
-        private readonly Client _client;
+        private readonly IDispatchLineService _service;
+        private readonly EntityFactory _entityFactory;
 
         public DispatchLineServiceTests()
         {
@@ -41,76 +39,7 @@ namespace EasyStock.Tests.Services
                 _dispatchLineProcessorMock.Object
             );
 
-            _client = new Client
-            {
-                Id = 1,
-                CrDate = new DateTime(2024, 1, 1),
-                CrUserId = "creator",
-                LcDate = new DateTime(2024, 1, 1),
-                LcUserId = "creator"
-            };
-
-            _product = new Product
-            {
-                Id = 2,
-                Category = new Category {
-                    Id = 1,
-                    Name = "testcategory",
-                    CrDate = new DateTime(2024, 1, 1),
-                    CrUserId = "creator",
-                    LcDate = new DateTime(2024, 1, 1),
-                    LcUserId = "creator"
-                },
-                ReservedStock = 100,
-                TotalStock = 200,
-                CrDate = new DateTime(2024, 1, 1),
-                CrUserId = "creator",
-                LcDate = new DateTime(2024, 1, 1),
-                LcUserId = "creator"
-            };
-
-            _dispatchLine = new DispatchLine
-            {
-                Id = 1,
-                Quantity = 5,
-                ProductId = 2,
-                SalesOrderLineId = 3,
-                DispatchId = 1,
-                Product = _product,
-                SalesOrderLine = new SalesOrderLine
-                {
-                    SalesOrderId = 10,
-                    SalesOrder = new SalesOrder
-                    {
-                        OrderNumber = "test",
-                        Client = _client,
-                        CrDate = new DateTime(2024, 1, 1),
-                        CrUserId = "creator",
-                        LcDate = new DateTime(2024, 1, 1),
-                        LcUserId = "creator"
-                    },
-                    Product = _product,
-                    ProductId = _product.Id,
-                    CrDate = new DateTime(2024, 1, 1),
-                    CrUserId = "creator",
-                    LcDate = new DateTime(2024, 1, 1),
-                    LcUserId = "creator"
-                },
-                Dispatch = new Dispatch
-                {
-                    Id = 1,
-                    DispatchNumber = "test",
-                    Client = _client,
-                    CrDate = new DateTime(2024, 1, 1),
-                    CrUserId = "creator",
-                    LcDate = new DateTime(2024, 1, 1),
-                    LcUserId = "creator"
-                },
-                CrDate = new DateTime(2024, 1, 1),
-                CrUserId = "creator",
-                LcDate = new DateTime(2024, 1, 1),
-                LcUserId = "creator"
-            };
+            _entityFactory = new EntityFactory();
         }
 
         private static T DeepClone<T>(T obj)
@@ -123,17 +52,20 @@ namespace EasyStock.Tests.Services
         public async Task UpdateAsync_ShouldUpdateFieldsAndCreateStockMovement_WhenQuantityChanges()
         {
             // Arrange
-            var entity = DeepClone(_dispatchLine);
+
+            var oldDispatchLine = _entityFactory.CreateDispatchLine();
+
+            var entity = _entityFactory.CreateDispatchLine();
             entity.Quantity = 7; // changed
 
             _repositoryMock.Setup(r => r.GetByIdAsync(entity.Id))
-                .ReturnsAsync(DeepClone(_dispatchLine));
+                .ReturnsAsync(_entityFactory.CreateDispatchLine());
 
             _productRepoMock.Setup(r => r.GetByIdAsync(entity.ProductId))
-                .ReturnsAsync(DeepClone(_product));
+                .ReturnsAsync(_entityFactory.CreateProduct());
 
             // Act
-            await _service.UpdateAsyncProcess(entity, "tester");
+            await _service.UpdateAsync(entity, "tester", false);
             Console.WriteLine($"entity.LcUserId = {entity.LcUserId}");
 
             // Assert
@@ -143,7 +75,7 @@ namespace EasyStock.Tests.Services
 
             _stockMovementRepoMock.Verify(r => r.AddAsync(It.Is<StockMovement>(sm =>
                 sm.ProductId == entity.ProductId &&
-                sm.QuantityChange == 0 - (entity.Quantity - _dispatchLine.Quantity) &&
+                sm.QuantityChange == 0 - (entity.Quantity - oldDispatchLine.Quantity) &&
                 sm.Reason == "Correction of dispatch line" &&
                 sm.CrUserId == "tester"
             )), Times.Once);
@@ -155,13 +87,13 @@ namespace EasyStock.Tests.Services
         public async Task UpdateAsync_ShouldOnlyUpdateFields_WhenQuantityUnchanged()
         {
             // Arrange
-            var entity = DeepClone(_dispatchLine); // same quantity
+            var entity = _entityFactory.CreateDispatchLine(); // same quantity
 
             _repositoryMock.Setup(r => r.GetByIdAsync(entity.Id))
-                .ReturnsAsync(DeepClone(_dispatchLine));
+                .ReturnsAsync(_entityFactory.CreateDispatchLine());
 
             // Act
-            await _service.UpdateAsyncProcess(entity, "tester");
+            await _service.UpdateAsync(entity, "tester", false);
 
             // Assert
             Assert.Equal("tester", entity.LcUserId);
@@ -176,13 +108,13 @@ namespace EasyStock.Tests.Services
         public async Task UpdateAsync_ShouldThrow_WhenOriginalRecordNotFound()
         {
             // Arrange
-            var entity = DeepClone(_dispatchLine);
+            var entity = _entityFactory.CreateDispatchLine();
 
             _repositoryMock.Setup(r => r.GetByIdAsync(entity.Id))
                 .ReturnsAsync((DispatchLine?)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.UpdateAsyncProcess(entity, "tester"));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.UpdateAsync(entity, "tester", false));
 
             _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<DispatchLine>()), Times.Never);
             _stockMovementRepoMock.Verify(r => r.AddAsync(It.IsAny<StockMovement>()), Times.Never);

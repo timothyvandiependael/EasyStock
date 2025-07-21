@@ -46,85 +46,97 @@ namespace EasyStock.API.Services
 
         }
 
-        public async Task UpdateAsync(ReceptionLine entity, string userName)
+        public async Task UpdateAsync(ReceptionLine entity, string userName, bool useTransaction = true)
         {
-            await _retryableTransactionService.ExecuteAsync(async () =>
+            if (useTransaction)
             {
-                entity.LcDate = entity.CrDate;
-                entity.LcUserId = userName;
-
-                var ogRecord = await _repository.GetByIdAsync(entity.Id);
-                if (ogRecord == null)
-                    throw new InvalidOperationException($"Unable to find reception line with ID {entity.Id}");
-                if (ogRecord.Quantity != entity.Quantity)
+                await _retryableTransactionService.ExecuteAsync(async () =>
                 {
-                    var difference = entity.Quantity - ogRecord.Quantity;
+                    await UpdateAsyncInternal(entity, userName);
+                });
+            }
+            else
+            {
+                await UpdateAsyncInternal(entity, userName);
+            }     
+        }
 
-                    await _receptionLineProcessor.SetPOStatusFields(entity.Quantity, entity.PurchaseOrderLineId, userName);
+        private async Task UpdateAsyncInternal(ReceptionLine entity, string userName)
+        {
+            entity.LcDate = entity.CrDate;
+            entity.LcUserId = userName;
 
-                    var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
-                    if (product == null)
-                        throw new InvalidOperationException($"Unable to update product with ID {entity.ProductId}");
-                    product.LcDate = DateTime.UtcNow;
-                    product.LcUserId = userName;
-                    product.InboundStock -= difference;
-                    product.TotalStock += difference;
+            var ogRecord = await _repository.GetByIdAsync(entity.Id);
+            if (ogRecord == null)
+                throw new InvalidOperationException($"Unable to find reception line with ID {entity.Id}");
+            if (ogRecord.Quantity != entity.Quantity)
+            {
+                var difference = entity.Quantity - ogRecord.Quantity;
 
-                    var stockMovement = new StockMovement
-                    {
-                        ProductId = product.Id,
-                        Product = product,
-                        QuantityChange = difference,
-                        Reason = "Reception line update",
-                        CrDate = DateTime.UtcNow,
-                        LcDate = DateTime.UtcNow,
-                        CrUserId = userName,
-                        LcUserId = userName,
-                        PurchaseOrderId = entity.PurchaseOrderLine.PurchaseOrderId
-                    };
+                await _receptionLineProcessor.SetPOStatusFields(entity.Quantity, entity.PurchaseOrderLineId, userName);
 
-                    await _genericStockMovementRepository.AddAsync(stockMovement);
+                var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
+                if (product == null)
+                    throw new InvalidOperationException($"Unable to update product with ID {entity.ProductId}");
+                product.LcDate = DateTime.UtcNow;
+                product.LcUserId = userName;
+                product.InboundStock -= difference;
+                product.TotalStock += difference;
 
-                    if (difference > 0)
-                    {
-                        product.AvailableStock +=
+                var stockMovement = new StockMovement
+                {
+                    ProductId = product.Id,
+                    Product = product,
+                    QuantityChange = difference,
+                    Reason = "Reception line update",
+                    CrDate = DateTime.UtcNow,
+                    LcDate = DateTime.UtcNow,
+                    CrUserId = userName,
+                    LcUserId = userName,
+                    PurchaseOrderId = entity.PurchaseOrderLine.PurchaseOrderId
+                };
+
+                await _genericStockMovementRepository.AddAsync(stockMovement);
+
+                if (difference > 0)
+                {
+                    product.AvailableStock +=
+                    product.BackOrderedStock > difference
+                    ? 0
+                    : (difference - product.BackOrderedStock);
+
+                    product.ReservedStock +=
                         product.BackOrderedStock > difference
-                        ? 0
-                        : (difference - product.BackOrderedStock);
+                        ? difference
+                        : product.BackOrderedStock;
 
-                        product.ReservedStock +=
+                    if (product.BackOrderedStock > 0)
+                    {
+                        product.BackOrderedStock -=
                             product.BackOrderedStock > difference
                             ? difference
                             : product.BackOrderedStock;
-
-                        if (product.BackOrderedStock > 0)
-                        {
-                            product.BackOrderedStock -=
-                                product.BackOrderedStock > difference
-                                ? difference
-                                : product.BackOrderedStock;
-                        }
+                    }
+                }
+                else
+                {
+                    difference = Math.Abs(difference);
+                    var tmpAvailableStock = product.AvailableStock - difference;
+                    if (tmpAvailableStock < 0) // Meaning it came originally from backorder
+                    {
+                        var stockShortage = Math.Abs(tmpAvailableStock);
+                        product.AvailableStock = 0;
+                        product.ReservedStock -= stockShortage;
+                        product.BackOrderedStock += stockShortage;
                     }
                     else
                     {
-                        difference = Math.Abs(difference);
-                        var tmpAvailableStock = product.AvailableStock - difference;
-                        if (tmpAvailableStock < 0) // Meaning it came originally from backorder
-                        {
-                            var stockShortage = Math.Abs(tmpAvailableStock);
-                            product.AvailableStock = 0;
-                            product.ReservedStock -= stockShortage;
-                            product.BackOrderedStock += stockShortage;
-                        }
-                        else
-                        {
-                            product.AvailableStock -= difference;
-                        }
+                        product.AvailableStock -= difference;
                     }
                 }
+            }
 
-                await _repository.UpdateAsync(entity);
-            });
+            await _repository.UpdateAsync(entity);
         }
 
         public async Task DeleteAsync(int id, string userName)

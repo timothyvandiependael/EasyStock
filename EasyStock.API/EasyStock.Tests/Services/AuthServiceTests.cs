@@ -15,7 +15,7 @@ namespace EasyStock.Tests.Services
         private readonly Mock<IUserAuthRepository> _userAuthRepositoryMock;
         private readonly Mock<IConfiguration> _configurationMock;
         private readonly Mock<IUserPermissionRepository> _userPermissionRepositoryMock;
-        private readonly AuthService _authService;
+        private readonly IAuthService _authService;
 
         public AuthServiceTests()
         {

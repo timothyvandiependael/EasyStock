@@ -44,15 +44,23 @@ namespace EasyStock.API.Services
             });
         }
 
-        public async Task UpdateAsync(DispatchLine entity, string userName)
+        public async Task UpdateAsync(DispatchLine entity, string userName, bool useTransaction = true)
         {
-            await _retryableTransactionService.ExecuteAsync(async () =>
+            if (useTransaction)
             {
-                await UpdateAsyncProcess(entity, userName);
-            });
+                await _retryableTransactionService.ExecuteAsync(async () =>
+                {
+                    await UpdateAsyncInternal(entity, userName);
+                });
+            }
+            else
+            {
+                await UpdateAsyncInternal(entity, userName);
+            }
+            
         }
 
-        public async Task UpdateAsyncProcess(DispatchLine entity, string userName)
+        private async Task UpdateAsyncInternal(DispatchLine entity, string userName)
         {
             entity.LcDate = DateTime.UtcNow;
             entity.LcUserId = userName;

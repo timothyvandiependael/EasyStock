@@ -19,7 +19,7 @@ namespace EasyStock.Tests.Services
     public class ServiceTests
     {
         private readonly Mock<IRepository<FakeModel>> _repoMock;
-        private readonly Service<FakeModel> _service;
+        private readonly IService<FakeModel> _service;
 
         public ServiceTests()
         {

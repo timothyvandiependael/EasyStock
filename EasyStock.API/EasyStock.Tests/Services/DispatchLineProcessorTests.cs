@@ -9,6 +9,7 @@ using EasyStock.API.Models;
 using EasyStock.API.Services;
 using Newtonsoft.Json;
 using EasyStock.API.Migrations;
+using EasyStock.Tests.TestHelpers;
 
 namespace EasyStock.Tests.Services
 {
@@ -19,18 +20,9 @@ namespace EasyStock.Tests.Services
         private readonly Mock<IRepository<SalesOrder>> _salesOrderRepoMock;
         private readonly Mock<IRepository<Product>> _productRepoMock;
         private readonly Mock<IRepository<StockMovement>> _stockMovementRepoMock;
-        private readonly DispatchLineProcessor _dispatchLineProcessor;
+        private readonly IDispatchLineProcessor _dispatchLineProcessor;
 
-        private readonly Client _client;
-        private readonly SalesOrder _salesOrder;
-        private readonly Category _category;
-        private readonly Product _product;
-        private readonly SalesOrderLine _salesOrderLine;
-        private readonly Dispatch _dispatch;
-        private readonly DispatchLine _dispatchLine;
-
-        private T DeepClone<T>(T obj) =>
-    JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(obj))!;
+        private readonly EntityFactory _entityFactory;
 
         public DispatchLineProcessorTests()
         {
@@ -41,92 +33,13 @@ namespace EasyStock.Tests.Services
             _stockMovementRepoMock = new Mock<IRepository<StockMovement>>();
 
             _dispatchLineProcessor = new DispatchLineProcessor(
-                _dispatchLineRepoMock.Object, 
-                _salesOrderLineRepoMock.Object, 
-                _salesOrderRepoMock.Object, 
-                _productRepoMock.Object, 
+                _dispatchLineRepoMock.Object,
+                _salesOrderLineRepoMock.Object,
+                _salesOrderRepoMock.Object,
+                _productRepoMock.Object,
                 _stockMovementRepoMock.Object);
 
-            _client = new Client()
-            {
-                Id = 1,
-                Name = "testclient",
-                CrDate = DateTime.UtcNow,
-                LcDate = DateTime.UtcNow,
-                CrUserId = "",
-                LcUserId = ""
-            };
-
-            _salesOrder = new SalesOrder()
-            {
-                Id = 1,
-                OrderNumber = "testorder",
-                Client = _client,
-                CrDate = DateTime.UtcNow,
-                LcDate = DateTime.UtcNow,
-                CrUserId = "",
-                LcUserId = ""
-            };
-
-            _category = new Category()
-            {
-                Id = 1,
-                Name = "testcategory",
-                CrDate = DateTime.UtcNow,
-                LcDate = DateTime.UtcNow,
-                CrUserId = "",
-                LcUserId = ""
-            };
-
-            _product = new Product()
-            {
-                Id = 1,
-                Category = _category,
-                CrDate = DateTime.UtcNow,
-                LcDate = DateTime.UtcNow,
-                CrUserId = "",
-                LcUserId = ""
-            };
-
-            _salesOrderLine = new SalesOrderLine()
-            {
-                Id = 1,
-                SalesOrderId = 1,
-                Quantity = 10,
-                SalesOrder = _salesOrder,
-                Product = _product,
-                CrDate = DateTime.UtcNow,
-                LcDate = DateTime.UtcNow,
-                CrUserId = "",
-                LcUserId = ""
-            };
-
-            _dispatch = new Dispatch()
-            {
-                Id = 1,
-                Client = _client,
-                DispatchNumber = "testnumber",
-                CrDate = DateTime.UtcNow,
-                LcDate = DateTime.UtcNow,
-                CrUserId = "",
-                LcUserId = ""
-            };
-
-            _dispatchLine = new DispatchLine()
-            {
-                Id = 1,
-                DispatchId = 1,
-                Quantity = 5,
-                Dispatch = _dispatch,
-                ProductId = 1,
-                Product = _product,
-                SalesOrderLineId = 1,
-                SalesOrderLine = _salesOrderLine,
-                CrDate = DateTime.UtcNow,
-                LcDate = DateTime.UtcNow,
-                CrUserId = "",
-                LcUserId = ""
-            };
+            _entityFactory = new EntityFactory();
         }
 
         [Fact]
@@ -137,11 +50,11 @@ namespace EasyStock.Tests.Services
             var salesOrderLineId = 1;
             var userName = "testuser";
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             salesOrderLine.Quantity = 10;
             salesOrderLine.LcDate = new DateTime(2000, 1, 1);
             salesOrderLine.LcUserId = "olduser";
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             salesOrder.Id = 1;
 
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLineId)).ReturnsAsync(salesOrderLine);
@@ -166,10 +79,10 @@ namespace EasyStock.Tests.Services
             var salesOrderLineId = 1;
             var userName = "testuser";
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             salesOrderLine.Quantity = 10;
             salesOrderLine.Status = API.Common.OrderStatus.Open;
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             salesOrder.Id = 1;
 
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLineId)).ReturnsAsync(salesOrderLine);
@@ -190,10 +103,10 @@ namespace EasyStock.Tests.Services
             var salesOrderLineId = 1;
             var userName = "testuser";
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             salesOrderLine.Quantity = 10;
             salesOrderLine.Status = API.Common.OrderStatus.Open;
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             salesOrder.Id = 1;
 
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLineId)).ReturnsAsync(salesOrderLine);
@@ -214,10 +127,10 @@ namespace EasyStock.Tests.Services
             var salesOrderLineId = 1;
             var userName = "testuser";
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             salesOrderLine.Quantity = 10;
             salesOrderLine.Status = API.Common.OrderStatus.Open;
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             salesOrder.Id = 1;
 
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLineId)).ReturnsAsync(salesOrderLine);
@@ -236,7 +149,7 @@ namespace EasyStock.Tests.Services
 
             // Assert
             Assert.NotNull(exception);
-            Assert.Contains("Input quantity for dispatch line is greater than quantity on sales order line", exception.Message); 
+            Assert.Contains("Input quantity for dispatch line is greater than quantity on sales order line", exception.Message);
         }
 
         [Fact]
@@ -247,7 +160,7 @@ namespace EasyStock.Tests.Services
             var salesOrderLineId = 1;
             var userName = "testuser";
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
 
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLineId)).ReturnsAsync((SalesOrderLine?)null);
 
@@ -275,8 +188,10 @@ namespace EasyStock.Tests.Services
             var salesOrderLineId = 1;
             var userName = "testuser";
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
+            salesOrderLine.Quantity = 10;
+
+            var salesOrder = _entityFactory.CreateSalesOrder();
 
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLineId))
                 .ReturnsAsync(salesOrderLine);
@@ -307,9 +222,9 @@ namespace EasyStock.Tests.Services
             var salesOrderLineId = 1;
             var userName = "testuser";
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             salesOrderLine.Quantity = 10;
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             salesOrder.Id = 1;
             salesOrder.LcDate = new DateTime(2000, 1, 1);
             salesOrder.LcUserId = "olduser";
@@ -335,10 +250,10 @@ namespace EasyStock.Tests.Services
             var salesOrderLineId = 1;
             var userName = "testuser";
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             salesOrderLine.Quantity = 10;
             salesOrderLine.Status = API.Common.OrderStatus.Open;
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             salesOrder.Id = 1;
             salesOrder.Status = API.Common.OrderStatus.Open;
             salesOrder.Lines.Add(salesOrderLine);
@@ -361,10 +276,10 @@ namespace EasyStock.Tests.Services
             var salesOrderLineId = 1;
             var userName = "testuser";
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             salesOrderLine.Quantity = 10;
             salesOrderLine.Status = API.Common.OrderStatus.Open;
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             salesOrder.Id = 1;
             salesOrder.Status = API.Common.OrderStatus.Open;
 
@@ -384,13 +299,13 @@ namespace EasyStock.Tests.Services
             // Arrange
             var userName = "testuser";
             var now = DateTime.UtcNow;
-            var dispatchLine = DeepClone(_dispatchLine);
+            var dispatchLine = _entityFactory.CreateDispatchLine();
             dispatchLine.CrDate = new DateTime(2000, 1, 1);
             dispatchLine.LcDate = new DateTime(2000, 1, 1);
             dispatchLine.CrUserId = "olduser";
             dispatchLine.LcUserId = "olduser";
 
-            var product = DeepClone(_product);
+            var product = _entityFactory.CreateProduct();
 
             _productRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.ProductId))
                 .ReturnsAsync(product);
@@ -402,9 +317,9 @@ namespace EasyStock.Tests.Services
                 .Returns(Task.CompletedTask);
 
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLine.Id)).ReturnsAsync(salesOrderLine);
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             _salesOrderRepoMock.Setup(r => r.GetByIdAsync(salesOrder.Id)).ReturnsAsync(salesOrder);
 
             // Act
@@ -419,15 +334,15 @@ namespace EasyStock.Tests.Services
         }
 
         [Fact]
-        public async Task 
+        public async Task
             AddAsync_SetsLineNumber_WhenGetNextLineNumberAsyncProvidedAndNotFromParent()
         {
             // Arrange
-            var dispatchLine = DeepClone(_dispatchLine);
+            var dispatchLine = _entityFactory.CreateDispatchLine();
             dispatchLine.LineNumber = 0;
             var userName = "testuser";
 
-            var product = DeepClone(_product);
+            var product = _entityFactory.CreateProduct();
             _productRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.ProductId))
                 .ReturnsAsync(product);
 
@@ -438,9 +353,9 @@ namespace EasyStock.Tests.Services
                 return Task.FromResult(42);
             }
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLine.Id)).ReturnsAsync(salesOrderLine);
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             _salesOrderRepoMock.Setup(r => r.GetByIdAsync(salesOrder.Id)).ReturnsAsync(salesOrder);
 
 
@@ -456,7 +371,7 @@ namespace EasyStock.Tests.Services
         public async Task AddAsync_DoesNotCallGetNextLineNumber_WhenFromParentTrue()
         {
             // Arrange
-            var dispatchLine = DeepClone(_dispatchLine);
+            var dispatchLine = _entityFactory.CreateDispatchLine();
             var userName = "testuser";
             bool called = false;
             Task<int> FakeNextLineNumber(int id)
@@ -465,13 +380,13 @@ namespace EasyStock.Tests.Services
                 return Task.FromResult(999);
             }
 
-            var product = DeepClone(_product);
+            var product = _entityFactory.CreateProduct();
             _productRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.ProductId))
                 .ReturnsAsync(product);
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLine.Id)).ReturnsAsync(salesOrderLine);
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             _salesOrderRepoMock.Setup(r => r.GetByIdAsync(salesOrder.Id)).ReturnsAsync(salesOrder);
 
             // Act
@@ -485,15 +400,15 @@ namespace EasyStock.Tests.Services
         public async Task AddAsync_Throws_WhenProductNotFound()
         {
             // Arrange
-            var dispatchLine = DeepClone(_dispatchLine);
+            var dispatchLine = _entityFactory.CreateDispatchLine();
             var userName = "testuser";
 
             _productRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.ProductId))
                 .ReturnsAsync((Product?)null);
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLine.Id)).ReturnsAsync(salesOrderLine);
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             _salesOrderRepoMock.Setup(r => r.GetByIdAsync(salesOrder.Id)).ReturnsAsync(salesOrder);
 
             // Act
@@ -508,22 +423,23 @@ namespace EasyStock.Tests.Services
         public async Task AddAsync_UpdatesProductStockAndFields()
         {
             // Arrange
-            var dispatchLine = DeepClone(_dispatchLine);
+            var dispatchLine = _entityFactory.CreateDispatchLine();
             dispatchLine.Quantity = 5;
             var userName = "testuser";
 
-            var product = DeepClone(_product);
+            var product = _entityFactory.CreateProduct();
             product.ReservedStock = 50;
             product.TotalStock = 100;
             product.LcDate = new DateTime(2000, 1, 1);
             product.LcUserId = "olduser";
-           
+
             _productRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.ProductId))
                 .ReturnsAsync(product);
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
+            salesOrderLine.Quantity = 10;
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLine.Id)).ReturnsAsync(salesOrderLine);
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             _salesOrderRepoMock.Setup(r => r.GetByIdAsync(salesOrder.Id)).ReturnsAsync(salesOrder);
 
             // Act
@@ -540,14 +456,15 @@ namespace EasyStock.Tests.Services
         public async Task AddAsync_CreatesStockMovementWithCorrectValues()
         {
             // Arrange
-            var dispatchLine = DeepClone(_dispatchLine);
+            var dispatchLine = _entityFactory.CreateDispatchLine();
             dispatchLine.Quantity = 5;
             dispatchLine.SalesOrderLineId = 1;
             var userName = "testuser";
 
-            var product = DeepClone(_product);
+            var product = _entityFactory.CreateProduct();
             product.ReservedStock = 10;
             product.TotalStock = 20;
+            dispatchLine.Product = product;
 
             _productRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.ProductId))
                 .ReturnsAsync(product);
@@ -557,9 +474,10 @@ namespace EasyStock.Tests.Services
                 .Callback<StockMovement>(sm => capturedMovement = sm)
                 .Returns(Task.CompletedTask);
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
+            salesOrderLine.Quantity = 10;
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLine.Id)).ReturnsAsync(salesOrderLine);
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             _salesOrderRepoMock.Setup(r => r.GetByIdAsync(salesOrder.Id)).ReturnsAsync(salesOrder);
 
             // Act
@@ -592,16 +510,16 @@ namespace EasyStock.Tests.Services
         public async Task DeleteAsync_ShouldThrow_WhenProductNotFound()
         {
             // Arrange
-            var dispatchLine = DeepClone(_dispatchLine);
+            var dispatchLine = _entityFactory.CreateDispatchLine();
             dispatchLine.Id = 42;
             _dispatchLineRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.Id)).ReturnsAsync(dispatchLine);
 
             _productRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.ProductId))
                 .ReturnsAsync((Product?)null);
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLine.Id)).ReturnsAsync(salesOrderLine);
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             _salesOrderRepoMock.Setup(r => r.GetByIdAsync(salesOrder.Id)).ReturnsAsync(salesOrder);
 
             // Act & Assert
@@ -615,18 +533,18 @@ namespace EasyStock.Tests.Services
 
             var userName = "testuser";
 
-            var dispatchLine = DeepClone(_dispatchLine);
+            var dispatchLine = _entityFactory.CreateDispatchLine();
             dispatchLine.Id = 99;
             dispatchLine.Quantity = 5;
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLine.Id)).ReturnsAsync(salesOrderLine);
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             _salesOrderRepoMock.Setup(r => r.GetByIdAsync(salesOrder.Id)).ReturnsAsync(salesOrder);
 
             _dispatchLineRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.Id)).ReturnsAsync(dispatchLine);
 
-            var product = DeepClone(_product);
+            var product = _entityFactory.CreateProduct();
             product.ReservedStock = 50;
             product.TotalStock = 100;
             _productRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.ProductId)).ReturnsAsync(product);
@@ -637,7 +555,7 @@ namespace EasyStock.Tests.Services
             // Assert
 
             // Stock fields updated correctly
-            Assert.Equal(55, product.ReservedStock); 
+            Assert.Equal(55, product.ReservedStock);
             Assert.Equal(105, product.TotalStock);
             Assert.Equal(userName, product.LcUserId);
 
@@ -647,7 +565,7 @@ namespace EasyStock.Tests.Services
             // Stock movement created
             _stockMovementRepoMock.Verify(r => r.AddAsync(It.Is<StockMovement>(sm =>
                 sm.ProductId == product.Id &&
-                sm.QuantityChange == dispatchLine.Quantity && 
+                sm.QuantityChange == dispatchLine.Quantity &&
                 sm.Reason == "Deletion of dispatch line" &&
                 sm.SalesOrderId == dispatchLine.SalesOrderLine.SalesOrderId &&
                 sm.CrUserId == userName &&
@@ -672,16 +590,16 @@ namespace EasyStock.Tests.Services
         public async Task BlockAsync_ShouldThrow_WhenProductNotFound()
         {
             // Arrange
-            var dispatchLine = DeepClone(_dispatchLine);
+            var dispatchLine = _entityFactory.CreateDispatchLine();
             dispatchLine.Id = 99;
             _dispatchLineRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.Id)).ReturnsAsync(dispatchLine);
 
             _productRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.ProductId))
                 .ReturnsAsync((Product?)null);
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLine.Id)).ReturnsAsync(salesOrderLine);
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             _salesOrderRepoMock.Setup(r => r.GetByIdAsync(salesOrder.Id)).ReturnsAsync(salesOrder);
 
             // Act & Assert
@@ -689,21 +607,49 @@ namespace EasyStock.Tests.Services
         }
 
         [Fact]
+        public async Task BlockAsync_AlreadyBlocked_ShouldNotChangeProductOrCreateStockMovement()
+        {
+            // Arrange
+            var dispatchLine = _entityFactory.CreateDispatchLine();
+            dispatchLine.BlDate = DateTime.UtcNow;
+            dispatchLine.BlUserId = "test";
+
+            var product = _entityFactory.CreateProduct();
+            product.TotalStock = 50;
+            var originalStock = product.TotalStock;
+
+            _dispatchLineRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.Id)).ReturnsAsync(dispatchLine);
+            _productRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.ProductId))
+                .ReturnsAsync(product);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
+            _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLine.Id)).ReturnsAsync(salesOrderLine);
+            var salesOrder = _entityFactory.CreateSalesOrder();
+            _salesOrderRepoMock.Setup(r => r.GetByIdAsync(salesOrder.Id)).ReturnsAsync(salesOrder);
+
+            // Act
+            await _dispatchLineProcessor.BlockAsync(dispatchLine.Id, "test");
+
+            // Assert
+            Assert.Equal(originalStock, product.TotalStock);
+            _stockMovementRepoMock.Verify(r => r.AddAsync(It.IsAny<StockMovement>()), Times.Never);    
+        }
+
+        [Fact]
         public async Task BlockAsync_ShouldUpdateStock_AndUpdateDispatchLine_AndAddStockMovement()
         {
             // Arrange
-            var dispatchLine = DeepClone(_dispatchLine);
+            var dispatchLine = _entityFactory.CreateDispatchLine();
             dispatchLine.Id = 99;
             dispatchLine.Quantity = 5;
 
-            var salesOrderLine = DeepClone(_salesOrderLine);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLine.Id)).ReturnsAsync(salesOrderLine);
-            var salesOrder = DeepClone(_salesOrder);
+            var salesOrder = _entityFactory.CreateSalesOrder();
             _salesOrderRepoMock.Setup(r => r.GetByIdAsync(salesOrder.Id)).ReturnsAsync(salesOrder);
 
             _dispatchLineRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.Id)).ReturnsAsync(dispatchLine);
 
-            var product = DeepClone(_product);
+            var product = _entityFactory.CreateProduct();
             product.ReservedStock = 50;
             product.TotalStock = 100;
             _productRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.ProductId)).ReturnsAsync(product);
@@ -742,10 +688,12 @@ namespace EasyStock.Tests.Services
             // Arrange
             var userName = "testuser";
 
-            var dispatchLine = DeepClone(_dispatchLine);
-            var product = DeepClone(_product);
-            var salesOrderLine = DeepClone(_salesOrderLine);
-            var salesOrder = DeepClone(_salesOrder);
+            var dispatchLine = _entityFactory.CreateDispatchLine();
+            var oldProduct = _entityFactory.CreateProduct();
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
+            var salesOrder = _entityFactory.CreateSalesOrder();
+
+            var product = _entityFactory.CreateProduct();
 
             _dispatchLineRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.Id)).ReturnsAsync(dispatchLine);
             _productRepoMock.Setup(r => r.GetByIdAsync(product.Id)).ReturnsAsync(product);
@@ -765,8 +713,8 @@ namespace EasyStock.Tests.Services
             )), Times.Once);
 
             // Assert: product fields updated
-            Assert.Equal(_product.ReservedStock - dispatchLine.Quantity, product.ReservedStock);
-            Assert.Equal(_product.TotalStock - dispatchLine.Quantity, product.TotalStock);
+            Assert.Equal(oldProduct.ReservedStock - dispatchLine.Quantity, product.ReservedStock);
+            Assert.Equal(oldProduct.TotalStock - dispatchLine.Quantity, product.TotalStock);
             Assert.Equal(userName, product.LcUserId);
             Assert.True(product.LcDate <= DateTime.UtcNow);
 
@@ -779,6 +727,34 @@ namespace EasyStock.Tests.Services
                 sm.LcUserId == userName &&
                 sm.SalesOrderId == salesOrder.Id
             )), Times.Once);
+        }
+
+        [Fact]
+        public async Task UnblockAsync_Notblocked_ShouldNotChangeProductOrCreateStockMovement()
+        {
+            // Arrange
+            var dispatchLine = _entityFactory.CreateDispatchLine();
+            dispatchLine.BlDate = null;
+            dispatchLine.BlUserId = null;
+
+            var product = _entityFactory.CreateProduct();
+            product.TotalStock = 50;
+            var originalStock = product.TotalStock;
+
+            _dispatchLineRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.Id)).ReturnsAsync(dispatchLine);
+            _productRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.ProductId))
+                .ReturnsAsync(product);
+            var salesOrderLine = _entityFactory.CreateSalesOrderLine();
+            _salesOrderLineRepoMock.Setup(r => r.GetByIdAsync(salesOrderLine.Id)).ReturnsAsync(salesOrderLine);
+            var salesOrder = _entityFactory.CreateSalesOrder();
+            _salesOrderRepoMock.Setup(r => r.GetByIdAsync(salesOrder.Id)).ReturnsAsync(salesOrder);
+
+            // Act
+            await _dispatchLineProcessor.UnblockAsync(dispatchLine.Id, "test");
+
+            // Assert
+            Assert.Equal(originalStock, product.TotalStock);
+            _stockMovementRepoMock.Verify(r => r.AddAsync(It.IsAny<StockMovement>()), Times.Never);
         }
 
         [Fact]
@@ -797,7 +773,7 @@ namespace EasyStock.Tests.Services
         public async Task UnblockAsync_ShouldThrowIfProductNotFound()
         {
             // Arrange
-            var dispatchLine = DeepClone(_dispatchLine);
+            var dispatchLine = _entityFactory.CreateDispatchLine();
             _dispatchLineRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.Id)).ReturnsAsync(dispatchLine);
             _productRepoMock.Setup(r => r.GetByIdAsync(dispatchLine.ProductId))
                 .ReturnsAsync((Product?)null);
