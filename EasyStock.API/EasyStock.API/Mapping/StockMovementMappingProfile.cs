@@ -13,7 +13,9 @@ namespace EasyStock.API.Mapping
             CreateMap<StockMovement, OutputStockMovementDetailDto>();
             CreateMap<StockMovementOverview, OutputStockMovementOverviewDto>();
             CreateMap<CreateStockMovementDto, StockMovement>();
-            CreateMap<UpdateStockMovementDto, StockMovement>();
+            CreateMap<UpdateStockMovementDto, StockMovement>()
+                .ForMember(dest => dest.CrDate, opt => opt.Ignore())
+                .ForMember(dest => dest.CrUserId, opt => opt.Ignore());
         }
     }
 }

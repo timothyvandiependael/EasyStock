@@ -70,7 +70,7 @@ export class PurchaseOrderOverview {
       filters: this.filters,
       sorting: sortOptions,
       pagination: {
-        pageIndex: this.pageIndex,
+        pageNumber: this.pageIndex,
         pageSize: this.pageSize
       }
     };

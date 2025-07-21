@@ -6,11 +6,14 @@ namespace EasyStock.API.Mapping
 {
     public class CategoryMappingProfile : Profile
     {
-        public CategoryMappingProfile() 
+        public CategoryMappingProfile()
         {
             CreateMap<Category, OutputCategoryDto>();
             CreateMap<CreateCategoryDto, Category>();
-            CreateMap<UpdateCategoryDto, Category>();
+            CreateMap<UpdateCategoryDto, Category>()
+                .ForMember(dest => dest.CrDate, opt => opt.Ignore())
+                .ForMember(dest => dest.CrUserId, opt => opt.Ignore());
+            CreateMap<Category, Category>();
         }
     }
 }

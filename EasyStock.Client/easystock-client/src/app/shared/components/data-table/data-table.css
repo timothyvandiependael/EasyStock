@@ -1,0 +1,13 @@
+.bg-blue-50 {
+  background-color: #eff6ff !important; /* Tailwind's blue-50 */
+}
+
+.bg-blue-100 {
+  background-color: #dbeafe !important; /* Tailwind's blue-100 */
+}
+
+.db-container:focus {
+  outline: none;
+  box-shadow: none;
+  border-color: inherit; /* keep same border as normal */
+}

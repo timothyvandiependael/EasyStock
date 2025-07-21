@@ -6,9 +6,13 @@
   [pageSize]="pageSize"
   [pageIndex]="pageIndex"
   [buttons]="buttons"
+  [checkboxOptions]="checkboxOptions"
   (buttonClicked)="onButtonClicked($event)"
   (sortChanged)="onSortChanged($event)"
   (pageChanged)="onPageChanged($event)"
-  (filterChanged)="onFilterChanged($event)">
+  (filterChanged)="onFilterChanged($event)"
+  (checkboxChanged)="onCheckboxChanged($event)"
+  (rowSelected)="onRowSelected($event)"
+  (rowDoubleClicked)="onRowDoubleClicked($event)">
 </app-data-table>
 

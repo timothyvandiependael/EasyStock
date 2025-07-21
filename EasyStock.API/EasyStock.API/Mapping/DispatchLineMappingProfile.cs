@@ -14,7 +14,9 @@ namespace EasyStock.API.Mapping
             CreateMap<DispatchLine, OutputDispatchLineDetailDto>();
             CreateMap<DispatchLineOverview, OutputDispatchLineOverviewDto>();
             CreateMap<CreateDispatchLineDto, DispatchLine>();
-            CreateMap<UpdateDispatchLineDto, DispatchLine>();
+            CreateMap<UpdateDispatchLineDto, DispatchLine>()
+                .ForMember(dest => dest.CrDate, opt => opt.Ignore())
+                .ForMember(dest => dest.CrUserId, opt => opt.Ignore());
         }
     }
 }

@@ -31,22 +31,55 @@ namespace EasyStock.API.Extensions
 
                     var loweredProperty = Expression.Call(property, toLowerMethod!);
 
-                    // filter.Value?.ToString()?.ToLower()
-                    var loweredConstant = Expression.Constant(
-                        filter.Value?.ToString()?.ToLower() ?? string.Empty
-                    );
+                    var loweredFilterValue = filter.Value?.ToString()?.ToLower() ?? string.Empty;
 
+                    MethodInfo? method;
 
-                    MethodInfo? method = filter.Operator.ToLower() switch
+                    if (string.IsNullOrEmpty(loweredFilterValue))
                     {
-                        "contains" => typeof(string).GetMethod("Contains", new[] { typeof(string) }),
-                        "startswith" => typeof(string).GetMethod("StartsWith", new[] { typeof(string) }),
-                        "endswith" => typeof(string).GetMethod("EndsWith", new[] { typeof(string) }),
-                        "equals" or "=" => typeof(string).GetMethod("Equals", new[] { typeof(string) }),
-                        _ => throw new NotSupportedException($"Operator '{filter.Operator} is not supported for strings.")
-                    };
+                        if (filter.Operator == "=" || filter.Operator.ToLower() == "equals")
+                        {
+                            // property == null
+                            comparison = Expression.Equal(property, Expression.Constant(null, property.Type));
+                        }
+                        else if (filter.Operator == "!=" || filter.Operator.ToLower() == "notequals" || filter.Operator == "<>")
+                        {
+                            // property != null
+                            comparison = Expression.NotEqual(property, Expression.Constant(null, property.Type));
+                        }
+                        else
+                        {
+                            // fallback, treat empty string literally
+                            var loweredConstant = Expression.Constant(loweredFilterValue);
+                            method = typeof(string).GetMethod("Equals", new[] { typeof(string) })!;
+                            var equalsCall = Expression.Call(loweredProperty, method, loweredConstant);
+                            comparison = equalsCall;
+                        }
+                    }
+                    else
+                    {
+                        var loweredConstant = Expression.Constant(loweredFilterValue);
+                        method = filter.Operator.ToLower() switch
+                        {
+                            "contains" => typeof(string).GetMethod("Contains", new[] { typeof(string) }),
+                            "startswith" => typeof(string).GetMethod("StartsWith", new[] { typeof(string) }),
+                            "endswith" => typeof(string).GetMethod("EndsWith", new[] { typeof(string) }),
+                            "equals" or "=" => typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                            "notequals" or "!=" or "<>" => typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                            _ => throw new NotSupportedException($"Operator '{filter.Operator} is not supported for strings.")
+                        };
 
-                    comparison = Expression.Call(loweredProperty, method!, loweredConstant);
+                        if (filter.Operator.ToLower() == "notequals" || filter.Operator == "<>" || filter.Operator == "!=")
+                        {
+                            var equalsCall = Expression.Call(loweredProperty, method!, loweredConstant);
+                            comparison = Expression.Not(equalsCall);
+                        }
+                        else
+                        {
+                            comparison = Expression.Call(loweredProperty, method!, loweredConstant);
+                        }
+
+                    }
                 }
                 else if (propertyType == typeof(bool))
                 {

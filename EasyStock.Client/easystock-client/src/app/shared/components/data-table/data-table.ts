@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, SimpleChanges, ElementRef, ViewChild } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { Sort } from '@angular/material/sort';
 import { ButtonConfig } from '../../button-config.model';
@@ -13,6 +13,7 @@ import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { FilterCondition } from '../../query';
 import { DatePipe } from '@angular/common';
+import { CheckboxData } from '../../checkbox';
 
 @Component({
   selector: 'app-data-table',
@@ -39,13 +40,24 @@ export class DataTable {
   @Input() pageSize = 10;
   @Input() pageIndex = 0;
   @Input() buttons: ButtonConfig[] = [];
+  @Input() checkboxOptions: CheckboxData[] = [];
 
   @Output() buttonClicked = new EventEmitter<string>();
   @Output() sortChanged = new EventEmitter<Sort>();
   @Output() pageChanged = new EventEmitter<PageEvent>();
   @Output() filterChanged = new EventEmitter<FilterCondition[]>();
+  @Output() checkboxChanged = new EventEmitter<any>();
+  @Output() rowSelected = new EventEmitter<any>();
+  @Output() rowDoubleClicked = new EventEmitter<any>();
 
   filterColumns: string[] = [];
+
+  selectedRow: any;
+
+  hoveredRowIndex: number = -1;
+  selectedRowIndex: number = -1;
+
+  @ViewChild('dtcontainer') container!: ElementRef<HTMLDivElement>;
 
   constructor(private datePipe: DatePipe) { }
 
@@ -68,7 +80,11 @@ export class DataTable {
     });
   }
 
-  ngOnChanges() {
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['data'] && this.data && this.data.length > 0) {
+      this.onRowClick(this.data[0], 0);
+    }
+
     this.filterColumns = this.columnsMeta.map(c => 'filter_' + c.name);
 
     for (const col of this.columnsMeta) {
@@ -81,6 +97,10 @@ export class DataTable {
         }
       }
     }
+  }
+
+  ngAfterViewInit() {
+    this.container.nativeElement.focus();
   }
 
   ngOnDestroy() {
@@ -127,6 +147,46 @@ export class DataTable {
 
   onFilterChange(columnName: string) {
     this.filterSubject.next();
+  }
+
+  onCheckboxChange(option: CheckboxData, event: Event) {
+    var htmlInput = (event.target as HTMLInputElement)
+    option.checked = htmlInput.checked;
+
+    this.checkboxChanged.emit(option);
+  }
+
+  onRowClick(row: any, index: number) {
+    this.selectedRow = row;
+    this.selectedRowIndex = index;
+    this.rowSelected.emit(row);
+
+  }
+
+  onRowDoubleClick(row: any) {
+    debugger;
+    this.rowDoubleClicked.emit(row);
+  }
+
+  onKeydown(event: KeyboardEvent) {
+    debugger;
+    if (!this.data || this.data.length === 0) return;
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (this.selectedRowIndex < this.data.length - 1) {
+        this.selectedRowIndex++;
+        this.selectedRow = this.data[this.selectedRowIndex];
+        this.rowSelected.emit(this.selectedRow);
+      }
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (this.selectedRowIndex > 0) {
+        this.selectedRowIndex--;
+        this.selectedRow = this.data[this.selectedRowIndex];
+        this.rowSelected.emit(this.selectedRow);
+      }
+    }
   }
 
   formatDateIfPossible(value: any): string {

@@ -12,7 +12,9 @@ namespace EasyStock.API.Mapping
             CreateMap<PurchaseOrder, OutputPurchaseOrderDetailDto>();
             CreateMap<PurchaseOrderOverview, OutputPurchaseOrderOverviewDto>();
             CreateMap<CreatePurchaseOrderDto, PurchaseOrder>();
-            CreateMap<UpdatePurchaseOrderDto, PurchaseOrder>();
+            CreateMap<UpdatePurchaseOrderDto, PurchaseOrder>()
+                .ForMember(dest => dest.CrDate, opt => opt.Ignore())
+                .ForMember(dest => dest.CrUserId, opt => opt.Ignore());
         }
     }
 }

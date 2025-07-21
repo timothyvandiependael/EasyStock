@@ -10,7 +10,7 @@ export interface SortOption {
 }
 
 export interface Pagination {
-  pageIndex: number;
+  pageNumber: number;
   pageSize: number;
 }
 

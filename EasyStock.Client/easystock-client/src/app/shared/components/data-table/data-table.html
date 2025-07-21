@@ -1,7 +1,8 @@
-<!-- Button row -->
+<!-- Button row with checkboxes -->
 <div class="flex flex-wrap gap-2 mb-4">
-    <button *ngFor="let btn of buttons" (click)="onButtonClick(btn)" [disabled]="btn.disabled" [hidden]="btn.hidden"
-        class="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium shadow 
+    <div class="flex flex-wrap gap-2">
+        <button *ngFor="let btn of buttons" (click)="onButtonClick(btn)" [disabled]="btn.disabled" [hidden]="btn.hidden"
+            class="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium shadow 
            transition-colors duration-150
            disabled:opacity-50 disabled:cursor-not-allowed
            " [ngClass]="{
@@ -9,13 +10,24 @@
       'bg-green-600 hover:bg-green-700 text-white': btn.color === 'accent',
       'bg-red-600 hover:bg-red-700 text-white': btn.color === 'warn'
     }" [attr.title]="btn.tooltip">
-        <span *ngIf="btn.icon" class="material-icons text-base">{{ btn.icon }}</span>
-        {{ btn.label }}
-    </button>
+            <span *ngIf="btn.icon" class="material-icons text-base">{{ btn.icon }}</span>
+            {{ btn.label }}
+        </button>
+    </div>
+
+    <!-- Checkboxes -->
+    <div class="flex flex-wrap gap-4 items-center ml-4">
+        <label *ngFor="let option of checkboxOptions"
+            class="flex items-center space-x-2 cursor-pointer text-sm select-none">
+            <input type="checkbox" [(ngModel)]="option.checked" (change)="onCheckboxChange(option, $event)"
+                class="form-checkbox h-4 w-4 text-blue-600 rounded" />
+            <span>{{ option.label }}</span>
+        </label>
+    </div>
 </div>
 
 <!-- Table -->
-<div class="overflow-x-auto rounded-lg border border-gray-300">
+<div #dtcontainer class=" db-container overflow-x-auto rounded-lg border border-gray-300" tabindex="0" (keydown)="onKeydown($event)">
     <table mat-table [dataSource]="data" matSort (matSortChange)="onSortChange($event)" class="min-w-full">
 
         <!-- Column definition -->
@@ -79,7 +91,13 @@
             class="bg-gray-50 border-b border-gray-200 filter-row">
         </tr>
 
-        <tr mat-row *matRowDef="let row; columns: displayedColumns" class="hover:bg-gray-50 transition-colors"></tr>
+        <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns"
+            tabindex="0"
+            class="hover:bg-gray-50 transition-colors"
+            [class.bg-blue-50]="hoveredRowIndex === i && selectedRowIndex !== i"
+            [class.bg-blue-100]="selectedRowIndex === i" (click)="onRowClick(row, i)" (mouseenter)="hoveredRowIndex = i"
+            (mouseleave)="hoveredRowIndex = -1"
+            (dblclick)="onRowDoubleClick(row)"></tr>
     </table>
 </div>
 

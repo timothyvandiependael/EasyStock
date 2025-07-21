@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { DetailView } from '../../../shared/components/detail-view/detail-view';
 import { ActivatedRoute } from '@angular/router';
 import { CategoryOverviewDto } from '../category-overview.dto';
@@ -22,10 +22,13 @@ export class CategoryDetail {
   private saveAndAddSub?: Subscription;
   private saveNewExitSub?: Subscription;
   private saveExitSub?: Subscription;
+  private getByIdSub?: Subscription;
 
   detailMode: 'add' | 'edit' = 'add';
   columnMetaData: ColumnMetaData[] = [];
   selectedCategory?: CategoryOverviewDto;
+
+  @ViewChild(DetailView) detailView!: DetailView<CategoryOverviewDto>;
 
   constructor(
     private categoryService: CategoryService,
@@ -58,8 +61,16 @@ export class CategoryDetail {
 
       if (mode === 'edit') {
         const id = Number(params.get('id'));
+        this.getByIdSub = this.categoryService.getById(id).subscribe({
+          next: (dto: CategoryOverviewDto) => {
+            this.selectedCategory = dto;
+          },
+          error: (err) => {
+            console.error('Error retrieving category with id ' + id + ': ', err);
+            // TODO error
+          }
+        })
 
-        // TODO fetching category from server by id
       }
     });
   }
@@ -76,6 +87,7 @@ export class CategoryDetail {
     this.saveAndAddSub = this.categoryService.add(category).subscribe({
       next: (saved: CategoryOverviewDto) => {
         this.selectedCategory = undefined;
+        this.detailView.clearForm();
         this.snackBar.open(`${saved.name} saved`, 'Close', {
           duration: 3000, // 3 seconds
           horizontalPosition: 'right',
@@ -108,7 +120,20 @@ export class CategoryDetail {
   }
 
   handleSaveAndExit(category: UpdateCategoryDto) {
-    // TODO
+    this.saveExitSub = this.categoryService.edit(category.id, category).subscribe({
+      next: () => {
+        this.snackBar.open(`${category.name} updated`, 'Close', {
+          duration: 3000, // 3 seconds
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+        });
+        this.router.navigate(['app/category']);
+      },
+      error: (err) => {
+        console.error('Error updating category: ', err);
+        // TODO visual error
+      }
+    })
   }
 
   handleCancel() {

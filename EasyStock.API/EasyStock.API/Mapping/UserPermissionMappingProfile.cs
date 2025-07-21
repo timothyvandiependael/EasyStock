@@ -13,7 +13,9 @@ namespace EasyStock.API.Mapping
             CreateMap<UserPermission, OutputUserPermissionDetailDto>();
             CreateMap<UserPermissionOverview, OutputUserPermissionOverviewDto>();
             CreateMap<CreateUserPermissionDto, UserPermission>();
-            CreateMap<UpdateUserPermissionDto, UserPermission>();
+            CreateMap<UpdateUserPermissionDto, UserPermission>()
+                .ForMember(dest => dest.CrDate, opt => opt.Ignore())
+                .ForMember(dest => dest.CrUserId, opt => opt.Ignore());
         }
     }
 }

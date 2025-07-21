@@ -11,7 +11,9 @@ namespace EasyStock.API.Mapping
             CreateMap<User, OutputUserDetailDto>();
             CreateMap<User, OutputUserOverviewDto>();
             CreateMap<CreateUserDto, User>();
-            CreateMap<UpdateUserDto, User>();
+            CreateMap<UpdateUserDto, User>()
+                .ForMember(dest => dest.CrDate, opt => opt.Ignore())
+                .ForMember(dest => dest.CrUserId, opt => opt.Ignore());
         }
     }
 }

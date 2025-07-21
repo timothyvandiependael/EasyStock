@@ -6,6 +6,7 @@ import { ColumnMetaData } from '../../shared/column-meta-data';
 import { AdvancedQueryParametersDto, PaginationResult } from '../../shared/query';
 import { CategoryOverviewDto } from './category-overview.dto';
 import { CreateCategoryDto } from './create-category.dto';
+import { UpdateCategoryDto } from './update-category.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -32,6 +33,14 @@ export class CategoryService {
 
   add(dto: CreateCategoryDto): Observable<CategoryOverviewDto> {
     return this.http.post<CategoryOverviewDto>(this.apiUrl, dto);
+  }
+
+  getById(id: number) {
+    return this.http.get<CategoryOverviewDto>(this.apiUrl + 'id/' + id);
+  }
+
+  edit(id: number, dto: UpdateCategoryDto) {
+    return this.http.put<void>(this.apiUrl + id, dto);
   }
 
 
