@@ -9,6 +9,7 @@ import { Subscription } from 'rxjs';
 import { CreateCategoryDto } from '../create-category.dto';
 import { UpdateCategoryDto } from '../update-category.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { PersistentSnackbarService } from '../../../shared/persistent-snackbar.service';
 
 @Component({
   selector: 'app-category-detail',
@@ -34,7 +35,8 @@ export class CategoryDetail {
     private categoryService: CategoryService,
     private router: Router,
     private route: ActivatedRoute,
-    private snackBar: MatSnackBar) { }
+    private snackBar: MatSnackBar,
+    private persistentSnackbar: PersistentSnackbarService) { }
 
   ngOnInit() {
     this.loadColumnMeta();
@@ -49,7 +51,7 @@ export class CategoryDetail {
       },
       error: (err) => {
         console.error('Error retrieving columns: ', err);
-        // TODO: visible error
+        this.persistentSnackbar.showError(`Error retrieving fields. Please refresh the page or try again later.`);
       }
     });
   }
@@ -67,7 +69,7 @@ export class CategoryDetail {
           },
           error: (err) => {
             console.error('Error retrieving category with id ' + id + ': ', err);
-            // TODO error
+            this.persistentSnackbar.showError(`Error retrieving record with id ${id}. If the problem persists, please contact support.`);
           }
         })
 
@@ -96,7 +98,7 @@ export class CategoryDetail {
       },
       error: (err) => {
         console.error('Error saving category ', err);
-        // TODO
+        this.persistentSnackbar.showError(`Error saving ${category.name}. If the problem persists, please contact support.`);
       }
     })
   }
@@ -114,7 +116,7 @@ export class CategoryDetail {
       },
       error: (err) => {
         console.error('Error saving category ', err);
-        // TODO
+        this.persistentSnackbar.showError(`Error saving ${category.name}. If the problem persists, please contact support.`);
       }
     })
   }
@@ -131,7 +133,7 @@ export class CategoryDetail {
       },
       error: (err) => {
         console.error('Error updating category: ', err);
-        // TODO visual error
+        this.persistentSnackbar.showError(`Error saving ${category.name}. If the problem persists, please contact support.`);
       }
     })
   }

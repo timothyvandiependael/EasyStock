@@ -18,10 +18,15 @@ namespace EasyStock.API.Dtos
             new ColumnMetaData {
                 Name = "SKU",
                 Type = "string",
-                IsEditable = false,
+                IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
                 DisplayName = "SKU",
+                ValidationRules = new ValidationRules
+                {
+                    MaxLength = 50,
+                    Required = true
+                }
             },
             new ColumnMetaData {
                 Name = "Name",
@@ -29,7 +34,12 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Name"
+                DisplayName = "Name",
+                ValidationRules = new ValidationRules
+                {
+                    MaxLength = 200,
+                    Required = true
+                }
             },
             new ColumnMetaData {
                 Name = "Description",
@@ -61,7 +71,11 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Discount"
+                DisplayName = "Discount",
+                ValidationRules = new ValidationRules
+                {
+                    Max = 100
+                }
             },
             new ColumnMetaData {
                 Name = "TotalStock",
@@ -137,7 +151,11 @@ namespace EasyStock.API.Dtos
                 IsSortable = true,
                 DisplayName = "Category",
                 IsLookup = true,
-                LookupIdField = "CategoryId"
+                LookupIdField = "CategoryId",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true
+                }
             },
 
         }.Concat(OutputColumnDtoBase.Columns).ToList();

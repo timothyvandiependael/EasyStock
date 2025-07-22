@@ -7,24 +7,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
+using EasyStock.API.Dtos;
 
 namespace EasyStock.Tests.Services
 {
-    public class FakeModel : ModelBase
+    public class FakeModel : ModelBase, IEntity
     {
         public int Id { get; set; }
         public string? Name { get; set; }
+    }
+
+    public class FakeModelMappingProfile : Profile
+    {
+        public FakeModelMappingProfile()
+        {
+            CreateMap<FakeModel, FakeModel>();
+        }
     }
 
     public class ServiceTests
     {
         private readonly Mock<IRepository<FakeModel>> _repoMock;
         private readonly IService<FakeModel> _service;
+        private readonly Mock<IMapper> _mapperMock;
 
         public ServiceTests()
         {
             _repoMock = new Mock<IRepository<FakeModel>>();
-            _service = new Service<FakeModel>(_repoMock.Object);
+            _mapperMock = new Mock<IMapper>();
+            _service = new Service<FakeModel>(_repoMock.Object, _mapperMock.Object);
         }
 
         [Fact]

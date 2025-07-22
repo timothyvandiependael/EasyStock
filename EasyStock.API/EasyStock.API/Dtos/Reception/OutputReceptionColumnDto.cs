@@ -28,7 +28,11 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Comments"
+                DisplayName = "Comments",
+                ValidationRules = new ValidationRules
+                {
+                    MaxLength = 1000
+                }
             },
             new ColumnMetaData {
                 Name = "SupplierName",

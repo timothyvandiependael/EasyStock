@@ -164,12 +164,10 @@ export class DataTable {
   }
 
   onRowDoubleClick(row: any) {
-    debugger;
     this.rowDoubleClicked.emit(row);
   }
 
   onKeydown(event: KeyboardEvent) {
-    debugger;
     if (!this.data || this.data.length === 0) return;
 
     if (event.key === 'ArrowDown') {
@@ -192,15 +190,11 @@ export class DataTable {
   formatDateIfPossible(value: any): string {
     if (!value) return '';
 
-    // Check if value is ISO date string
-    // A quick and safe way: try parsing it to Date and check if valid
     const date = new Date(value);
     if (!isNaN(date.getTime())) {
-      // Format the date as yyyy-MM-dd or whatever you want
       return this.datePipe.transform(date, 'dd/MM/yyyy') || '';
     }
 
-    // Not a date, just return as is
     return value;
   }
 

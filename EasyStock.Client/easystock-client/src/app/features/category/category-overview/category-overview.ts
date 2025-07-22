@@ -9,6 +9,8 @@ import { AdvancedQueryParametersDto, FilterCondition, SortOption } from '../../.
 import { DataTable } from '../../../shared/components/data-table/data-table';
 import { Router } from '@angular/router';
 import { CheckboxData } from '../../../shared/checkbox';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { PersistentSnackbarService } from '../../../shared/persistent-snackbar.service';
 
 @Component({
   selector: 'app-category',
@@ -19,6 +21,8 @@ import { CheckboxData } from '../../../shared/checkbox';
 export class CategoryOverview {
   private getColumnsSub?: Subscription;
   private getAdvancedSub?: Subscription;
+  private blockSub?: Subscription;
+  private unblockSub?: Subscription;
 
   data: any[] = [];
   columnsMeta: ColumnMetaData[] = [];
@@ -42,7 +46,11 @@ export class CategoryOverview {
 
   currentSort: Sort = { active: '', direction: '' };
 
-  constructor(private categoryService: CategoryService, private router: Router) { }
+  constructor(
+    private categoryService: CategoryService, 
+    private router: Router, 
+    private snackbar: MatSnackBar,
+    private persistentSnackbar: PersistentSnackbarService) { }
 
   ngOnInit() {
     this.loadColumns();
@@ -51,19 +59,23 @@ export class CategoryOverview {
   ngOnDestroy() {
     this.getColumnsSub?.unsubscribe();
     this.getAdvancedSub?.unsubscribe();
+    this.blockSub?.unsubscribe();
+    this.unblockSub?.unsubscribe();
   }
 
   loadColumns() {
     this.getColumnsSub = this.categoryService.getColumns().subscribe({
       next: (columns: ColumnMetaData[]) => {
-        this.columnsMeta = columns;
-        this.displayedColumns = columns.map(c => c.name);
+        var overviewColumns = columns.filter(c => !c.isOnlyDetail);
+
+        this.columnsMeta = overviewColumns;
+        this.displayedColumns = overviewColumns.map(c => c.name);
 
         this.onShowBlockedClicked({ id: 'showblocked', label: 'Show blocked', checked: false });
       },
       error: (err) => {
         console.error('Error retrieving columns: ', err);
-        // TODO: visible error
+        this.persistentSnackbar.showError('Error retrieving columns. Please refresh the page or try again later.');
       }
     });
   }
@@ -74,7 +86,6 @@ export class CategoryOverview {
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
 
-    debugger;
     const query: AdvancedQueryParametersDto = {
       filters: this.filters,
       sorting: sortOptions,
@@ -91,7 +102,7 @@ export class CategoryOverview {
       },
       error: (err) => {
         console.log('Error retrieving data: ', err);
-        // TODO visible error
+        this.persistentSnackbar.showError('Error loading data. Please refresh the page or try again later.');
       }
     })
   }
@@ -103,7 +114,19 @@ export class CategoryOverview {
     if (editBtn) editBtn.disabled = false;
 
     const blockBtn = this.buttons.find(b => b.action === 'block');
-    if (blockBtn) blockBtn.disabled = false;
+    if (blockBtn) {
+      blockBtn.disabled = false;
+      if (row.blUserId) {
+        blockBtn.label = 'Unblock';
+        blockBtn.icon = 'radio_button_unchecked';
+        blockBtn.action = 'unblock';
+      }
+      else {
+        blockBtn.label = 'Block';
+        blockBtn.icon = 'block';
+        blockBtn.action = 'block';
+      }
+    }
   }
 
   onButtonClicked(action: string) {
@@ -111,6 +134,7 @@ export class CategoryOverview {
       case 'add': this.onAddClicked(); break;
       case 'edit': this.onEditClicked(); break;
       case 'block': this.onBlockClicked(); break;
+      case 'unblock': this.onUnblockClicked(); break;
       default: break;
     }
   }
@@ -123,7 +147,6 @@ export class CategoryOverview {
   }
 
   onShowBlockedClicked(box: CheckboxData) {
-
     var filter = this.filters.find(f => f.field == 'BlUserId')
 
     if (!filter) {
@@ -154,14 +177,49 @@ export class CategoryOverview {
   }
 
   onEditClicked() {
-    debugger;
     var id = this.selectedRow.id;
 
     this.router.navigate(['app/category/detail', 'edit', id])
   }
 
   onBlockClicked() {
-    // TODO
+    var id = this.selectedRow.id;
+
+    this.blockSub = this.categoryService.block(id).subscribe({
+      next: () => {
+        this.snackbar.open(`${this.selectedRow.name} blocked`, 'Close', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+        });
+        this.loadData();
+      },
+      error: (err) => {
+        console.error(err);
+
+        this.persistentSnackbar.showError(`Error blocking ${this.selectedRow.name}. If the problem persists, please contact support.`);
+      }
+    })
+  }
+
+  onUnblockClicked() {
+    var id = this.selectedRow.id;
+
+    this.unblockSub = this.categoryService.unblock(id).subscribe({
+      next: () => {
+        this.snackbar.open(`${this.selectedRow.name} unblocked`, 'Close', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+        });
+        this.loadData();
+      },
+      error: (err) => {
+        console.error(err);
+
+        this.persistentSnackbar.showError(`Error unblocking ${this.selectedRow.name}. If the problem persists, please contact support.`);
+      }
+    })
   }
 
   onSortChanged(sort: Sort) {

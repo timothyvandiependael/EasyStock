@@ -16,6 +16,7 @@ namespace EasyStock.API.Mapping
             CreateMap<UpdateReceptionDto, Reception>()
                 .ForMember(dest => dest.CrDate, opt => opt.Ignore())
                 .ForMember(dest => dest.CrUserId, opt => opt.Ignore());
+            CreateMap<Reception, Reception>();
         }
     }
 }

@@ -67,7 +67,7 @@ namespace EasyStock.API.Services
                 throw new InvalidOperationException($"Unable to unblock record with ID {id}");
             entity.BlDate = null;
             entity.BlUserId = null;
-            entity.LcDate = DateTime.Now;
+            entity.LcDate = DateTime.UtcNow;
             entity.LcUserId = userName;
             await _repository.UpdateAsync(entity);
         }

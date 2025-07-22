@@ -20,7 +20,12 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Name"
+                DisplayName = "Name",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true,
+                    MaxLength = 100
+                }
             },
             new ColumnMetaData {
                 Name = "Address",
@@ -28,7 +33,11 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Address"
+                DisplayName = "Address",
+                ValidationRules = new ValidationRules
+                {
+                    MaxLength = 200
+                }
             },
             new ColumnMetaData {
                 Name = "City",
@@ -36,7 +45,11 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "City"
+                DisplayName = "City",
+                ValidationRules = new ValidationRules
+                {
+                    MaxLength = 100
+                }
             },
             new ColumnMetaData {
                 Name = "PostalCode",
@@ -44,7 +57,11 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Postal Code"
+                DisplayName = "Postal Code",
+                ValidationRules = new ValidationRules
+                {
+                    MaxLength = 20
+                }
             },
             new ColumnMetaData {
                 Name = "Country",
@@ -52,7 +69,11 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Country"
+                DisplayName = "Country",
+                ValidationRules = new ValidationRules
+                {
+                    MaxLength = 100
+                }
             },
             new ColumnMetaData {
                 Name = "Phone",
@@ -60,7 +81,11 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Phone"
+                DisplayName = "Phone",
+                ValidationRules = new ValidationRules
+                {
+                    MaxLength = 25
+                }
             },
             new ColumnMetaData {
                 Name = "Email",
@@ -68,7 +93,12 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "E-Mail"
+                DisplayName = "E-Mail",
+                ValidationRules = new ValidationRules
+                {
+                    MaxLength = 200,
+                    IsEmail = true
+                }
             },
             new ColumnMetaData {
                 Name = "Website",
@@ -76,7 +106,12 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Website"
+                DisplayName = "Website",
+                ValidationRules = new ValidationRules
+                {
+                    MaxLength = 200,
+                    IsUrl = true
+                }
             }
         };
     }

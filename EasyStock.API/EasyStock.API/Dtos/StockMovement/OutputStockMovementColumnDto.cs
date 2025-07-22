@@ -28,7 +28,11 @@ namespace EasyStock.API.Dtos
                 IsEditable = false,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Quantity Change"
+                DisplayName = "Quantity Change",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true
+                }
             },
             new ColumnMetaData {
                 Name = "Reason",
@@ -36,7 +40,12 @@ namespace EasyStock.API.Dtos
                 IsEditable = false,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Reason"
+                DisplayName = "Reason",
+                ValidationRules = new ValidationRules
+                {
+                    MaxLength = 200,
+                    Required = true
+                }
             },
             new ColumnMetaData {
                 Name = "PurchaseOrderId",

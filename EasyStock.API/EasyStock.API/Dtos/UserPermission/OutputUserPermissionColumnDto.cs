@@ -29,7 +29,11 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Resource"
+                DisplayName = "Resource",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true
+                }
             },
             new ColumnMetaData {
                 Name = "CanView",

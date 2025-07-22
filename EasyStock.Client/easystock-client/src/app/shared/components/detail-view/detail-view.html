@@ -1,78 +1,108 @@
 <form [formGroup]="form" class="space-y-4">
   @for (col of visibleFields; track col.name) {
-    <div class="flex flex-col space-y-1">
-      <label class="text-sm font-medium text-gray-700">
-        {{ col.displayName || col.name }}
-      </label>
+  <div class="flex flex-col space-y-1">
+    <label class="text-sm font-medium text-gray-700">
+      {{ col.displayName || col.name }}
+    </label>
 
-      @if (col.isLookup) {
-        <select
-          [formControlName]="col.name"
-          class="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          @for (opt of getLookupOptions(col); track opt.id) {
-            <option [value]="opt.id">
-              {{ opt.label }}
-            </option>
-          }
-        </select>
-      } @else {
-        <input
-          [type]="mapType(col.type)"
-          [formControlName]="col.name"
-          class="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
+    @if (col.isLookup) {
+    <select [formControlName]="col.name"
+      class="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      @for (opt of getLookupOptions(col); track opt.id) {
+      <option [value]="opt.id">
+        {{ opt.label }}
+      </option>
+      }
+    </select>
+    } @else {
+    <input [type]="mapType(col.type)" [formControlName]="col.name"
+      class="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+    }
+
+    @if (form.get(col.name)?.touched && form.get(col.name)?.errors) {
+    <div class="mt-2 rounded-md border border-red-400 bg-red-50 p-3">
+      @if (form.get(col.name)?.errors?.['required']) {
+      <div class="text-sm text-red-600 font-medium">
+        {{ col.displayName }} is required.
+      </div>
+      }
+      @if (form.get(col.name)?.errors?.['maxlength']) {
+      <div class="text-sm text-red-600 font-medium">
+        Max length {{ col.validationRules?.maxLength }} exceeded.
+      </div>
+      }
+      @if (form.get(col.name)?.errors?.['minlength']) {
+      <div class="text-sm text-red-600 font-medium">
+        Must be at least {{ col.validationRules?.minLength }} characters.
+      </div>
+      }
+      @if (form.get(col.name)?.errors?.['pattern'] && !col.validationRules?.isUrl && !col.validationRules?.isPassword) {
+      <div class="text-sm text-red-600 font-medium">
+        Invalid format.
+      </div>
+      }
+      @if (form.get(col.name)?.errors?.['min']) {
+      <div class="text-sm text-red-600 font-medium">
+        Value must be at least {{ col.validationRules?.min }}.
+      </div>
+      }
+      @if (form.get(col.name)?.errors?.['max']) {
+      <div class="text-sm text-red-600 font-medium">
+        Value must be at most {{ col.validationRules?.max }}.
+      </div>
+      }
+      @if (form.get(col.name)?.errors?.['email']) {
+      <div class="text-sm text-red-600 font-medium">
+        Must be a valid email.
+      </div>
+      }
+      @if (form.get(col.name)?.errors?.['pattern'] && col.validationRules?.isUrl) {
+      <div class="text-sm text-red-600 font-medium">
+        Must be a valid URL.
+      </div>
+      }
+      @if (form.get(col.name)?.errors?.['pattern'] && col.validationRules?.isPassword) {
+      <div class="text-sm text-red-600 font-medium">
+        Password must contain letters and numbers (min 8 chars).
+      </div>
       }
     </div>
+    }
+  </div>
   }
 
   <div class="mt-6 flex space-x-3">
-  @if (mode === 'add') {
+    @if (mode === 'add') {
     <!-- Save & Add Another -->
-    <button
-      type="button"
-      (click)="onSaveAndAddAnother()"
-      class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-    >
+    <button type="button" (click)="onSaveAndAddAnother()"
+      class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
       Save & Add Another
     </button>
 
     <!-- Save & Exit -->
-    <button
-      type="button"
-      (click)="onSaveNewAndExit()"
-      class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
+    <button type="button" (click)="onSaveNewAndExit()"
+      class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
       Save & Return
     </button>
 
     <!-- Cancel -->
-    <button
-      type="button"
-      (click)="onCancel()"
-      class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg shadow hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
-    >
+    <button type="button" (click)="onCancel()"
+      class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg shadow hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
       Cancel
     </button>
-  }
-  @else {
+    }
+    @else {
     <!-- Edit mode: Save & Exit -->
-    <button
-      type="button"
-      (click)="onSaveAndExit()"
-      class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
+    <button type="button" (click)="onSaveAndExit()"
+      class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
       Save & Return
     </button>
 
     <!-- Cancel -->
-    <button
-      type="button"
-      (click)="onCancel()"
-      class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg shadow hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
-    >
+    <button type="button" (click)="onCancel()"
+      class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg shadow hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
       Cancel
     </button>
-  }
-</div>
+    }
+  </div>
 </form>

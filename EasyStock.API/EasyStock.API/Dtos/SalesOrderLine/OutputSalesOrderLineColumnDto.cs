@@ -36,7 +36,11 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Comments"
+                DisplayName = "Comments",
+                ValidationRules = new ValidationRules
+                {
+                    MaxLength = 1000
+                }
             },
             new ColumnMetaData {
                 Name = "ProductName",
@@ -54,7 +58,11 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Quantity"
+                DisplayName = "Quantity",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true
+                }
             },
             new ColumnMetaData {
                 Name = "UnitPrice",
@@ -62,7 +70,11 @@ namespace EasyStock.API.Dtos
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Unit Price"
+                DisplayName = "Unit Price",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true
+                }
             },
             new ColumnMetaData {
                 Name = "Status",

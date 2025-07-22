@@ -3,6 +3,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { ColumnMetaData } from '../../column-meta-data';
 import { ReactiveFormsModule } from '@angular/forms';
 import { formatDate } from '@angular/common';
+import { Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-detail-view',
@@ -46,7 +47,6 @@ export class DetailView<T> {
       if (col.type?.toLowerCase() === 'date') {
         if (initialValue) {
           try {
-            debugger;
             const dateObj = new Date(initialValue);
             initialValue = formatDate(dateObj, 'dd/MM/yyyy', 'en-US');
           } catch {
@@ -66,7 +66,41 @@ export class DetailView<T> {
 
       const disabled = !col.isEditable;
 
-      group[col.name] = new FormControl({ value: initialValue, disabled });
+      const validators = [];
+      if (col.validationRules) {
+        debugger;
+        if (col.validationRules.required) {
+          validators.push(Validators.required);
+        }
+        if (col.validationRules.maxLength) {
+          validators.push(Validators.maxLength(col.validationRules.maxLength));
+        }
+        if (col.validationRules.minLength) {
+          validators.push(Validators.minLength(col.validationRules.minLength));
+        }
+        if (col.validationRules.min) {
+          validators.push(Validators.min(col.validationRules.min));
+        }
+        if (col.validationRules.max) {
+          validators.push(Validators.max(col.validationRules.max));
+        }
+        if (col.validationRules.pattern) {
+          validators.push(Validators.pattern(col.validationRules.pattern));
+        }
+        if (col.validationRules.isEmail) {
+          validators.push(Validators.email);
+        }
+        if (col.validationRules.isUrl) {
+          validators.push(Validators.pattern(
+            /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\/\w.-]*)*\/?$/i
+          ));
+        }
+        if (col.validationRules.isPassword) {
+          validators.push(Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/));
+        }
+      }
+
+      group[col.name] = new FormControl({ value: initialValue, disabled }, validators);
     }
 
     this.form = new FormGroup(group);
@@ -87,14 +121,17 @@ export class DetailView<T> {
   }
 
   onSaveAndAddAnother() {
+    this.form.markAllAsTouched()
     if (this.form.valid) this.saveAndAddAnother.emit(this.form.getRawValue());
   }
 
   onSaveAndExit() {
+    this.form.markAllAsTouched()
     if (this.form.valid) this.saveAndExit.emit(this.form.getRawValue());
   }
 
   onSaveNewAndExit() {
+    this.form.markAllAsTouched()
     if (this.form.valid) this.saveNewAndExit.emit(this.form.getRawValue());
   }
 

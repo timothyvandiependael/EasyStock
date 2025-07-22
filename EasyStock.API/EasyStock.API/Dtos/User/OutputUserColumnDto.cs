@@ -21,7 +21,12 @@ namespace EasyStock.API.Dtos
                 IsEditable = false,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "User Name"
+                DisplayName = "User Name",
+                ValidationRules = new ValidationRules
+                {
+                    MaxLength = 20,
+                    Required = true
+                }
             }
         }.Concat(OutputColumnDtoBase.Columns).ToList();
     }

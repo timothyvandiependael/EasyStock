@@ -43,5 +43,11 @@ export class CategoryService {
     return this.http.put<void>(this.apiUrl + id, dto);
   }
 
+  block(id: number) {
+    return this.http.post(this.apiUrl + 'block?id=' + id, null);
+  }
 
+  unblock(id: number) {
+    return this.http.post(this.apiUrl + 'unblock?id=' + id, null);
+  }
 }
