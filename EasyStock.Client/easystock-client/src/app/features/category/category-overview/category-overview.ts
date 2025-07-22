@@ -11,6 +11,8 @@ import { Router } from '@angular/router';
 import { CheckboxData } from '../../../shared/checkbox';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/persistent-snackbar.service';
+import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
+import { AuthService } from '../../auth/auth-service';
 
 @Component({
   selector: 'app-category',
@@ -35,7 +37,7 @@ export class CategoryOverview {
   selectedRow: any;
 
   buttons: ButtonConfig[] = [
-    { label: 'Add', icon: 'add', action: 'add', color: 'primary' },
+    { label: 'Add', icon: 'add', action: 'add', color: 'primary', disabled: true },
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
     { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true }
   ]
@@ -47,12 +49,17 @@ export class CategoryOverview {
   currentSort: Sort = { active: '', direction: '' };
 
   constructor(
-    private categoryService: CategoryService, 
-    private router: Router, 
+    private categoryService: CategoryService,
+    private router: Router,
     private snackbar: MatSnackBar,
-    private persistentSnackbar: PersistentSnackbarService) { }
+    private persistentSnackbar: PersistentSnackbarService,
+    private confirmDialogService: ConfirmDialogService,
+    private authService: AuthService) { }
 
   ngOnInit() {
+    const addBtn = this.buttons.find(b => b.action === 'add');
+    if (addBtn) addBtn.disabled = !this.authService.canAdd("Category");
+
     this.loadColumns();
   }
 
@@ -111,11 +118,10 @@ export class CategoryOverview {
     this.selectedRow = row;
 
     const editBtn = this.buttons.find(b => b.action === 'edit');
-    if (editBtn) editBtn.disabled = false;
-
-    const blockBtn = this.buttons.find(b => b.action === 'block');
+    if (editBtn) editBtn.disabled = !this.authService.canEdit("Category");
+    const blockBtn = this.buttons.find(b => b.action === 'block' || b.action === 'unblock');
     if (blockBtn) {
-      blockBtn.disabled = false;
+      blockBtn.disabled = !this.authService.canDelete("Category");
       if (row.blUserId) {
         blockBtn.label = 'Unblock';
         blockBtn.icon = 'radio_button_unchecked';
@@ -185,6 +191,17 @@ export class CategoryOverview {
   onBlockClicked() {
     var id = this.selectedRow.id;
 
+    this.confirmDialogService.open({
+      title: 'Block record?',
+      message: 'Are you sure you want to block this record?',
+      confirmText: 'Yes, block',
+      cancelText: 'No, cancel'
+    }).subscribe(yes => {
+      if (yes) this.executeBlock(id);
+    });
+  }
+
+  executeBlock(id: number) {
     this.blockSub = this.categoryService.block(id).subscribe({
       next: () => {
         this.snackbar.open(`${this.selectedRow.name} blocked`, 'Close', {
@@ -205,6 +222,17 @@ export class CategoryOverview {
   onUnblockClicked() {
     var id = this.selectedRow.id;
 
+    this.confirmDialogService.open({
+      title: 'Unblock record?',
+      message: 'Are you sure you want to unblock this record?',
+      confirmText: 'Yes, unblock',
+      cancelText: 'No, cancel'
+    }).subscribe(yes => {
+      if (yes) this.executeUnblock(id);
+    });
+  }
+
+  executeUnblock(id: number) {
     this.unblockSub = this.categoryService.unblock(id).subscribe({
       next: () => {
         this.snackbar.open(`${this.selectedRow.name} unblocked`, 'Close', {

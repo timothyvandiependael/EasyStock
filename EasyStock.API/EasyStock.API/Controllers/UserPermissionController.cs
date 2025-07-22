@@ -44,6 +44,15 @@ namespace EasyStock.API.Controllers
             return Ok(dto);
         }
 
+        [HttpGet("getforuser/{name}")]
+        public async Task<ActionResult<List<UserPermission>>> GetForUser(string name)
+        {
+            var permissions = await _userPermissionService.GetPermissionsForUser(name);
+            if (permissions == null || permissions.Count == 0) return NotFound();
+            var dtos = _mapper.Map<ApplyPermissionDto>(permissions);
+            return Ok(dtos);
+        }
+
         [HttpGet("columns")]
         public ActionResult<List<ColumnMetaData>> GetColumns()
         {

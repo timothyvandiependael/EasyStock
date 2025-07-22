@@ -17,6 +17,7 @@ namespace EasyStock.API.Mapping
                 .ForMember(dest => dest.CrDate, opt => opt.Ignore())
                 .ForMember(dest => dest.CrUserId, opt => opt.Ignore());
             CreateMap<UserPermission, UserPermission>();
+            CreateMap<UserPermission, ApplyPermissionDto>();
         }
     }
 }

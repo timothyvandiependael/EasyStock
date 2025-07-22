@@ -1,0 +1,19 @@
+<h2 mat-dialog-title class="text-xl font-bold text-gray-900 mb-2">
+    {{ data.title || 'Confirm' }}
+</h2>
+
+<mat-dialog-content class="text-base text-gray-700 leading-relaxed mb-4">
+    {{ data.message }}
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="flex justify-end gap-2 pt-4 border-t border-gray-200">
+    <button mat-button (click)="onCancelClick()"
+        class="text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg px-4 py-2 transition-colors">
+        {{ data.cancelText || 'Cancel' }}
+    </button>
+
+    <button mat-flat-button color="warn" (click)="onConfirmClick()"
+        class="!bg-red-600 hover:!bg-red-700 text-white font-medium rounded-lg px-4 py-2 shadow-sm transition-colors">
+        {{ data.confirmText || 'Yes' }}
+    </button>
+</mat-dialog-actions>

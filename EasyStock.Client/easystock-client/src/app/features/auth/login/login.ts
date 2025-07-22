@@ -25,6 +25,8 @@ export class Login {
   submit() {
     this.loginSub = this.authService.login(this.loginDto).subscribe({
       next: res => {
+        this.authService.determinePermissionsForUser();
+
         if (res.mustChangePassword) {
           this.router.navigate(['/change-password'], { queryParams: { mustChangePassword: res.mustChangePassword } });
         } else {

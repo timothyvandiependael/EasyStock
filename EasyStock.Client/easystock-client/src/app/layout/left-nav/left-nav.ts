@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output, ViewChild, ElementRef } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../features/auth/auth-service';
 
 @Component({
   selector: 'app-left-nav',
@@ -10,6 +11,8 @@ import { CommonModule } from '@angular/common';
   styleUrl: './left-nav.css'
 })
 export class LeftNav {
+  constructor(private authService: AuthService) { }
+
   @Input() collapsed = false;
   isTransitioning = false;
   contentVisible = true;
@@ -18,22 +21,24 @@ export class LeftNav {
 
   @ViewChild('navElement') navElement!: ElementRef<HTMLElement>;
 
-  navItems = [
+  allNavItems = [
     // Main section
-    { section: 'Main', label: 'Home', route: '/app/startup', icon: '🏠' },
-    { section: 'Main', label: 'Stock', route: '/app/stock', icon: '📦' },
-    { section: 'Main', label: 'Stock Movements', route: '/app/stock-movements', icon: '🔄' },
-    { section: 'Main', label: 'Purchases', route: '/app/purchase-orders', icon: '🛒' },
-    { section: 'Main', label: 'Sales', route: '/app/sales-orders', icon: '💰' },
-    { section: 'Main', label: 'Reception', route: '/app/receptions', icon: '📥' },
-    { section: 'Main', label: 'Dispatch', route: '/app/dispatches', icon: '📤' },
+    { name: 'Home', section: 'Main', label: 'Home', route: '/app/startup', icon: '🏠' },
+    { name: 'Product', section: 'Main', label: 'Stock', route: '/app/stock', icon: '📦' },
+    { name: 'StockMovement', section: 'Main', label: 'Stock Movements', route: '/app/stock-movements', icon: '🔄' },
+    { name: 'PurchaseOrder', section: 'Main', label: 'Purchases', route: '/app/purchase-orders', icon: '🛒' },
+    { name: 'SalesOrder', section: 'Main', label: 'Sales', route: '/app/sales-orders', icon: '💰' },
+    { name: 'Reception', section: 'Main', label: 'Reception', route: '/app/receptions', icon: '📥' },
+    { name: 'Dispatch', section: 'Main', label: 'Dispatch', route: '/app/dispatches', icon: '📤' },
 
     // Admin section
-    { section: 'Admin', label: 'Users', route: '/app/users', icon: '👤' },
-    { section: 'Admin', label: 'Suppliers', route: '/app/suppliers', icon: '🏭' },
-    { section: 'Admin', label: 'Clients', route: '/app/clients', icon: '👥' },
-    { section: 'Admin', label: 'Categories', route: '/app/category', icon: '📂' },
+    { name: 'User', section: 'Admin', label: 'Users', route: '/app/users', icon: '👤' },
+    { name: 'Supplier', section: 'Admin', label: 'Suppliers', route: '/app/suppliers', icon: '🏭' },
+    { name: 'Client', section: 'Admin', label: 'Clients', route: '/app/clients', icon: '👥' },
+    { name: 'Category', section: 'Admin', label: 'Categories', route: '/app/category', icon: '📂' },
   ];
+
+  navItems: any[] = [];
 
   private transitionEndHandler = (event: TransitionEvent) => {
     if (event.propertyName === 'width' && event.target === this.navElement.nativeElement) {
@@ -45,7 +50,7 @@ export class LeftNav {
     if (event.propertyName === 'width') {
       // When width transition ends, stop transitioning state
       this.isTransitioning = false;
-       this.contentVisible = true;
+      this.contentVisible = true;
     }
   }
 
@@ -60,6 +65,10 @@ export class LeftNav {
       // When collapsing, content stays hidden (still transitioning)
       // Once transition ends, isTransitioning = false will be set via handler
     }
+  }
+
+  ngOnInit() {
+    this.navItems = this.allNavItems.filter(item => this.authService.canView(item.name));
   }
 
   ngAfterViewInit() {

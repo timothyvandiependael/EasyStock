@@ -155,4 +155,8 @@ export class DetailView<T> {
       { id: '2', label: 'Option 2' },
     ];
   }
+
+  isDirty(): boolean {
+    return this.form.dirty;
+  }
 }

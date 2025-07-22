@@ -10,6 +10,7 @@ import { CreateCategoryDto } from '../create-category.dto';
 import { UpdateCategoryDto } from '../update-category.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/persistent-snackbar.service';
+import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 
 @Component({
   selector: 'app-category-detail',
@@ -31,12 +32,14 @@ export class CategoryDetail {
 
   @ViewChild(DetailView) detailView!: DetailView<CategoryOverviewDto>;
 
+
   constructor(
     private categoryService: CategoryService,
     private router: Router,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
-    private persistentSnackbar: PersistentSnackbarService) { }
+    private persistentSnackbar: PersistentSnackbarService,
+    private confirmDialogService: ConfirmDialogService) { }
 
   ngOnInit() {
     this.loadColumnMeta();
@@ -139,6 +142,22 @@ export class CategoryDetail {
   }
 
   handleCancel() {
+    if (this.detailView.form.dirty) {
+      this.confirmDialogService.open({
+        title: this.detailMode === 'add' ? 'Discard new entry?' : 'Discard changes?',
+        message: 'You have unsaved changes. Are you sure you want to cancel?',
+        confirmText: 'Yes, discard',
+        cancelText: 'Keep editing'
+      }).subscribe(cancelled => {
+        if (cancelled) this.executeCancel();
+      });
+    }
+    else {
+      this.executeCancel();
+    }
+  }
+
+  executeCancel() {
     this.router.navigate(['app/category']);
   }
 }
