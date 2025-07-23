@@ -7,7 +7,7 @@ namespace EasyStock.API.Dtos
         public static readonly List<ColumnMetaData> Columns = new List<ColumnMetaData>()
         {
             new ColumnMetaData {
-                Name = "Id",
+                Name = "id",
                 Type = "number",
                 IsEditable = false,
                 IsFilterable = true,
@@ -15,7 +15,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Id"
             },
             new ColumnMetaData {
-                Name = "ProductName",
+                Name = "productName",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,
@@ -23,7 +23,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Product"
             },
             new ColumnMetaData {
-                Name = "QuantityChange",
+                Name = "quantityChange",
                 Type = "number",
                 IsEditable = false,
                 IsFilterable = true,
@@ -35,7 +35,7 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "Reason",
+                Name = "reason",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,
@@ -48,7 +48,7 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "PurchaseOrderId",
+                Name = "purchaseOrderId",
                 Type = "int",
                 IsEditable = false,
                 IsFilterable = true,
@@ -56,7 +56,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Purchase Order Id"
             },
             new ColumnMetaData {
-                Name = "SalesOrderId",
+                Name = "salesOrderId",
                 Type = "int",
                 IsEditable = false,
                 IsFilterable = true,

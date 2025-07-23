@@ -6,14 +6,13 @@
     </label>
 
     @if (col.isLookup) {
-    <select [formControlName]="col.name"
-      class="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-      @for (opt of getLookupOptions(col); track opt.id) {
-      <option [value]="opt.id">
-        {{ opt.label }}
-      </option>
-      }
-    </select>
+    <div class="relative flex items-center">
+      <input class="border rounded-lg px-3 py-2 text-sm w-full bg-gray-100 cursor-pointer focus:outline-none"
+        [value]="getLookupDisplay(col)" readonly (dblclick)="openLookup(col)" />
+      <button class="absolute right-1 text-gray-500 hover:text-gray-700" (click)="openLookup(col)">
+        🔍
+      </button>
+    </div>
     } @else {
     <input [type]="mapType(col.type)" [formControlName]="col.name"
       class="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />

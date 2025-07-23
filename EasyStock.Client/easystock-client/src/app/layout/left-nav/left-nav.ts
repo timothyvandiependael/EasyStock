@@ -24,7 +24,7 @@ export class LeftNav {
   allNavItems = [
     // Main section
     { name: 'Home', section: 'Main', label: 'Home', route: '/app/startup', icon: '🏠' },
-    { name: 'Product', section: 'Main', label: 'Stock', route: '/app/stock', icon: '📦' },
+    { name: 'Product', section: 'Main', label: 'Stock', route: '/app/product', icon: '📦' },
     { name: 'StockMovement', section: 'Main', label: 'Stock Movements', route: '/app/stock-movements', icon: '🔄' },
     { name: 'PurchaseOrder', section: 'Main', label: 'Purchases', route: '/app/purchase-orders', icon: '🛒' },
     { name: 'SalesOrder', section: 'Main', label: 'Sales', route: '/app/sales-orders', icon: '💰' },

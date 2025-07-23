@@ -7,7 +7,7 @@ namespace EasyStock.API.Dtos
         public static readonly List<ColumnMetaData> Columns = new List<ColumnMetaData>()
         {
             new ColumnMetaData {
-                Name = "Id",
+                Name = "id",
                 Type = "number",
                 IsEditable = false,
                 IsFilterable = true,
@@ -15,7 +15,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Id"
             },
             new ColumnMetaData {
-                Name = "ReceptionNumber",
+                Name = "receptionNumber",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,
@@ -23,7 +23,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Reception Number",
             },
             new ColumnMetaData {
-                Name = "Comments",
+                Name = "comments",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
@@ -35,14 +35,15 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "SupplierName",
+                Name = "supplierName",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,
                 IsSortable = true,
                 DisplayName = "Supplier",
                 IsLookup = true,
-                LookupIdField = "SupplierId"
+                LookupIdField = "SupplierId",
+                LookupTarget = "Supplier"
             }
 
         }.Concat(OutputColumnDtoBase.Columns).ToList();

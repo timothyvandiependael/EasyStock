@@ -8,7 +8,7 @@ namespace EasyStock.API.Dtos
         public static readonly List<ColumnMetaData> Columns = new List<ColumnMetaData>()
         {
             new ColumnMetaData {
-                Name = "Id",
+                Name = "id",
                 Type = "number",
                 IsEditable = false,
                 IsFilterable = true,
@@ -16,7 +16,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Id"
             },
             new ColumnMetaData {
-                Name = "ReceptionNumber",
+                Name = "receptionNumber",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,
@@ -24,7 +24,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Reception Number",
             },
             new ColumnMetaData {
-                Name = "LineNumber",
+                Name = "lineNumber",
                 Type = "number",
                 IsEditable = false,
                 IsFilterable = true,
@@ -32,7 +32,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Line"
             },
             new ColumnMetaData {
-                Name = "Comments",
+                Name = "comments",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
@@ -44,17 +44,18 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "ProductName",
+                Name = "productName",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,
                 IsSortable = true,
                 DisplayName = "Product",
                 IsLookup = true,
-                LookupIdField = "ProductId"
+                LookupIdField = "ProductId",
+                LookupTarget = "Product"
             },
             new ColumnMetaData {
-                Name = "Quantity",
+                Name = "quantity",
                 Type = "number",
                 IsEditable = true,
                 IsFilterable = true,

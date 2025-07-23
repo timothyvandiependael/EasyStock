@@ -103,7 +103,7 @@ namespace EasyStock.API.Controllers
         {
             if (parameters == null || parameters.Filters == null || parameters.Sorting == null) return BadRequest("Missing parameters");
 
-            var result = await _service.GetAdvancedAsync(parameters.Filters, parameters.Sorting, parameters.Pagination);
+            var result = await _productService.GetAdvancedAsync(parameters.Filters, parameters.Sorting, parameters.Pagination);
             var dtoItems = _mapper.Map<List<OutputProductOverviewDto>>(result.Data);
             return Ok(new PaginationResult<OutputProductOverviewDto>
             {

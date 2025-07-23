@@ -84,7 +84,7 @@ namespace EasyStock.API.Repositories
             // Pagination
             var totalCount = await query.CountAsync();
             var data = await query
-                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Skip((pagination.PageNumber) * pagination.PageSize)
                 .Take(pagination.PageSize)
                 .ProjectTo<ReceptionLineOverview>(_mapper.ConfigurationProvider)
                 .ToListAsync();

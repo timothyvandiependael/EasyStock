@@ -1,9 +1,11 @@
 import { Component, Input, SimpleChanges, Output, EventEmitter } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, ValidatorFn } from '@angular/forms';
 import { ColumnMetaData } from '../../column-meta-data';
 import { ReactiveFormsModule } from '@angular/forms';
 import { formatDate } from '@angular/common';
 import { Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { LookupDialog } from '../lookup-dialog/lookup-dialog';
 
 @Component({
   selector: 'app-detail-view',
@@ -21,7 +23,11 @@ export class DetailView<T> {
   @Output() cancel = new EventEmitter<void>();
   @Output() saveNewAndExit = new EventEmitter<any>();
 
+  constructor(private dialog: MatDialog) { }
+
   form!: FormGroup;
+
+  lookupDisplayCache: { [lookupField: string]: { [id: string]: string } } = {};
 
   ngOnInit(): void {
     this.buildForm();
@@ -40,6 +46,7 @@ export class DetailView<T> {
 
     for (const col of this.metaData) {
       const isSystemField = this.systemFields.includes(col.name);
+      debugger;
       if (this.mode === 'add' && isSystemField) continue;
 
       let initialValue = this.model ? (this.model as any)[col.name] : '';
@@ -66,7 +73,7 @@ export class DetailView<T> {
 
       const disabled = !col.isEditable;
 
-      const validators = [];
+      const validators: ValidatorFn[] = [];
       if (col.validationRules) {
         debugger;
         if (col.validationRules.required) {
@@ -101,7 +108,14 @@ export class DetailView<T> {
       }
 
       group[col.name] = new FormControl({ value: initialValue, disabled }, validators);
+
+      if (col.isLookup && col.lookupIdField) {
+        const idValue = this.model ? (this.model as any)[col.lookupIdField] : null;
+        group[col.lookupIdField] = new FormControl(idValue);
+      }
     }
+
+
 
     this.form = new FormGroup(group);
   }
@@ -148,12 +162,45 @@ export class DetailView<T> {
     }
   }
 
-  getLookupOptions(col: ColumnMetaData) {
-    // TODO, REWRITE 
-    return [
-      { id: '1', label: 'Option 1' },
-      { id: '2', label: 'Option 2' },
-    ];
+  getLookupDisplay(col: ColumnMetaData): string {
+    const idField = col.lookupIdField!;
+    const idValue = this.form.get(idField)?.value;
+    if (!idValue) return 'Unassigned';
+
+    return this.lookupDisplayCache[col.lookupIdField!]?.[idValue] ?? '(loading…)';
+  }
+
+  openLookup(col: ColumnMetaData) {
+    const lookupType = col.lookupTarget;
+    if (!lookupType) {
+      console.warn('No lookup type configured for column ', col);
+      return;
+    }
+
+    const dialogRef = this.dialog.open(LookupDialog, {
+      width: '500px',
+      height: '800px',
+      data: { type: lookupType }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      debugger;
+      if (result) {
+        console.log('Selected from lookup: ', result);
+
+        if (col.lookupIdField) {
+          this.form.get(col.lookupIdField)?.setValue(result.id);
+
+          if (!this.lookupDisplayCache[col.lookupIdField]) {
+            this.lookupDisplayCache[col.lookupIdField] = {};
+          }
+          this.lookupDisplayCache[col.lookupIdField][result.id] = result.name;
+        }
+        //this.form.get(col.name)?.setValue(result.name);
+
+
+      }
+    })
   }
 
   isDirty(): boolean {

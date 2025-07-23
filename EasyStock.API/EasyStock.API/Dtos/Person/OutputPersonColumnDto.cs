@@ -7,7 +7,7 @@ namespace EasyStock.API.Dtos
         public static readonly List<ColumnMetaData> Columns = new List<ColumnMetaData>()
         {
             new ColumnMetaData {
-                Name = "Id",
+                Name = "id",
                 Type = "number",
                 IsEditable = false,
                 IsFilterable = true,
@@ -15,7 +15,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Id"
             },
             new ColumnMetaData {
-                Name = "Name",
+                Name = "name",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
@@ -28,7 +28,7 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "Address",
+                Name = "address",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
@@ -40,7 +40,7 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "City",
+                Name = "city",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
@@ -52,7 +52,7 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "PostalCode",
+                Name = "postalCode",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
@@ -64,7 +64,7 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "Country",
+                Name = "country",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
@@ -76,7 +76,7 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "Phone",
+                Name = "phone",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
@@ -88,7 +88,7 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "Email",
+                Name = "email",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
@@ -101,7 +101,7 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "Website",
+                Name = "website",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,

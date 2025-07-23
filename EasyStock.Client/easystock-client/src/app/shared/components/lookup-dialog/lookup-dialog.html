@@ -1,0 +1,27 @@
+<div class="p-4 max-w-full">
+  <!-- Title -->
+  <h2 class="text-xl font-semibold mb-4 text-gray-800">
+    Select {{ dataInput.type }}
+  </h2>
+
+  <!-- Table wrapper with scroll if needed -->
+  <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+    <app-data-table
+      class="min-w-full"
+      [data]="data"
+      [columnsMeta]="columnsMeta"
+      [displayedColumns]="displayedColumns"
+      [totalCount]="totalCount"
+      [pageSize]="pageSize"
+      [pageIndex]="pageIndex"
+      [buttons]="buttons"
+      [checkboxOptions]="[]"
+      (buttonClicked)="onButtonClicked($event)"
+      (sortChanged)="onSortChanged($event)"
+      (pageChanged)="onPageChanged($event)"
+      (filterChanged)="onFilterChanged($event)"
+      (rowSelected)="onRowSelected($event)"
+      (rowDoubleClicked)="onRowDoubleClicked()">
+    </app-data-table>
+  </div>
+</div>

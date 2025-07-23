@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { PageEvent } from '@angular/material/paginator';
 import { ButtonConfig } from '../../../shared/button-config.model';
-import { CategoryService } from '../category-service';
+import { ProductService } from '../product-service';
 import { ColumnMetaData } from '../../../shared/column-meta-data';
 import { Subscription } from 'rxjs';
 import { AdvancedQueryParametersDto, FilterCondition, SortOption } from '../../../shared/query';
@@ -15,12 +15,12 @@ import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/
 import { AuthService } from '../../auth/auth-service';
 
 @Component({
-  selector: 'app-category',
-  imports: [DataTable],
-  templateUrl: './category-overview.html',
-  styleUrl: './category-overview.css'
+  selector: 'app-product-overview',
+  imports: [ DataTable ],
+  templateUrl: './product-overview.html',
+  styleUrl: './product-overview.css'
 })
-export class CategoryOverview {
+export class ProductOverview {
   private getColumnsSub?: Subscription;
   private getAdvancedSub?: Subscription;
   private blockSub?: Subscription;
@@ -49,7 +49,7 @@ export class CategoryOverview {
   currentSort: Sort = { active: '', direction: '' };
 
   constructor(
-    private categoryService: CategoryService,
+    private productService: ProductService,
     private router: Router,
     private snackbar: MatSnackBar,
     private persistentSnackbar: PersistentSnackbarService,
@@ -58,7 +58,7 @@ export class CategoryOverview {
 
   ngOnInit() {
     const addBtn = this.buttons.find(b => b.action === 'add');
-    if (addBtn) addBtn.disabled = !this.authService.canAdd("Category");
+    if (addBtn) addBtn.disabled = !this.authService.canAdd("Product");
 
     this.loadColumns();
   }
@@ -71,9 +71,8 @@ export class CategoryOverview {
   }
 
   loadColumns() {
-    this.getColumnsSub = this.categoryService.getColumns().subscribe({
+    this.getColumnsSub = this.productService.getColumns().subscribe({
       next: (columns: ColumnMetaData[]) => {
-        debugger;
         var overviewColumns = columns.filter(c => !c.isOnlyDetail);
 
         this.columnsMeta = overviewColumns;
@@ -103,7 +102,8 @@ export class CategoryOverview {
       }
     };
 
-    this.getAdvancedSub = this.categoryService.getAdvanced(query).subscribe({
+    debugger;
+    this.getAdvancedSub = this.productService.getAdvanced(query).subscribe({
       next: (result) => {
         this.data = result.data;
         this.totalCount = result.totalCount;
@@ -119,10 +119,10 @@ export class CategoryOverview {
     this.selectedRow = row;
 
     const editBtn = this.buttons.find(b => b.action === 'edit');
-    if (editBtn) editBtn.disabled = !this.authService.canEdit("Category");
+    if (editBtn) editBtn.disabled = !this.authService.canEdit("Product");
     const blockBtn = this.buttons.find(b => b.action === 'block' || b.action === 'unblock');
     if (blockBtn) {
-      blockBtn.disabled = !this.authService.canDelete("Category");
+      blockBtn.disabled = !this.authService.canDelete("Product");
       if (row.blUserId) {
         blockBtn.label = 'Unblock';
         blockBtn.icon = 'radio_button_unchecked';
@@ -176,7 +176,7 @@ export class CategoryOverview {
   }
 
   onAddClicked() {
-    this.router.navigate(['app/category/detail', 'add']);
+    this.router.navigate(['app/product/detail', 'add']);
   }
 
   onRowDoubleClicked(row: any) {
@@ -186,7 +186,7 @@ export class CategoryOverview {
   onEditClicked() {
     var id = this.selectedRow.id;
 
-    this.router.navigate(['app/category/detail', 'edit', id])
+    this.router.navigate(['app/product/detail', 'edit', id])
   }
 
   onBlockClicked() {
@@ -203,7 +203,7 @@ export class CategoryOverview {
   }
 
   executeBlock(id: number) {
-    this.blockSub = this.categoryService.block(id).subscribe({
+    this.blockSub = this.productService.block(id).subscribe({
       next: () => {
         this.snackbar.open(`${this.selectedRow.name} blocked`, 'Close', {
           duration: 3000,
@@ -234,7 +234,7 @@ export class CategoryOverview {
   }
 
   executeUnblock(id: number) {
-    this.unblockSub = this.categoryService.unblock(id).subscribe({
+    this.unblockSub = this.productService.unblock(id).subscribe({
       next: () => {
         this.snackbar.open(`${this.selectedRow.name} unblocked`, 'Close', {
           duration: 3000,

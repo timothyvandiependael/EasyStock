@@ -70,7 +70,6 @@ export class AuthService {
 
   getUserRole(): string | null {
     const token = this.getToken();
-    debugger;
     if (!token) return null;
 
     try {

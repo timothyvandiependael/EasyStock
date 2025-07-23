@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DetailView } from './detail-view';
+import { LookupDialog } from './lookup-dialog';
 
-describe('DetailView', () => {
-  let component: DetailView<any>;
-  let fixture: ComponentFixture<DetailView<any>>;
+describe('LookupDialog', () => {
+  let component: LookupDialog;
+  let fixture: ComponentFixture<LookupDialog>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DetailView]
+      imports: [LookupDialog]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(DetailView);
+    fixture = TestBed.createComponent(LookupDialog);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

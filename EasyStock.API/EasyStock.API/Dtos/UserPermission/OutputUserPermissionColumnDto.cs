@@ -8,7 +8,7 @@ namespace EasyStock.API.Dtos
         public static readonly List<ColumnMetaData> Columns = new List<ColumnMetaData>()
         {
             new ColumnMetaData {
-                Name = "Id",
+                Name = "id",
                 Type = "number",
                 IsEditable = false,
                 IsFilterable = true,
@@ -16,7 +16,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Id"
             },
             new ColumnMetaData {
-                Name = "UserName",
+                Name = "userName",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,
@@ -24,7 +24,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "User Name"
             },
             new ColumnMetaData {
-                Name = "Resource",
+                Name = "resource",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
@@ -36,7 +36,7 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "CanView",
+                Name = "canView",
                 Type = "boolean",
                 IsEditable = true,
                 IsFilterable = true,
@@ -44,7 +44,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Can View"
             },
             new ColumnMetaData {
-                Name = "CanAdd",
+                Name = "canAdd",
                 Type = "boolean",
                 IsEditable = true,
                 IsFilterable = true,
@@ -52,7 +52,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Can Add"
             },
             new ColumnMetaData {
-                Name = "CanEdit",
+                Name = "canEdit",
                 Type = "boolean",
                 IsEditable = true,
                 IsFilterable = true,
@@ -60,7 +60,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Can Edit"
             },
             new ColumnMetaData {
-                Name = "CanDelete",
+                Name = "canDelete",
                 Type = "boolean",
                 IsEditable = true,
                 IsFilterable = true,

@@ -19,6 +19,7 @@ export interface ColumnMetaData {
   displayName?: string;
   isLookup: boolean;
   lookupIdField?: string;
+  lookupTarget?: string;
   isOnlyDetail: boolean;
   validationRules?: ValidationRules;
 }

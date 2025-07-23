@@ -8,7 +8,7 @@ namespace EasyStock.API.Dtos
         public static readonly List<ColumnMetaData> Columns = new List<ColumnMetaData>()
         {
             new ColumnMetaData {
-                Name = "Id",
+                Name = "id",
                 Type = "number",
                 IsEditable = false,
                 IsFilterable = true,
@@ -16,7 +16,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Id"
             },
             new ColumnMetaData {
-                Name = "SKU",
+                Name = "sku",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
@@ -29,7 +29,7 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "Name",
+                Name = "name",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
@@ -42,7 +42,7 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "Description",
+                Name = "description",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
@@ -50,23 +50,31 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Description"
             },
             new ColumnMetaData {
-                Name = "CostPrice",
+                Name = "costPrice",
                 Type = "number",
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Cost Price"
+                DisplayName = "Cost Price",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true
+                }
             },
             new ColumnMetaData {
-                Name = "RetailPrice",
+                Name = "retailPrice",
                 Type = "string",
                 IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Retail Price"
+                DisplayName = "Retail Price",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true
+                }
             },
             new ColumnMetaData {
-                Name = "Discount",
+                Name = "discount",
                 Type = "number",
                 IsEditable = true,
                 IsFilterable = true,
@@ -78,7 +86,7 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
-                Name = "TotalStock",
+                Name = "totalStock",
                 Type = "number",
                 IsEditable = true,
                 IsFilterable = true,
@@ -86,7 +94,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Total"
             },
             new ColumnMetaData {
-                Name = "ReservedStock",
+                Name = "reservedStock",
                 Type = "number",
                 IsEditable = false,
                 IsFilterable = true,
@@ -94,7 +102,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Reserved"
             },
             new ColumnMetaData {
-                Name = "InboundStock",
+                Name = "inboundStock",
                 Type = "number",
                 IsEditable = false,
                 IsFilterable = true,
@@ -102,7 +110,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Inbound"
             },
             new ColumnMetaData {
-                Name = "AvailableStock",
+                Name = "availableStock",
                 Type = "number",
                 IsEditable = false,
                 IsFilterable = true,
@@ -110,7 +118,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Available"
             },
             new ColumnMetaData {
-                Name = "BackOrderedStock",
+                Name = "backOrderedStock",
                 Type = "number",
                 IsEditable = false,
                 IsFilterable = true,
@@ -118,7 +126,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Backordered"
             },
             new ColumnMetaData {
-                Name = "MinimumStock",
+                Name = "minimumStock",
                 Type = "number",
                 IsEditable = true,
                 IsFilterable = true,
@@ -126,7 +134,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Minimum Stock"
             },
             new ColumnMetaData {
-                Name = "AutoRestock",
+                Name = "autoRestock",
                 Type = "boolean",
                 IsEditable = true,
                 IsFilterable = true,
@@ -134,17 +142,18 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Auto Restock"
             },
             new ColumnMetaData {
-                Name = "SupplierName",
+                Name = "supplierName",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,
                 IsSortable = true,
                 DisplayName = "Supplier",
                 IsLookup = true,
-                LookupIdField = "AutoRestockSupplierId"
+                LookupIdField = "AutoRestockSupplierId",
+                LookupTarget = "Supplier"
             },
             new ColumnMetaData {
-                Name = "CategoryName",
+                Name = "categoryName",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,
@@ -152,6 +161,7 @@ namespace EasyStock.API.Dtos
                 DisplayName = "Category",
                 IsLookup = true,
                 LookupIdField = "CategoryId",
+                LookupTarget = "Category",
                 ValidationRules = new ValidationRules
                 {
                     Required = true

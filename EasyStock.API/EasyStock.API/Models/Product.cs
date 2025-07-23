@@ -18,10 +18,11 @@ namespace EasyStock.API.Models
 
         public byte[]? Photo { get; set; }
 
-
+        [Required]
         [Range(0, double.MaxValue)]
         public decimal CostPrice { get; set; }
 
+        [Required]
         [Range(0, double.MaxValue)]
         public decimal RetailPrice { get; set; }
 

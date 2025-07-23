@@ -6,6 +6,8 @@ import { AppLayout } from './layout/app-layout/app-layout';
 import { Startup } from './features/startup/startup';
 import { CategoryOverview } from './features/category/category-overview/category-overview';
 import { CategoryDetail } from './features/category/category-detail/category-detail';
+import { ProductOverview } from './features/product/product-overview/product-overview';
+import { ProductDetail } from './features/product/product-detail/product-detail';
 
 export const routes: Routes = [
       { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -18,6 +20,11 @@ export const routes: Routes = [
           { path: '', component: CategoryOverview }, 
           { path: 'detail/:mode', component: CategoryDetail }, 
           { path: 'detail/:mode/:id', component: CategoryDetail } 
-        ] }
+        ] },
+        { path: 'product', children: [
+          { path: '', component: ProductOverview }, 
+          { path: 'detail/:mode', component: ProductDetail }, 
+          { path: 'detail/:mode/:id', component: ProductDetail } 
+        ]}
       ]}
     ];
