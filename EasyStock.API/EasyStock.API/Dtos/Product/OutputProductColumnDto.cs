@@ -49,6 +49,17 @@ namespace EasyStock.API.Dtos
                 IsSortable = true,
                 DisplayName = "Description"
             },
+            new ColumnMetaData
+            {
+                Name = "photo",
+                Type = "photo",
+                IsEditable = false,
+                IsFilterable = false,
+                IsSortable = false,
+                IsOnlyDetail = true,
+                DisplayName = "Photo"
+
+            },
             new ColumnMetaData {
                 Name = "costPrice",
                 Type = "number",
@@ -149,7 +160,7 @@ namespace EasyStock.API.Dtos
                 IsSortable = true,
                 DisplayName = "Supplier",
                 IsLookup = true,
-                LookupIdField = "AutoRestockSupplierId",
+                LookupIdField = "autoRestockSupplierId",
                 LookupTarget = "Supplier"
             },
             new ColumnMetaData {
@@ -160,7 +171,7 @@ namespace EasyStock.API.Dtos
                 IsSortable = true,
                 DisplayName = "Category",
                 IsLookup = true,
-                LookupIdField = "CategoryId",
+                LookupIdField = "categoryId",
                 LookupTarget = "Category",
                 ValidationRules = new ValidationRules
                 {

@@ -3,9 +3,10 @@ import { FormControl, FormGroup, ValidatorFn } from '@angular/forms';
 import { ColumnMetaData } from '../../column-meta-data';
 import { ReactiveFormsModule } from '@angular/forms';
 import { formatDate } from '@angular/common';
-import { Validators } from '@angular/forms';
+import { Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { LookupDialog } from '../lookup-dialog/lookup-dialog';
+import { UploadFileDialog } from '../upload-file-dialog/upload-file-dialog';
 
 @Component({
   selector: 'app-detail-view',
@@ -29,6 +30,9 @@ export class DetailView<T> {
 
   lookupDisplayCache: { [lookupField: string]: { [id: string]: string } } = {};
 
+  photoUploadColumn?: ColumnMetaData;
+  showPhotoUploadPopup = false;
+
   ngOnInit(): void {
     this.buildForm();
   }
@@ -39,6 +43,12 @@ export class DetailView<T> {
     }
   }
 
+  requiredLookupValidator(forbiddenValue: string) {
+    return (control: AbstractControl) => {
+      return control.value === forbiddenValue ? { required: true } : null;
+    };
+  }
+
   private systemFields: string[] = ['id', 'crDate', 'crUserId', 'lcDate', 'lcUserId', 'blDate', 'blUserId'];
 
   private buildForm() {
@@ -46,7 +56,6 @@ export class DetailView<T> {
 
     for (const col of this.metaData) {
       const isSystemField = this.systemFields.includes(col.name);
-      debugger;
       if (this.mode === 'add' && isSystemField) continue;
 
       let initialValue = this.model ? (this.model as any)[col.name] : '';
@@ -75,7 +84,6 @@ export class DetailView<T> {
 
       const validators: ValidatorFn[] = [];
       if (col.validationRules) {
-        debugger;
         if (col.validationRules.required) {
           validators.push(Validators.required);
         }
@@ -107,16 +115,15 @@ export class DetailView<T> {
         }
       }
 
+      // visible field
       group[col.name] = new FormControl({ value: initialValue, disabled }, validators);
 
       if (col.isLookup && col.lookupIdField) {
         const idValue = this.model ? (this.model as any)[col.lookupIdField] : null;
-        group[col.lookupIdField] = new FormControl(idValue);
+        // hidden id field
+        group[col.lookupIdField] = new FormControl(idValue, validators);
       }
     }
-
-
-
     this.form = new FormGroup(group);
   }
 
@@ -131,6 +138,27 @@ export class DetailView<T> {
       const isSystemField = this.systemFields.includes(col.name);
       if (this.mode === 'add' && isSystemField) return false;
       return true;
+    });
+  }
+
+  openPhotoUpload(col: ColumnMetaData) {
+    // TODO photo popup
+    this.photoUploadColumn = col;
+    this.showPhotoUploadPopup = true;
+
+    const dialogRef = this.dialog.open(UploadFileDialog, {
+      data: { accept: 'image/*' },
+      width: '400px',
+    });
+
+    dialogRef.afterClosed().subscribe((fileString: string | null) => {
+      if (fileString) {
+        this.form.get(col.name)?.setValue(fileString);
+        this.form.get(col.name)?.markAsDirty();
+        this.form.get(col.name)?.markAsTouched();
+      } else {
+        console.log('Upload cancelled');
+      }
     });
   }
 
@@ -184,7 +212,6 @@ export class DetailView<T> {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      debugger;
       if (result) {
         console.log('Selected from lookup: ', result);
 

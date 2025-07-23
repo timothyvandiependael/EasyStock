@@ -1,0 +1,53 @@
+<h2 mat-dialog-title class="text-xl font-semibold text-gray-800 px-6 pt-4">
+  Upload File
+</h2>
+
+<div mat-dialog-content class="px-6 py-4">
+  <div
+    class="upload-area border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center 
+           transition-colors duration-200 ease-in-out 
+           hover:border-blue-400 hover:bg-blue-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+    (drop)="onFileDrop($event)"
+    (dragover)="onDragOver($event)"
+    (click)="fileInput.click()"
+    tabindex="0"
+    role="button"
+    aria-label="File upload area"
+  >
+    @if (!selectedFile) {
+      <p class="text-gray-500 text-sm">
+        Drag & Drop file here or <span class="text-blue-600 font-medium underline">click to browse</span>
+      </p>
+    } @else {
+      <p class="text-gray-700 text-sm font-medium">
+        Selected file: <span class="font-semibold text-blue-600">{{ selectedFile.name }}</span>
+      </p>
+    }
+    <input
+      #fileInput
+      type="file"
+      [accept]="accept"
+      (change)="onFileSelected($event)"
+      hidden
+    />
+  </div>
+</div>
+
+<div mat-dialog-actions align="end" class="px-6 pb-4 mt-6 flex justify-end space-x-3">
+  <button
+    mat-button
+    class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
+    (click)="onCancel()"
+  >
+    Cancel
+  </button>
+  <button
+    mat-raised-button
+    color="primary"
+    class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+    (click)="onUpload()"
+    [disabled]="!selectedFile"
+  >
+    Upload
+  </button>
+</div>

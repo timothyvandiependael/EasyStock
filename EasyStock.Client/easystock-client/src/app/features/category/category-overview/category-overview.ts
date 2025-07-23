@@ -73,7 +73,6 @@ export class CategoryOverview {
   loadColumns() {
     this.getColumnsSub = this.categoryService.getColumns().subscribe({
       next: (columns: ColumnMetaData[]) => {
-        debugger;
         var overviewColumns = columns.filter(c => !c.isOnlyDetail);
 
         this.columnsMeta = overviewColumns;

@@ -2,7 +2,7 @@ export interface CreateProductDto {
     sku: string;
     name: string;
     description?: string;
-    // photo: string;
+    photo?: string;
     costPrice: number;
     retailPrice: number;
     discount: number;

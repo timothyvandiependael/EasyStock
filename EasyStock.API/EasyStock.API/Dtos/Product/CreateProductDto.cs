@@ -15,7 +15,7 @@ namespace EasyStock.API.Dtos
 
         public string? Description { get; set; }
 
-        public byte[]? Photo { get; set; }
+        public string? Photo { get; set; }
 
 
         [Range(0, double.MaxValue)]

@@ -5,7 +5,7 @@ export interface ProductOverviewDto extends CommonDto {
     sku: string;
     name: string;
     description?: string;
-    // photo: string;
+    photo?: string;
     costPrice: number;
     retailPrice: number;
     discount: number;
