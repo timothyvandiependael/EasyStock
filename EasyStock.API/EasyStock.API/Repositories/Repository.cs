@@ -49,7 +49,7 @@ namespace EasyStock.API.Repositories
             }
         }
 
-        public async Task<PaginationResult<T>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
+        public async Task<PaginationResult<T>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination)
         {
             IQueryable<T> query = _dbSet.AsQueryable();
 
@@ -74,13 +74,21 @@ namespace EasyStock.API.Repositories
                 query = query.OrderBy("Id");
             }
 
-            // Pagination
+            List<T> data = new List<T>();
             var totalCount = await query.CountAsync();
 
-            var data = await query
-            .Skip((pagination.PageNumber) * pagination.PageSize)
-            .Take(pagination.PageSize)
-            .ToListAsync();
+            // Pagination
+            if (pagination != null)
+            {
+                data = await query
+                .Skip((pagination.PageNumber) * pagination.PageSize)
+                .Take(pagination.PageSize)
+                .ToListAsync();
+            }
+            else
+            {
+                data = await query.ToListAsync();
+            }
 
             return new PaginationResult<T>
             {

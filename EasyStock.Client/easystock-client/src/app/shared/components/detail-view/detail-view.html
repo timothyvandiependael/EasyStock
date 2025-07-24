@@ -30,7 +30,9 @@
     }
     @else {
     <input [type]="mapType(col.type)" [formControlName]="col.name"
-      class="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+      [ngClass]="mapType(col.type) === 'checkbox' 
+    ? 'h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500' 
+    : 'border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'" />
 
     @if (form.get(col.name)?.touched && form.get(col.name)?.errors) {
     <div class="mt-2 rounded-md border border-red-400 bg-red-50 p-3">

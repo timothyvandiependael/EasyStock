@@ -7,10 +7,11 @@ import { Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { LookupDialog } from '../lookup-dialog/lookup-dialog';
 import { UploadFileDialog } from '../upload-file-dialog/upload-file-dialog';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-detail-view',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, NgClass],
   templateUrl: './detail-view.html',
   styleUrl: './detail-view.css'
 })

@@ -1,8 +1,8 @@
 export interface ButtonConfig {
   label: string;
-  icon?: string; // Heroicons, Lucide, FontAwesome, or custom
+  icon?: string; 
   tooltip?: string;
-  color?: 'primary' | 'accent' | 'warn';
+  color?: 'primary' | 'accent' | 'warn' | 'export';
   disabled?: boolean;
   hidden?: boolean;
   action: string;

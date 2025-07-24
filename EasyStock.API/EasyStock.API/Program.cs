@@ -17,7 +17,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:4200")
         .AllowAnyHeader()
-        .AllowAnyMethod();
+        .AllowAnyMethod()
+        .WithExposedHeaders("Content-Disposition");
     });
 });
 
@@ -107,6 +108,8 @@ builder.Services.AddScoped<IRetryableTransactionService, RetryableTransactionSer
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 
 builder.Services.AddScoped<IPermissionService, PermissionService>();
+
+builder.Services.AddScoped(typeof(IExportService<>), typeof(ExportService<>));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

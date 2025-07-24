@@ -6,6 +6,6 @@ namespace EasyStock.API.Repositories
     public interface IPurchaseOrderRepository
     {
         Task<IEnumerable<PurchaseOrderOverview>> GetAllAsync();
-        Task<PaginationResult<PurchaseOrderOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination);
+        Task<PaginationResult<PurchaseOrderOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination);
     }
 }

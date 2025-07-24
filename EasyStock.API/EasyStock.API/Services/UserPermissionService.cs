@@ -16,7 +16,7 @@ namespace EasyStock.API.Services
         public async Task<IEnumerable<UserPermissionOverview>> GetAllAsync()
             => await _userPermissionRepository.GetAllAsync();
 
-        public async Task<PaginationResult<UserPermissionOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
+        public async Task<PaginationResult<UserPermissionOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination)
             => await _userPermissionRepository.GetAdvancedAsync(filters, sorting, pagination);
 
         public async Task<List<UserPermission>> GetPermissionsForUser(string userName)

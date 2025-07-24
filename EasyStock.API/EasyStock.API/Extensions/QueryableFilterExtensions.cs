@@ -19,9 +19,14 @@ namespace EasyStock.API.Extensions
             {
                 var property = Expression.Property(parameter, filter.Field);
                 var propertyType = Nullable.GetUnderlyingType(property.Type) ?? property.Type;
-                var typedValue = propertyType == typeof(DateTime) ? "" : Convert.ChangeType(filter.Value, propertyType);
 
-                var constant = Expression.Constant(typedValue, property.Type);
+                object? typedValue = null;
+                Expression? constant = null;
+                if (propertyType != typeof(DateTime))
+                {
+                    typedValue = propertyType == typeof(DateTime) ? "" : Convert.ChangeType(filter.Value, propertyType);
+                    constant = Expression.Constant(typedValue, property.Type);
+                }
 
                 Expression? comparison;
 

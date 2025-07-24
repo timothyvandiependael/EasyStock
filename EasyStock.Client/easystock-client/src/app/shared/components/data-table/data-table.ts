@@ -49,6 +49,8 @@ export class DataTable {
   @Output() checkboxChanged = new EventEmitter<any>();
   @Output() rowSelected = new EventEmitter<any>();
   @Output() rowDoubleClicked = new EventEmitter<any>();
+  @Output() exportCsvClicked = new EventEmitter<any>();
+  @Output() exportExcelClicked = new EventEmitter<any>();
 
   filterColumns: string[] = [];
 
@@ -56,6 +58,9 @@ export class DataTable {
 
   hoveredRowIndex: number = -1;
   selectedRowIndex: number = -1;
+
+  startDate: string | null = null;
+  endDate: string | null = null;
 
   @ViewChild('dtcontainer') container!: ElementRef<HTMLDivElement>;
 
@@ -71,7 +76,7 @@ export class DataTable {
           return val.value !== null && val.value !== undefined && val.value !== '';
         })
         .map(([field, val]) => ({
-          field: field,
+          field: field.replace(/(>=|<=)$/, ''),
           operator: val.operator,
           value: val.value
         } as FilterCondition));
@@ -133,6 +138,8 @@ export class DataTable {
 
   onButtonClick(btn: ButtonConfig) {
     if (!btn.disabled && !btn.hidden) {
+
+      if (btn.action == 'export') this.isExportMenuOpen = !this.isExportMenuOpen;
       this.buttonClicked.emit(btn.action);
     }
   }
@@ -154,6 +161,21 @@ export class DataTable {
     option.checked = htmlInput.checked;
 
     this.checkboxChanged.emit(option);
+  }
+
+  onDateRangeChange() {
+    delete this.filters['CrDate>='];
+    delete this.filters['CrDate<='];
+
+    if (this.startDate) {
+      this.filters['CrDate>='] = { operator: '>=', value: this.startDate };
+    }
+
+    if (this.endDate) {
+      this.filters['CrDate<='] = { operator: '<=', value: this.endDate };
+    }
+
+    this.filterSubject.next();
   }
 
   onRowClick(row: any, index: number) {
@@ -196,6 +218,18 @@ export class DataTable {
     }
 
     return value;
+  }
+
+  isExportMenuOpen = false;
+
+  exportCsv() {
+    this.isExportMenuOpen = false;
+    this.exportCsvClicked.emit();
+  }
+
+  exportExcel() {
+    this.isExportMenuOpen = false;
+    this.exportExcelClicked.emit();
   }
 
 }

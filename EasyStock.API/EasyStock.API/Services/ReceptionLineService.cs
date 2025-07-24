@@ -32,7 +32,7 @@ namespace EasyStock.API.Services
         public async Task<IEnumerable<ReceptionLineOverview>> GetAllAsync()
             => await _receptionLineRepository.GetAllAsync();
 
-        public async Task<PaginationResult<ReceptionLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
+        public async Task<PaginationResult<ReceptionLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination)
             => await _receptionLineRepository.GetAdvancedAsync(filters, sorting, pagination);
 
 

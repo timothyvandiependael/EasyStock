@@ -6,6 +6,6 @@ namespace EasyStock.API.Repositories
     public interface IReceptionRepository
     {
         Task<IEnumerable<ReceptionOverview>> GetAllAsync();
-        Task<PaginationResult<ReceptionOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination);
+        Task<PaginationResult<ReceptionOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination);
     }
 }

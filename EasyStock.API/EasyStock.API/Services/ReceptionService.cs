@@ -24,7 +24,7 @@ namespace EasyStock.API.Services
         public async Task<IEnumerable<ReceptionOverview>> GetAllAsync()
             => await _receptionRepository.GetAllAsync();
 
-        public async Task<PaginationResult<ReceptionOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
+        public async Task<PaginationResult<ReceptionOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination)
             => await _receptionRepository.GetAdvancedAsync(filters, sorting, pagination);
 
         public async Task AddAsync(Reception entity, string userName, bool useTransaction = true)

@@ -33,7 +33,7 @@ namespace EasyStock.API.Services
         public async Task<IEnumerable<DispatchLineOverview>> GetAllAsync()
             => await _dispatchLineRepository.GetAllAsync();
 
-        public async Task<PaginationResult<DispatchLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
+        public async Task<PaginationResult<DispatchLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination)
             => await _dispatchLineRepository.GetAdvancedAsync(filters, sorting, pagination);
 
         public async Task AddAsync(DispatchLine entity, string userName)

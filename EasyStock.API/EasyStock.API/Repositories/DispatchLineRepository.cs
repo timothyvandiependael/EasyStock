@@ -6,6 +6,7 @@ using EasyStock.API.Extensions;
 using EasyStock.API.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EasyStock.API.Repositories
 {
@@ -29,7 +30,7 @@ namespace EasyStock.API.Repositories
                 .ToListAsync();
         }
 
-        public async Task<PaginationResult<DispatchLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
+        public async Task<PaginationResult<DispatchLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination)
         {
             var query = _dbSet.AsQueryable();
 
@@ -81,13 +82,21 @@ namespace EasyStock.API.Repositories
                 query = query.OrderBy("Id");
             }
 
-            // Pagination
+            var data = new List<DispatchLineOverview>();
             var totalCount = await query.CountAsync();
-            var data = await query
+            // Pagination
+            if (pagination != null)
+            {
+                data = await query
                 .Skip((pagination.PageNumber) * pagination.PageSize)
                 .Take(pagination.PageSize)
                 .ProjectTo<DispatchLineOverview>(_mapper.ConfigurationProvider)
                 .ToListAsync();
+            }
+            else
+            {
+                data = await query.ProjectTo<DispatchLineOverview>(_mapper.ConfigurationProvider).ToListAsync();
+            }
 
             return new PaginationResult<DispatchLineOverview>
             {

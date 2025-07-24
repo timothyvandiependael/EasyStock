@@ -16,7 +16,7 @@ namespace EasyStock.API.Services
         public async Task<IEnumerable<StockMovementOverview>> GetAllAsync()
             => await _stockMovementRepository.GetAllAsync();
 
-        public async Task<PaginationResult<StockMovementOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
+        public async Task<PaginationResult<StockMovementOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination)
             => await _stockMovementRepository.GetAdvancedAsync(filters, sorting, pagination);
     }
 }

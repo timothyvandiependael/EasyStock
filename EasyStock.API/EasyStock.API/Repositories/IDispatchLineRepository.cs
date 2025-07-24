@@ -6,6 +6,6 @@ namespace EasyStock.API.Repositories
     public interface IDispatchLineRepository
     {
         Task<IEnumerable<DispatchLineOverview>> GetAllAsync();
-        Task<PaginationResult<DispatchLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination);
+        Task<PaginationResult<DispatchLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination);
     }
 }

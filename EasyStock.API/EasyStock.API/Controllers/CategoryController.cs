@@ -15,11 +15,13 @@ namespace EasyStock.API.Controllers
     {
         private readonly IService<Category> _service;
         private readonly IMapper _mapper;
+        private readonly IExportService<OutputCategoryDto> _exportService;
 
-        public CategoryController(IService<Category> service, IMapper mapper)
+        public CategoryController(IService<Category> service, IMapper mapper, IExportService<OutputCategoryDto> exportService)
         {
             _service = service;
             _mapper = mapper;
+            _exportService = exportService;
         }
 
         [HttpGet]
@@ -90,6 +92,38 @@ namespace EasyStock.API.Controllers
         {
             await _service.UnblockAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
+        }
+
+        [HttpPost("export")]
+        public async Task<IActionResult> ExportAdvanced([FromBody] ExportRequestDto dto)
+        {
+            if (dto.Parameters == null || dto.Parameters.Filters == null || dto.Parameters.Sorting == null || string.IsNullOrEmpty(dto.Format)) return BadRequest("Missing parameters");
+
+            var result = await _service.GetAdvancedAsync(dto.Parameters.Filters, dto.Parameters.Sorting, null);
+            var dtoItems = _mapper.Map<List<OutputCategoryDto>>(result.Data);
+
+            var title = "Categories";
+            var contentType = "";
+            var fileName = title + "_" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+            var file = _exportService.GenerateExport(dtoItems, dto.Format, OutputCategoryColumnDto.Columns, title);
+
+            if (dto.Format == "csv")
+            {
+                contentType = "text/csv";
+                fileName += ".csv";
+            }
+            else if (dto.Format == "excel")
+            {
+                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                fileName += ".xlsx";
+            }
+            else
+            {
+                return BadRequest("Unsupported export format.");
+            }
+
+            return File(file, contentType, fileName);
+
         }
 
         [HttpPost("advanced")]

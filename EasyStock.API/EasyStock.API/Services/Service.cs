@@ -76,7 +76,7 @@ namespace EasyStock.API.Services
         {
             await _repository.DeleteAsync(id); 
         }
-        public async Task<PaginationResult<T>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
+        public async Task<PaginationResult<T>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination)
             => await _repository.GetAdvancedAsync(filters, sorting, pagination);
     }
 }

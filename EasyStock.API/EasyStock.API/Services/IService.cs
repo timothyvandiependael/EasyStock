@@ -11,6 +11,6 @@ namespace EasyStock.API.Services
         Task DeleteAsync(int id);
         Task BlockAsync(int id, string userName);
         Task UnblockAsync(int id, string userName);
-        Task<PaginationResult<T>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination);
+        Task<PaginationResult<T>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination);
     }
 }

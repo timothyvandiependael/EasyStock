@@ -25,7 +25,7 @@ namespace EasyStock.API.Services
         public async Task<IEnumerable<SalesOrderOverview>> GetAllAsync()
             => await _salesOrderRepository.GetAllAsync();
 
-        public async Task<PaginationResult<SalesOrderOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination)
+        public async Task<PaginationResult<SalesOrderOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination)
             => await _salesOrderRepository.GetAdvancedAsync(filters, sorting, pagination);
 
         public async Task AddAsync(SalesOrder entity, string userName, bool useTransaction = true)

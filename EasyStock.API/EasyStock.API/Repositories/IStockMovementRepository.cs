@@ -6,6 +6,6 @@ namespace EasyStock.API.Repositories
     public interface IStockMovementRepository
     {
         Task<IEnumerable<StockMovementOverview>> GetAllAsync();
-        Task<PaginationResult<StockMovementOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination pagination);
+        Task<PaginationResult<StockMovementOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination);
     }
 }
