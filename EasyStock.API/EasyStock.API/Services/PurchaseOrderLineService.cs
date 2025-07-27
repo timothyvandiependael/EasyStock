@@ -14,8 +14,9 @@ namespace EasyStock.API.Services
         private readonly IRetryableTransactionService _retryableTransactionService;
         private readonly IPurchaseOrderService _purchaseOrderService;
         private readonly IPurchaseOrderLineProcessor _purchaseOrderLineProcessor;
+        private readonly IUpdateService<PurchaseOrderLine> _updateService;
 
-        public PurchaseOrderLineService(IPurchaseOrderLineRepository purchaseOrderLineRepository, IRepository<PurchaseOrderLine> repository, IRetryableTransactionService retryableTransactionService, IRepository<Product> genericProductRepository, IPurchaseOrderService purchaseOrderService, IPurchaseOrderLineProcessor purchaseOrderLineProcessor)
+        public PurchaseOrderLineService(IPurchaseOrderLineRepository purchaseOrderLineRepository, IRepository<PurchaseOrderLine> repository, IRetryableTransactionService retryableTransactionService, IRepository<Product> genericProductRepository, IPurchaseOrderService purchaseOrderService, IPurchaseOrderLineProcessor purchaseOrderLineProcessor, IUpdateService<PurchaseOrderLine> updateService)
         {
             _purchaseOrderLineRepository = purchaseOrderLineRepository;
             _repository = repository;
@@ -23,6 +24,7 @@ namespace EasyStock.API.Services
             _genericProductRepository = genericProductRepository;
             _purchaseOrderService = purchaseOrderService;
             _purchaseOrderLineProcessor = purchaseOrderLineProcessor;
+            _updateService = updateService;
         }
 
         public async Task<IEnumerable<PurchaseOrderLineOverview>> GetAllAsync()
@@ -59,7 +61,6 @@ namespace EasyStock.API.Services
         {
             entity.LcDate = DateTime.UtcNow;
             entity.LcUserId = userName;
-            await _repository.AddAsync(entity);
 
             var oldRecord = await _repository.GetByIdAsync(entity.Id);
             if (oldRecord == null)
@@ -79,6 +80,9 @@ namespace EasyStock.API.Services
                     product.LcDate = DateTime.UtcNow;
                 }
             }
+
+            var record = _updateService.MapAndUpdateAuditFields(oldRecord, entity, userName);
+            await _repository.UpdateAsync(record);
         }
 
         public async Task DeleteAsync(int id, string userName)

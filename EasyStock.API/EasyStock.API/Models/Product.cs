@@ -51,16 +51,16 @@ namespace EasyStock.API.Models
 
         public int? AutoRestockSupplierId { get; set; }
 
-        public Supplier? AutoRestockSupplier { get; set; }
+        public virtual Supplier? AutoRestockSupplier { get; set; }
         public int AutoRestockAmount { get; set; }
 
         [Required]
         public int CategoryId { get; set; }
 
         [Required]
-        public required Category Category { get; set; }
+        public required virtual Category Category { get; set; }
 
-        public ICollection<Supplier> Suppliers { get; set; } = new List<Supplier>();
+        public virtual ICollection<Supplier> Suppliers { get; set; } = new List<Supplier>();
 
     }
 }

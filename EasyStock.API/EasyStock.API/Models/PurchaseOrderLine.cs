@@ -8,14 +8,14 @@ namespace EasyStock.API.Models
     {
         public int Id { get; set; }
         public int PurchaseOrderId { get; set; }
-        public required PurchaseOrder PurchaseOrder { get; set; }
+        public required virtual PurchaseOrder PurchaseOrder { get; set; }
         public int LineNumber { get; set; }
 
         [MaxLength(1000)]
         public string? Comments { get; set; }
 
         public int ProductId { get; set; }
-        public required Product Product { get; set; }
+        public required virtual Product Product { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]
@@ -28,7 +28,7 @@ namespace EasyStock.API.Models
         [Column(TypeName = "varchar(10)")]
         public OrderStatus Status { get; set; }
 
-        public ICollection<ReceptionLine>? ReceptionLines { get; set; }
+        public virtual ICollection<ReceptionLine>? ReceptionLines { get; set; }
         public int DeliveredQuantity =>
             ReceptionLines?.Sum(rl => rl.Quantity) ?? 0;
     }

@@ -15,11 +15,11 @@ namespace EasyStock.API.Models
 
         [Required]
         public int ClientId { get; set; }
-        public required Client Client { get; set; }
+        public required virtual Client Client { get; set; }
 
         [Column(TypeName = "varchar(10)")]
         public OrderStatus Status { get; set; }
 
-        public ICollection<SalesOrderLine> Lines { get; set; } = new List<SalesOrderLine>();
+        public virtual ICollection<SalesOrderLine> Lines { get; set; } = new List<SalesOrderLine>();
     }
 }

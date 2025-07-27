@@ -7,7 +7,7 @@ namespace EasyStock.API.Models
         public int Id { get; set; }
         [Required]
         public int ProductId { get; set; }
-        public required Product Product { get; set; }
+        public required virtual Product Product { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]

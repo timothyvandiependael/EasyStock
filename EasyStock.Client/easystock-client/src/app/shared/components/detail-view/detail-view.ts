@@ -8,6 +8,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { LookupDialog } from '../lookup-dialog/lookup-dialog';
 import { UploadFileDialog } from '../upload-file-dialog/upload-file-dialog';
 import { NgClass } from '@angular/common';
+import { StringService } from '../../string-service';
 
 @Component({
   selector: 'app-detail-view',
@@ -25,7 +26,7 @@ export class DetailView<T> {
   @Output() cancel = new EventEmitter<void>();
   @Output() saveNewAndExit = new EventEmitter<any>();
 
-  constructor(private dialog: MatDialog) { }
+  constructor(private dialog: MatDialog, private stringService: StringService) { }
 
   form!: FormGroup;
 
@@ -143,7 +144,6 @@ export class DetailView<T> {
   }
 
   openPhotoUpload(col: ColumnMetaData) {
-    // TODO photo popup
     this.photoUploadColumn = col;
     this.showPhotoUploadPopup = true;
 
@@ -195,8 +195,23 @@ export class DetailView<T> {
     const idField = col.lookupIdField!;
     const idValue = this.form.get(idField)?.value;
     if (!idValue) return 'Unassigned';
+    debugger;
+    var displayValue = this.lookupDisplayCache[col.lookupIdField!]?.[idValue] ?? '';
+    if (displayValue == '' && col.lookupTarget != null) {
+      var referencedEntity = this.stringService.toLowerFirst(col.lookupTarget);
+      var referencedField = this.getReferenceFieldFromLookupFieldName(col.name, referencedEntity);
+      displayValue = 
+        this.model 
+        ? (this.model as any)[referencedEntity][referencedField] 
+        : '';
+    }
 
-    return this.lookupDisplayCache[col.lookupIdField!]?.[idValue] ?? '(loading…)';
+    return displayValue;
+  }
+
+  getReferenceFieldFromLookupFieldName(fieldName: string, referencedEntity: string) {
+    if (!fieldName || !referencedEntity) return fieldName;
+    return this.stringService.toLowerFirst(fieldName.replace(referencedEntity, ''));
   }
 
   openLookup(col: ColumnMetaData) {
@@ -214,10 +229,10 @@ export class DetailView<T> {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        console.log('Selected from lookup: ', result);
-
         if (col.lookupIdField) {
-          this.form.get(col.lookupIdField)?.setValue(result.id);
+          var ctrl = this.form.get(col.lookupIdField);
+          ctrl?.setValue(result.id);
+          ctrl?.markAsDirty();
 
           if (!this.lookupDisplayCache[col.lookupIdField]) {
             this.lookupDisplayCache[col.lookupIdField] = {};

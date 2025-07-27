@@ -2,7 +2,7 @@
 
 namespace EasyStock.API.Models
 {
-    public class ReceptionLine : ModelBase
+    public class ReceptionLine : ModelBase, IEntity
     {
         public int Id { get; set; }
         public int ReceptionId { get; set; }
@@ -11,9 +11,9 @@ namespace EasyStock.API.Models
         [MaxLength(1000)]
         public string? Comments { get; set; }
 
-        public required Reception Reception { get; set; }
+        public required virtual Reception Reception { get; set; }
         public int ProductId { get; set; }
-        public required Product Product { get; set; }
+        public required virtual Product Product { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]
@@ -21,6 +21,6 @@ namespace EasyStock.API.Models
 
         [Required]
         public int PurchaseOrderLineId { get; set; }
-        public required PurchaseOrderLine PurchaseOrderLine { get; set; }
+        public required virtual PurchaseOrderLine PurchaseOrderLine { get; set; }
     }
 }

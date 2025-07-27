@@ -10,6 +10,6 @@ namespace EasyStock.API.Models
         [MaxLength(20)]
         public required string UserName { get; set; }
 
-        public ICollection<UserPermission> Permissions { get; set; } = new List<UserPermission>();
+        public virtual ICollection<UserPermission> Permissions { get; set; } = new List<UserPermission>();
     }
 }

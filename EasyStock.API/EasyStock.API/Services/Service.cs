@@ -8,12 +8,12 @@ namespace EasyStock.API.Services
     public class Service<T> : IService<T> where T : ModelBase, IEntity
     {
         private readonly IRepository<T> _repository;
-        private readonly IMapper _mapper;
+        private readonly IUpdateService<T> _updateService;
 
-        public Service(IRepository<T> repository, IMapper mapper)
+        public Service(IRepository<T> repository, IUpdateService<T> updateService)
         {
             _repository = repository;
-            _mapper = mapper;
+            _updateService = updateService;
         }
 
         public async Task<T?> GetByIdAsync(int id) => await _repository.GetByIdAsync(id);
@@ -34,20 +34,8 @@ namespace EasyStock.API.Services
                 throw new KeyNotFoundException($"Category with Id {entity.Id} not found.");
             }
 
-            var crDate = existingEntity.CrDate;
-            var crUserId = existingEntity.CrUserId;
-            var blDate = existingEntity.BlDate;
-            var blUserId = existingEntity.BlUserId;
-
-            _mapper.Map(entity, existingEntity);
-
-            existingEntity.CrDate = crDate;
-            existingEntity.CrUserId = crUserId;
-            existingEntity.BlDate = blDate;
-            existingEntity.BlUserId = blUserId;
-            existingEntity.LcUserId = userName;
-            existingEntity.LcDate = DateTime.UtcNow;
-            await _repository.UpdateAsync(existingEntity);
+            var record = _updateService.MapAndUpdateAuditFields(existingEntity, entity, userName);
+            await _repository.UpdateAsync(record);
         }
 
         public async Task BlockAsync(int id, string userName)

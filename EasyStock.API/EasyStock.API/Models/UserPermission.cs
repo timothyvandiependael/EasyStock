@@ -2,14 +2,14 @@
 
 namespace EasyStock.API.Models
 {
-    public class UserPermission : ModelBase
+    public class UserPermission : ModelBase, IEntity
     {
         public int Id { get; set; }
 
         [Required]
         public int UserId { get; set; }
 
-        public required User User { get; set; }
+        public required virtual User User { get; set; }
 
         [Required]
         [MaxLength(30)]

@@ -14,11 +14,11 @@ namespace EasyStock.API.Models
         public string? Comments { get; set; }
 
         public int SupplierId { get; set; }
-        public required Supplier Supplier { get; set; }
+        public required virtual Supplier Supplier { get; set; }
 
         [Column(TypeName = "varchar(10)")]
         public OrderStatus Status { get; set; }
 
-        public ICollection<PurchaseOrderLine> Lines { get; set; } = new List<PurchaseOrderLine>();
+        public virtual ICollection<PurchaseOrderLine> Lines { get; set; } = new List<PurchaseOrderLine>();
     }
 }

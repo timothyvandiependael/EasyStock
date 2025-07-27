@@ -67,13 +67,12 @@ export class CategoryService {
 
     this.http.post(this.apiUrl + 'export', exportRequest, {
       responseType: 'blob',
-      observe: 'response' // <-- this lets us see headers
+      observe: 'response' 
     }).subscribe({
       next: (response) => {
         debugger;
         const blob = response.body as Blob;
 
-        // Try to get filename from headers
         let filename = 'export';
         const contentDisposition = response.headers.get('content-disposition');
         if (contentDisposition) {
@@ -83,7 +82,6 @@ export class CategoryService {
           }
         }
 
-        // Trigger download
         const link = document.createElement('a');
         link.href = window.URL.createObjectURL(blob);
         link.download = filename;

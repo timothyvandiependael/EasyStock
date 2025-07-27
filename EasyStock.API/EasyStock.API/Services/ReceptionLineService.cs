@@ -15,8 +15,9 @@ namespace EasyStock.API.Services
         private readonly IReceptionService _receptionService;
         private readonly IRepository<StockMovement> _genericStockMovementRepository;
         private readonly IReceptionLineProcessor _receptionLineProcessor;
+        private readonly IUpdateService<ReceptionLine> _updateService;
 
-        public ReceptionLineService(IReceptionLineRepository receptionLineRepository, IRetryableTransactionService retryableTransactionService, IRepository<PurchaseOrderLine> genericPurchaseOrderLineRepository, IRepository<ReceptionLine> repository, IRepository<Product> genericProductRepository, IRepository<PurchaseOrder> genericPurchaseOrderRepository, IReceptionService receptionService, IRepository<StockMovement> genericStockMovementRepository, IReceptionLineProcessor receptionLineProcessor)
+        public ReceptionLineService(IReceptionLineRepository receptionLineRepository, IRetryableTransactionService retryableTransactionService, IRepository<PurchaseOrderLine> genericPurchaseOrderLineRepository, IRepository<ReceptionLine> repository, IRepository<Product> genericProductRepository, IRepository<PurchaseOrder> genericPurchaseOrderRepository, IReceptionService receptionService, IRepository<StockMovement> genericStockMovementRepository, IReceptionLineProcessor receptionLineProcessor, IUpdateService<ReceptionLine> updateService)
         {
             _receptionLineRepository = receptionLineRepository;
             _retryableTransactionService = retryableTransactionService;
@@ -27,6 +28,7 @@ namespace EasyStock.API.Services
             _receptionService = receptionService;
             _genericStockMovementRepository = genericStockMovementRepository;
             _receptionLineProcessor = receptionLineProcessor;
+            _updateService = updateService;
         }
 
         public async Task<IEnumerable<ReceptionLineOverview>> GetAllAsync()
@@ -136,7 +138,8 @@ namespace EasyStock.API.Services
                 }
             }
 
-            await _repository.UpdateAsync(entity);
+            var record = _updateService.MapAndUpdateAuditFields(ogRecord, entity, userName);
+            await _repository.UpdateAsync(record);
         }
 
         public async Task DeleteAsync(int id, string userName)

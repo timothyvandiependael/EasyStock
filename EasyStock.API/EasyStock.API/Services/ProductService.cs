@@ -10,13 +10,15 @@ namespace EasyStock.API.Services
         private readonly IRepository<Product> _repository;
         private readonly IRetryableTransactionService _retryableTransactionService;
         private readonly IRepository<StockMovement> _genericStockMovementRepository;
+        private readonly IUpdateService<Product> _updateService;
 
-        public ProductService(IProductRepository productRepository, IRepository<Product> repository, IRetryableTransactionService retryableTransactionService, IRepository<StockMovement> genericStockMovementRepository)
+        public ProductService(IProductRepository productRepository, IRepository<Product> repository, IRetryableTransactionService retryableTransactionService, IRepository<StockMovement> genericStockMovementRepository, IUpdateService<Product> updateService)
         {
             _productRepository = productRepository;
             _repository = repository;
             _retryableTransactionService = retryableTransactionService;
             _genericStockMovementRepository = genericStockMovementRepository;
+            _updateService = updateService;
         }
 
         public async Task<IEnumerable<ProductOverview>> GetAllAsync()
@@ -83,10 +85,9 @@ namespace EasyStock.API.Services
                 await _genericStockMovementRepository.AddAsync(stockMovement);
             }
 
-            product.LcDate = DateTime.UtcNow;
-            product.LcUserId = userName;
+            var record = _updateService.MapAndUpdateAuditFields(oldProduct, product, userName);
 
-            await _repository.UpdateAsync(product);
+            await _repository.UpdateAsync(record);
         }
 
     }
