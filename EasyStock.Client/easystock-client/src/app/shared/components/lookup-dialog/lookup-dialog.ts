@@ -12,7 +12,7 @@ import { ProductService } from '../../../features/product/product-service';
 //import { SupplierService } from '../../../features/supplier/supplier-service';
 import { CategoryService } from '../../../features/category/category-service';
 
-import { PersistentSnackbarService } from '../../persistent-snackbar.service';
+import { PersistentSnackbarService } from '../../services/persistent-snackbar.service';
 import { PageEvent } from '@angular/material/paginator';
 
 

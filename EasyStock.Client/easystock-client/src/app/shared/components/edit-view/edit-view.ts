@@ -8,7 +8,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { LookupDialog } from '../lookup-dialog/lookup-dialog';
 import { UploadFileDialog } from '../upload-file-dialog/upload-file-dialog';
 import { NgClass } from '@angular/common';
-import { StringService } from '../../string-service';
+import { StringService } from '../../services/string-service';
 
 @Component({
   selector: 'app-edit-view',
@@ -18,13 +18,14 @@ import { StringService } from '../../string-service';
 })
 export class EditView<T> {
   @Input() metaData: ColumnMetaData[] = [];
-  @Input() mode: 'add' | 'edit' = 'add';
+  @Input() mode: 'add' | 'edit' | 'tabedit' = 'add';
   @Input() model?: T;
 
   @Output() saveAndAddAnother = new EventEmitter<any>();
   @Output() saveAndExit = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
   @Output() saveNewAndExit = new EventEmitter<any>();
+  @Output() save = new EventEmitter<any>();
 
   constructor(private dialog: MatDialog, private stringService: StringService) { }
 
@@ -176,6 +177,11 @@ export class EditView<T> {
   onSaveNewAndExit() {
     this.form.markAllAsTouched()
     if (this.form.valid) this.saveNewAndExit.emit(this.form.getRawValue());
+  }
+
+  onSave() {
+    this.form.markAllAsDirty()
+    if (this.form.valid) this.save.emit(this.form.getRawValue());
   }
 
   onCancel() {

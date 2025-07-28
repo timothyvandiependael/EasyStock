@@ -10,9 +10,6 @@
                 <button (click)="onButtonClick(btn)" [disabled]="btn.disabled" [hidden]="btn.hidden" class="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium shadow
                  transition-colors duration-150
                  disabled:opacity-50 disabled:cursor-not-allowed" [ngClass]="{
-            'bg-blue-600 hover:bg-blue-700 text-white': btn.color === 'primary',
-            'bg-green-600 hover:bg-green-700 text-white': btn.color === 'accent',
-            'bg-red-600 hover:bg-red-700 text-white': btn.color === 'warn',
             'bg-yellow-500 hover:bg-yellow-600 text-black': btn.color === 'export'
           }" [attr.title]="btn.tooltip">
                     <span *ngIf="btn.icon" class="material-icons text-base">{{ btn.icon }}</span>
@@ -39,7 +36,9 @@
                disabled:opacity-50 disabled:cursor-not-allowed" [ngClass]="{
           'bg-blue-600 hover:bg-blue-700 text-white': btn.color === 'primary',
           'bg-green-600 hover:bg-green-700 text-white': btn.color === 'accent',
-          'bg-red-600 hover:bg-red-700 text-white': btn.color === 'warn'
+          'bg-red-600 hover:bg-red-700 text-white': btn.color === 'warn',
+          'bg-teal-600 hover:bg-teal-700 text-white': btn.color === 'detail',
+          'bg-gray-600 hover:bg-gray-700 text-white': btn.color === 'gray'
         }" [attr.title]="btn.tooltip">
                 <span *ngIf="btn.icon" class="material-icons text-base">{{ btn.icon }}</span>
                 {{ btn.label }}

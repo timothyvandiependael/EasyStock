@@ -5,7 +5,6 @@ namespace EasyStock.API.Dtos
     public class CreatePurchaseOrderLineDto
     {
         public int PurchaseOrderId { get; set; }
-        public int LineNumber { get; set; }
         public int ProductId { get; set; }
 
         [MaxLength(1000)]

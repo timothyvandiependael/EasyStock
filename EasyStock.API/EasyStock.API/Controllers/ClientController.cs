@@ -15,9 +15,9 @@ namespace EasyStock.API.Controllers
     {
         private readonly IService<Client> _service;
         private readonly IMapper _mapper;
-        private readonly IExportService<OutputClientDto> _exportService;
+        private readonly IExportService<OutputClientOverviewDto> _exportService;
 
-        public ClientController(IService<Client> service, IMapper mapper, IExportService<OutputClientDto> exportService)
+        public ClientController(IService<Client> service, IMapper mapper, IExportService<OutputClientOverviewDto> exportService)
         {
             _service = service;
             _mapper = mapper;
@@ -28,7 +28,7 @@ namespace EasyStock.API.Controllers
         public async Task<ActionResult<IEnumerable<Client>>> GetAll()
         {
             var entities = await _service.GetAllAsync();
-            var dtos = _mapper.Map<IEnumerable<OutputClientDto>>(entities);
+            var dtos = _mapper.Map<IEnumerable<OutputClientOverviewDto>>(entities);
             return Ok(dtos);
         }
 
@@ -37,7 +37,8 @@ namespace EasyStock.API.Controllers
         {
             var entity = await _service.GetByIdAsync(id);
             if (entity == null) return NotFound();
-            var dto = _mapper.Map<OutputClientDto>(entity);
+            var dto = _mapper.Map<OutputClientDetailDto>(entity);
+            dto.SalesOrders = _mapper.Map<List<OutputSalesOrderOverviewDto>>(dto.SalesOrders);
             return Ok(dto);
         }
 
@@ -55,7 +56,7 @@ namespace EasyStock.API.Controllers
             var entity = _mapper.Map<Client>(dto);
             await _service.AddAsync(entity, HttpContext.User.Identity!.Name!);
 
-            var resultDto = _mapper.Map<OutputClientDto>(entity);
+            var resultDto = _mapper.Map<OutputClientDetailDto>(entity);
             return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
         }
 
@@ -95,14 +96,14 @@ namespace EasyStock.API.Controllers
         }
 
         [HttpPost("advanced")]
-        public async Task<ActionResult<PaginationResult<OutputClientDto>>> GetAdvanced([FromBody] AdvancedQueryParametersDto parameters)
+        public async Task<ActionResult<PaginationResult<OutputClientOverviewDto>>> GetAdvanced([FromBody] AdvancedQueryParametersDto parameters)
         {
             if (parameters == null || parameters.Filters == null || parameters.Sorting == null) return BadRequest("Missing parameters");
 
             var result = await _service.GetAdvancedAsync(parameters.Filters, parameters.Sorting, parameters.Pagination);
-            var dtoItems = _mapper.Map<List<OutputClientDto>>(result.Data);
+            var dtoItems = _mapper.Map<List<OutputClientOverviewDto>>(result.Data);
 
-            return Ok(new PaginationResult<OutputClientDto>
+            return Ok(new PaginationResult<OutputClientOverviewDto>
             {
                 Data = dtoItems,
                 TotalCount = result.TotalCount
@@ -115,7 +116,7 @@ namespace EasyStock.API.Controllers
             if (dto.Parameters == null || dto.Parameters.Filters == null || dto.Parameters.Sorting == null || string.IsNullOrEmpty(dto.Format)) return BadRequest("Missing parameters");
 
             var result = await _service.GetAdvancedAsync(dto.Parameters.Filters, dto.Parameters.Sorting, null);
-            var dtoItems = _mapper.Map<List<OutputClientDto>>(result.Data);
+            var dtoItems = _mapper.Map<List<OutputClientOverviewDto>>(result.Data);
 
             var title = "Clients";
             var contentType = "";

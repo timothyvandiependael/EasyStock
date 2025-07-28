@@ -1,0 +1,17 @@
+@if(detailMode === 'add') {
+<h2 class="text-2xl font-semibold text-gray-800 pb-2 mb-6 border-b border-gray-300">Add Dispatch Line</h2>
+}
+@else {
+<h2 class="text-2xl font-semibold text-gray-800 pb-2 mb-6 border-b border-gray-300">Edit Dispatch Line</h2>
+}
+
+<app-edit-view
+  [metaData]="columnMetaData"
+  [mode]="detailMode"
+  [model]="selectedDispatchLine"
+  (saveAndAddAnother)="handleSaveAndAddAnother($event)"
+  (saveNewAndExit)="handleSaveNewAndExit($event)"
+  (saveAndExit)="handleSaveAndExit($event)"
+  (cancel)="handleCancel()">
+</app-edit-view>
+

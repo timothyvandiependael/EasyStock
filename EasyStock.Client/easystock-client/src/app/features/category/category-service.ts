@@ -4,9 +4,9 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ColumnMetaData } from '../../shared/column-meta-data';
 import { AdvancedQueryParametersDto, PaginationResult } from '../../shared/query';
-import { CategoryOverviewDto } from './category-overview.dto';
-import { CreateCategoryDto } from './create-category.dto';
-import { UpdateCategoryDto } from './update-category.dto';
+import { CategoryOverviewDto } from './dtos/category-overview.dto';
+import { CreateCategoryDto } from './dtos/create-category.dto';
+import { UpdateCategoryDto } from './dtos/update-category.dto';
 
 @Injectable({
   providedIn: 'root'

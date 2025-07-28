@@ -24,17 +24,21 @@ export class LeftNav {
   allNavItems = [
     // Main section
     { name: 'Home', section: 'Main', label: 'Home', route: '/app/startup', icon: '🏠' },
-    { name: 'Product', section: 'Main', label: 'Stock', route: '/app/product', icon: '📦' },
-    { name: 'StockMovement', section: 'Main', label: 'Stock Movements', route: '/app/stock-movements', icon: '🔄' },
-    { name: 'PurchaseOrder', section: 'Main', label: 'Purchases', route: '/app/purchase-orders', icon: '🛒' },
-    { name: 'SalesOrder', section: 'Main', label: 'Sales', route: '/app/sales-orders', icon: '💰' },
-    { name: 'Reception', section: 'Main', label: 'Reception', route: '/app/receptions', icon: '📥' },
-    { name: 'Dispatch', section: 'Main', label: 'Dispatch', route: '/app/dispatches', icon: '📤' },
+    { name: 'Product', section: 'Main', label: 'Products', route: '/app/product', icon: '📦' },
+    { name: 'StockMovement', section: 'Main', label: 'Stock Movements', route: '/app/stockmovement', icon: '🔄' },
+    { name: 'PurchaseOrder', section: 'Main', label: 'Purchases', route: '/app/purchaseorder', icon: '🛒' },
+    { name: 'PurchaseOrderLine', section: 'Main', label: 'Purchase Lines', route: '/app/purchaseorderline', icon: '🧾' },
+    { name: 'SalesOrder', section: 'Main', label: 'Sales', route: '/app/salesorder', icon: '💰' },
+    { name: 'SalesOrderLine', section: 'Main', label: 'Sales Lines', route: '/app/salesorderline', icon: '🧾' },
+    { name: 'Reception', section: 'Main', label: 'Reception', route: '/app/reception', icon: '🚚	' },
+    { name: 'ReceptionLine', section: 'Main', label: 'Reception Lines', route: '/app/receptionline', icon: '🧾' },
+    { name: 'Dispatch', section: 'Main', label: 'Dispatch', route: '/app/dispatch', icon: '📤' },
+    { name: 'DispatchLine', section: 'Main', label: 'Dispatch Lines', route: '/app/dispatchline', icon: '🧾' },
 
     // Admin section
-    { name: 'User', section: 'Admin', label: 'Users', route: '/app/users', icon: '👤' },
-    { name: 'Supplier', section: 'Admin', label: 'Suppliers', route: '/app/suppliers', icon: '🏭' },
-    { name: 'Client', section: 'Admin', label: 'Clients', route: '/app/clients', icon: '👥' },
+    { name: 'User', section: 'Admin', label: 'Users', route: '/app/user', icon: '👤' },
+    { name: 'Supplier', section: 'Admin', label: 'Suppliers', route: '/app/supplier', icon: '🏭' },
+    { name: 'Client', section: 'Admin', label: 'Clients', route: '/app/client', icon: '👥' },
     { name: 'Category', section: 'Admin', label: 'Categories', route: '/app/category', icon: '📂' },
   ];
 

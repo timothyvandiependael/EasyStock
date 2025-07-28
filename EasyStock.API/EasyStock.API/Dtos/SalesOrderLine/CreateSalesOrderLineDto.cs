@@ -5,7 +5,6 @@ namespace EasyStock.API.Dtos
     public class CreateSalesOrderLineDto
     {
         public int SalesOrderId { get; set; }
-        public int LineNumber { get; set; }
 
         [MaxLength(1000)]
         public string? Comments { get; set; }

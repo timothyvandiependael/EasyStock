@@ -10,7 +10,7 @@ import { DataTable } from '../../../shared/components/data-table/data-table';
 import { Router } from '@angular/router';
 import { CheckboxData } from '../../../shared/checkbox';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { PersistentSnackbarService } from '../../../shared/persistent-snackbar.service';
+import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 import { AuthService } from '../../auth/auth-service';
 
@@ -177,7 +177,7 @@ export class CategoryOverview {
   }
 
   onAddClicked() {
-    this.router.navigate(['app/category/detail', 'add']);
+    this.router.navigate(['app/category/edit', 'add']);
   }
 
   onRowDoubleClicked(row: any) {
@@ -187,7 +187,7 @@ export class CategoryOverview {
   onEditClicked() {
     var id = this.selectedRow.id;
 
-    this.router.navigate(['app/category/detail', 'edit', id])
+    this.router.navigate(['app/category/edit', 'edit', id])
   }
 
   onBlockClicked() {

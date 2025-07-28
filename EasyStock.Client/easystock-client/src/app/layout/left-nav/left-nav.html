@@ -31,7 +31,7 @@
     }
   </div>
 
-  <div
+  <div class="flex-1 overflow-y-auto custom-scroll"
     [style.opacity]="contentVisible ? '1' : '0'"
   [class.pointer-events-none]="!contentVisible"
   [style.transition]="contentVisible ? 'opacity 0.3s ease' : 'none'"
@@ -39,23 +39,23 @@
     @for (section of getSections(); track section) {
       <div class="mt-6">
         <h3
-          class="px-4 uppercase tracking-wide font-semibold mt-6 mb-2 text-gray-400"
-          style="height: 1.5rem;"
+          class="px-4 uppercase tracking-wide font-semibold mt-3 mb-1 text-gray-400"
+          style="height: 1.25rem;"
           [style.visibility]="collapsed ? 'hidden' : 'visible'"
         >
           {{ section }}
         </h3>
 
-        <ul class="flex flex-col space-y-2">
+        <ul class="flex flex-col space-y-1.5">
           @for (item of getItemsBySection(section); track item.label) {
             <li
               routerLinkActive="bg-gray-700"
               [routerLink]="item.route"
-              class="flex items-center cursor-pointer px-4 py-3 hover:bg-gray-700"
+              class="flex items-center cursor-pointer px-3 py-2 hover:bg-gray-700"
             >
               <span class="text-lg">{{ item.icon }}</span>
               @if (!collapsed) {
-                <span class="ml-3 text-white font-medium select-none">{{ item.label }}</span>
+                <span class="ml-2 text-white font-medium select-none">{{ item.label }}</span>
               }
             </li>
           }

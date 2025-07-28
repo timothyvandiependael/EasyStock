@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DetailView } from './detail-view';
+import { EditView } from './edit-view';
 
 describe('DetailView', () => {
-  let component: DetailView<any>;
-  let fixture: ComponentFixture<DetailView<any>>;
+  let component: EditView<any>;
+  let fixture: ComponentFixture<EditView<any>>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DetailView]
+      imports: [EditView]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(DetailView);
+    fixture = TestBed.createComponent(EditView);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

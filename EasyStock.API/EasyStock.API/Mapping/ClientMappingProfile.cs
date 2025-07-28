@@ -8,7 +8,8 @@ namespace EasyStock.API.Mapping
     {
         public ClientMappingProfile()
         {
-            CreateMap<Client, OutputClientDto>();
+            CreateMap<Client, OutputClientOverviewDto>();
+            CreateMap<Client, OutputClientDetailDto>();
             CreateMap<CreateClientDto, Client>();
             CreateMap<UpdateClientDto, Client>()
                 .ForMember(dest => dest.CrDate, opt => opt.Ignore())
