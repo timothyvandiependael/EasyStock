@@ -5,7 +5,7 @@
 <h2 class="text-2xl font-semibold text-gray-800 pb-2 mb-6 border-b border-gray-300">Edit Product</h2>
 }
 
-<app-detail-view
+<app-edit-view
   [metaData]="columnMetaData"
   [mode]="detailMode"
   [model]="selectedProduct"
@@ -13,4 +13,4 @@
   (saveNewAndExit)="handleSaveNewAndExit($event)"
   (saveAndExit)="handleSaveAndExit($event)"
   (cancel)="handleCancel()">
-</app-detail-view>
+</app-edit-view>

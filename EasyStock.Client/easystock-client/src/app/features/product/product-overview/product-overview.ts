@@ -39,7 +39,8 @@ export class ProductOverview {
   buttons: ButtonConfig[] = [
     { label: 'Add', icon: 'add', action: 'add', color: 'primary', disabled: true },
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
-    { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true }
+    { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
+    { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false }
   ]
 
   checkboxOptions: CheckboxData[] = [
@@ -102,7 +103,6 @@ export class ProductOverview {
       }
     };
 
-    debugger;
     this.getAdvancedSub = this.productService.getAdvanced(query).subscribe({
       next: (result) => {
         this.data = result.data;
@@ -142,6 +142,7 @@ export class ProductOverview {
       case 'edit': this.onEditClicked(); break;
       case 'block': this.onBlockClicked(); break;
       case 'unblock': this.onUnblockClicked(); break;
+      case 'export': this.onExportClicked(); break;
       default: break;
     }
   }
@@ -249,6 +250,36 @@ export class ProductOverview {
         this.persistentSnackbar.showError(`Error unblocking ${this.selectedRow.name}. If the problem persists, please contact support.`);
       }
     })
+  }
+
+  onExportClicked() {
+    
+  }
+
+  onExportCsv() {
+   this.export('csv')
+  }
+
+  onExportExcel() {
+    this.export('excel');
+  }
+
+  export(format: 'csv' | 'excel') {
+    const direction = this.currentSort.direction;
+    const sortOptions = direction === 'asc' || direction === 'desc'
+      ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
+      : [];
+
+    const query: AdvancedQueryParametersDto = {
+      filters: this.filters,
+      sorting: sortOptions,
+      pagination: {
+        pageNumber: this.pageIndex,
+        pageSize: this.pageSize
+      }
+    };
+
+    this.productService.export(query, format);
   }
 
   onSortChanged(sort: Sort) {

@@ -689,6 +689,8 @@ namespace EasyStock.Tests.Services
             var userName = "testuser";
 
             var dispatchLine = _entityFactory.CreateDispatchLine();
+            dispatchLine.BlDate = DateTime.UtcNow;
+            dispatchLine.BlUserId = "test";
             var oldProduct = _entityFactory.CreateProduct();
             var salesOrderLine = _entityFactory.CreateSalesOrderLine();
             var salesOrder = _entityFactory.CreateSalesOrder();
@@ -702,6 +704,7 @@ namespace EasyStock.Tests.Services
 
             // Act
             await _dispatchLineProcessor.UnblockAsync(dispatchLine.Id, userName);
+            
 
             // Assert: dispatchLine fields updated
             _dispatchLineRepoMock.Verify(r => r.UpdateAsync(It.Is<DispatchLine>(d =>
@@ -780,7 +783,7 @@ namespace EasyStock.Tests.Services
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _dispatchLineProcessor.UnblockAsync(dispatchLine.Id, "testuser"));
+                _dispatchLineProcessor.UnblockAsync(66, "testuser"));
         }
     }
 }

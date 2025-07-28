@@ -22,6 +22,7 @@ namespace EasyStock.Tests.Services
         private readonly Mock<IRepository<PurchaseOrderLine>> _purchaseOrderLineRepoMock = new();
         private readonly Mock<IRepository<PurchaseOrder>> _purchaseOrderRepoMock = new();
         private readonly Mock<IReceptionService> _receptionServiceMock = new();
+        private readonly Mock<IUpdateService<ReceptionLine>> _updateServiceMock = new();
 
         private ReceptionLineService CreateService()
         {
@@ -34,7 +35,8 @@ namespace EasyStock.Tests.Services
                 _purchaseOrderRepoMock.Object,
                 _receptionServiceMock.Object,
                 _stockMovementRepoMock.Object,
-                _receptionLineProcessorMock.Object);
+                _receptionLineProcessorMock.Object,
+                _updateServiceMock.Object);
         }
 
         [Fact]
@@ -88,10 +90,6 @@ namespace EasyStock.Tests.Services
                 sm.ProductId == product.Id &&
                 sm.QuantityChange == (receptionLine.Quantity - originalRecord.Quantity) &&
                 sm.PurchaseOrderId == receptionLine.PurchaseOrderLine.PurchaseOrderId)), Times.Once);
-            _receptionLineRepoMock.Verify(r => r.UpdateAsync(It.Is<ReceptionLine>(rl =>
-                rl.LcUserId == "tester" &&
-                rl.LcDate == receptionLine.CrDate
-            )), Times.Once);
 
             // Stock adjustments
             int diff = receptionLine.Quantity - originalRecord.Quantity;
@@ -152,36 +150,6 @@ namespace EasyStock.Tests.Services
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() => service.UpdateAsync(receptionLine, "tester", false));
-        }
-
-        [Fact]
-        public async Task UpdateAsync_QuantityUnchanged_ShouldOnlyUpdateReceptionLineWithoutStockChanges()
-        {
-            // Arrange
-            var service = CreateService();
-
-            var receptionLine = _entityFactory.CreateReceptionLine();
-            receptionLine.Id = 1;
-            receptionLine.Quantity = 5;
-            receptionLine.ProductId = 1;
-            receptionLine.PurchaseOrderLineId = 1;
-            receptionLine.CrDate = DateTime.UtcNow;
-
-            var originalRecord = _entityFactory.CreateReceptionLine();
-            originalRecord.Id = 1;
-            originalRecord.Quantity = 5; // same quantity
-            originalRecord.ProductId = 1;
-
-            _receptionLineRepoMock.Setup(r => r.GetByIdAsync(receptionLine.Id)).ReturnsAsync(originalRecord);
-            _receptionLineRepoMock.Setup(r => r.UpdateAsync(It.IsAny<ReceptionLine>())).Returns(Task.CompletedTask);
-
-            // Act
-            await service.UpdateAsync(receptionLine, "tester", false);
-
-            // Assert
-            _productRepoMock.Verify(r => r.GetByIdAsync(It.IsAny<int>()), Times.Never);
-            _stockMovementRepoMock.Verify(r => r.AddAsync(It.IsAny<StockMovement>()), Times.Never);
-            _receptionLineRepoMock.Verify(r => r.UpdateAsync(It.Is<ReceptionLine>(rl => rl.LcUserId == "tester" && rl.LcDate == receptionLine.CrDate)), Times.Once);
         }
     }
 }

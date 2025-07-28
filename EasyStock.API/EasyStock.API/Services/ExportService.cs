@@ -12,6 +12,14 @@ namespace EasyStock.API.Services
         public byte[] GenerateExport(List<T> dtos, string format, List<ColumnMetaData> columns, string title = "")
         {
             var file = Array.Empty<byte>();
+
+            var excludedFields = new List<string>()
+            {
+                "photo"
+            };
+
+            columns = columns.Where(c => !excludedFields.Contains(c.Name)).ToList();
+
             if (format == "csv")
             {
                 file = GenerateCsv(dtos, columns);

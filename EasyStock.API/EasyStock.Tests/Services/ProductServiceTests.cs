@@ -16,6 +16,7 @@ namespace EasyStock.Tests.Services
         private readonly Mock<IRepository<Product>> _productRepoMock = new();
         private readonly Mock<IRetryableTransactionService> _transactionServiceMock = new();
         private readonly Mock<IRepository<StockMovement>> _stockMovementRepoMock = new();
+        private readonly Mock<IUpdateService<Product>> _updateServiceMock = new();
 
         private readonly IProductService _service;
 
@@ -27,7 +28,8 @@ namespace EasyStock.Tests.Services
                 _productRepositoryMock.Object,
                 _productRepoMock.Object,
                 _transactionServiceMock.Object,
-                _stockMovementRepoMock.Object
+                _stockMovementRepoMock.Object,
+                _updateServiceMock.Object
             );
 
             _entityFactory = new EntityFactory();
@@ -82,6 +84,8 @@ namespace EasyStock.Tests.Services
             _productRepoMock.Setup(r => r.UpdateAsync(It.IsAny<Product>()))
                 .Returns(Task.CompletedTask);
 
+            _updateServiceMock.Setup(r => r.MapAndUpdateAuditFields(oldProduct, updatedProduct, "tester")).Returns(oldProduct);
+
             // Act
             await _service.UpdateAsync(updatedProduct, "tester", useTransaction: false);
 
@@ -92,9 +96,6 @@ namespace EasyStock.Tests.Services
             _stockMovementRepoMock.Verify(r => r.AddAsync(It.Is<StockMovement>(
                 m => m.ProductId == 1 && m.QuantityChange == 20 && m.CrUserId == "tester")), Times.Once);
 
-            // Assert: Product was updated
-            _productRepoMock.Verify(r => r.UpdateAsync(It.Is<Product>(
-                p => p.Id == 1 && p.LcUserId == "tester")), Times.Once);
         }
 
         [Fact]

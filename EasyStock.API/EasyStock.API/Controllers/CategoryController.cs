@@ -94,6 +94,21 @@ namespace EasyStock.API.Controllers
             return NoContent();
         }
 
+        [HttpPost("advanced")]
+        public async Task<ActionResult<PaginationResult<OutputCategoryDto>>> GetAdvanced([FromBody] AdvancedQueryParametersDto parameters)
+        {
+            if (parameters == null || parameters.Filters == null || parameters.Sorting == null) return BadRequest("Missing parameters");
+
+            var result = await _service.GetAdvancedAsync(parameters.Filters, parameters.Sorting, parameters.Pagination);
+            var dtoItems = _mapper.Map<List<OutputCategoryDto>>(result.Data);
+
+            return Ok(new PaginationResult<OutputCategoryDto>
+            {
+                Data = dtoItems,
+                TotalCount = result.TotalCount
+            });
+        }
+
         [HttpPost("export")]
         public async Task<IActionResult> ExportAdvanced([FromBody] ExportRequestDto dto)
         {
@@ -124,21 +139,6 @@ namespace EasyStock.API.Controllers
 
             return File(file, contentType, fileName);
 
-        }
-
-        [HttpPost("advanced")]
-        public async Task<ActionResult<PaginationResult<OutputCategoryDto>>> GetAdvanced([FromBody] AdvancedQueryParametersDto parameters)
-        {
-            if (parameters == null || parameters.Filters == null || parameters.Sorting == null) return BadRequest("Missing parameters");
-
-            var result = await _service.GetAdvancedAsync(parameters.Filters, parameters.Sorting, parameters.Pagination);
-            var dtoItems = _mapper.Map<List<OutputCategoryDto>>(result.Data);
-
-            return Ok(new PaginationResult<OutputCategoryDto>
-            {
-                Data = dtoItems,
-                TotalCount = result.TotalCount
-            });
         }
 
     }

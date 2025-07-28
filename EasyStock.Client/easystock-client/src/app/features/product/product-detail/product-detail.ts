@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { DetailView } from '../../../shared/components/detail-view/detail-view';
+import { EditView } from '../../../shared/components/edit-view/edit-view';
 import { ActivatedRoute } from '@angular/router';
 import { ColumnMetaData } from '../../../shared/column-meta-data';
 import { ProductService } from '../product-service';
@@ -14,7 +14,7 @@ import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/
 
 @Component({
   selector: 'app-product-detail',
-  imports: [DetailView],
+  imports: [EditView],
   templateUrl: './product-detail.html',
   styleUrl: './product-detail.css'
 })
@@ -30,7 +30,7 @@ export class ProductDetail {
   columnMetaData: ColumnMetaData[] = [];
   selectedProduct?: ProductDetailDto;
 
-  @ViewChild(DetailView) detailView!: DetailView<ProductDetailDto>;
+  @ViewChild(EditView) detailView!: EditView<ProductDetailDto>;
 
 
   constructor(
@@ -89,7 +89,6 @@ export class ProductDetail {
   }
 
   handleSaveAndAddAnother(product: CreateProductDto) {
-    debugger;
     this.saveAndAddSub = this.productService.add(product).subscribe({
       next: (saved: ProductDetailDto) => {
         this.selectedProduct = undefined;

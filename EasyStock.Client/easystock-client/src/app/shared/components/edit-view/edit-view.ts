@@ -11,12 +11,12 @@ import { NgClass } from '@angular/common';
 import { StringService } from '../../string-service';
 
 @Component({
-  selector: 'app-detail-view',
+  selector: 'app-edit-view',
   imports: [ReactiveFormsModule, NgClass],
-  templateUrl: './detail-view.html',
-  styleUrl: './detail-view.css'
+  templateUrl: './edit-view.html',
+  styleUrl: './edit-view.css'
 })
-export class DetailView<T> {
+export class EditView<T> {
   @Input() metaData: ColumnMetaData[] = [];
   @Input() mode: 'add' | 'edit' = 'add';
   @Input() model?: T;

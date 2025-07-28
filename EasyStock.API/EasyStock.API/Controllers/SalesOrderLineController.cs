@@ -18,14 +18,16 @@ namespace EasyStock.API.Controllers
         private readonly ISalesOrderLineService _salesOrderLineService;
         private readonly IProductService _productService;
         private readonly IPurchaseOrderService _purchaseOrderService;
+        private readonly IExportService<OutputSalesOrderLineOverviewDto> _exportService;
 
-        public SalesOrderLineController(IService<SalesOrderLine> service, IMapper mapper, ISalesOrderLineService salesOrderLineService, IProductService productService, IPurchaseOrderService purchaseOrderService)
+        public SalesOrderLineController(IService<SalesOrderLine> service, IMapper mapper, ISalesOrderLineService salesOrderLineService, IProductService productService, IPurchaseOrderService purchaseOrderService, IExportService<OutputSalesOrderLineOverviewDto> exportService)
         {
             _service = service;
             _mapper = mapper;
             _salesOrderLineService = salesOrderLineService;
             _productService = productService;
             _purchaseOrderService = purchaseOrderService;
+            _exportService = exportService;
         }
 
         [HttpGet]
@@ -128,6 +130,38 @@ namespace EasyStock.API.Controllers
                 Data = dtoItems,
                 TotalCount = result.TotalCount
             });
+        }
+
+        [HttpPost("export")]
+        public async Task<IActionResult> ExportAdvanced([FromBody] ExportRequestDto dto)
+        {
+            if (dto.Parameters == null || dto.Parameters.Filters == null || dto.Parameters.Sorting == null || string.IsNullOrEmpty(dto.Format)) return BadRequest("Missing parameters");
+
+            var result = await _service.GetAdvancedAsync(dto.Parameters.Filters, dto.Parameters.Sorting, null);
+            var dtoItems = _mapper.Map<List<OutputSalesOrderLineOverviewDto>>(result.Data);
+
+            var title = "SalesOrderLines";
+            var contentType = "";
+            var fileName = title + "_" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+            var file = _exportService.GenerateExport(dtoItems, dto.Format, OutputSalesOrderLineColumnDto.Columns, title);
+
+            if (dto.Format == "csv")
+            {
+                contentType = "text/csv";
+                fileName += ".csv";
+            }
+            else if (dto.Format == "excel")
+            {
+                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                fileName += ".xlsx";
+            }
+            else
+            {
+                return BadRequest("Unsupported export format.");
+            }
+
+            return File(file, contentType, fileName);
+
         }
 
     }

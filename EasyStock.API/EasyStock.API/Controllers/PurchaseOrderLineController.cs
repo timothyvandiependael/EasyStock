@@ -16,12 +16,14 @@ namespace EasyStock.API.Controllers
         private readonly IService<PurchaseOrderLine> _service;
         private readonly IMapper _mapper;
         private readonly IPurchaseOrderLineService _purchaseOrderLineService;
+        private readonly IExportService<OutputPurchaseOrderLineOverviewDto> _exportService;
 
-        public PurchaseOrderLineController(IService<PurchaseOrderLine> service, IMapper mapper, IPurchaseOrderLineService purchaseOrderLineService)
+        public PurchaseOrderLineController(IService<PurchaseOrderLine> service, IMapper mapper, IPurchaseOrderLineService purchaseOrderLineService, IExportService<OutputPurchaseOrderLineOverviewDto> exportService)
         {
             _service = service;
             _mapper = mapper;
             _purchaseOrderLineService = purchaseOrderLineService;
+            _exportService = exportService;
         }
 
         [HttpGet]
@@ -113,6 +115,38 @@ namespace EasyStock.API.Controllers
                 Data = dtoItems,
                 TotalCount = result.TotalCount
             });
+        }
+
+        [HttpPost("export")]
+        public async Task<IActionResult> ExportAdvanced([FromBody] ExportRequestDto dto)
+        {
+            if (dto.Parameters == null || dto.Parameters.Filters == null || dto.Parameters.Sorting == null || string.IsNullOrEmpty(dto.Format)) return BadRequest("Missing parameters");
+
+            var result = await _service.GetAdvancedAsync(dto.Parameters.Filters, dto.Parameters.Sorting, null);
+            var dtoItems = _mapper.Map<List<OutputPurchaseOrderLineOverviewDto>>(result.Data);
+
+            var title = "PurchaseOrderLines";
+            var contentType = "";
+            var fileName = title + "_" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+            var file = _exportService.GenerateExport(dtoItems, dto.Format, OutputPurchaseOrderLineColumnDto.Columns, title);
+
+            if (dto.Format == "csv")
+            {
+                contentType = "text/csv";
+                fileName += ".csv";
+            }
+            else if (dto.Format == "excel")
+            {
+                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                fileName += ".xlsx";
+            }
+            else
+            {
+                return BadRequest("Unsupported export format.");
+            }
+
+            return File(file, contentType, fileName);
+
         }
 
     }

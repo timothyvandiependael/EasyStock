@@ -15,11 +15,13 @@ namespace EasyStock.API.Controllers
     {
         private readonly IService<Supplier> _service;
         private readonly IMapper _mapper;
+        private readonly IExportService<OutputSupplierOverviewDto> _exportService;
 
-        public SupplierController(IService<Supplier> service, IMapper mapper)
+        public SupplierController(IService<Supplier> service, IMapper mapper, IExportService<OutputSupplierOverviewDto> exportService)
         {
             _service = service;
             _mapper = mapper;
+            _exportService = exportService;
         }
 
         [HttpGet]
@@ -107,6 +109,38 @@ namespace EasyStock.API.Controllers
                 Data = dtoItems,
                 TotalCount = result.TotalCount
             });
+        }
+
+        [HttpPost("export")]
+        public async Task<IActionResult> ExportAdvanced([FromBody] ExportRequestDto dto)
+        {
+            if (dto.Parameters == null || dto.Parameters.Filters == null || dto.Parameters.Sorting == null || string.IsNullOrEmpty(dto.Format)) return BadRequest("Missing parameters");
+
+            var result = await _service.GetAdvancedAsync(dto.Parameters.Filters, dto.Parameters.Sorting, null);
+            var dtoItems = _mapper.Map<List<OutputSupplierOverviewDto>>(result.Data);
+
+            var title = "Suppliers";
+            var contentType = "";
+            var fileName = title + "_" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+            var file = _exportService.GenerateExport(dtoItems, dto.Format, OutputSupplierColumnDto.Columns, title);
+
+            if (dto.Format == "csv")
+            {
+                contentType = "text/csv";
+                fileName += ".csv";
+            }
+            else if (dto.Format == "excel")
+            {
+                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                fileName += ".xlsx";
+            }
+            else
+            {
+                return BadRequest("Unsupported export format.");
+            }
+
+            return File(file, contentType, fileName);
+
         }
 
     }

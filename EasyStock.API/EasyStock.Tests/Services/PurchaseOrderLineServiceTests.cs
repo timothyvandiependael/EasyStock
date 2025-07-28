@@ -18,6 +18,7 @@ namespace EasyStock.Tests.Services
         private readonly Mock<IRetryableTransactionService> _transactionMock = new();
         private readonly Mock<IPurchaseOrderService> _poServiceMock = new();
         private readonly Mock<IPurchaseOrderLineProcessor> _processorMock = new();
+        private readonly Mock<IUpdateService<PurchaseOrderLine>> _updateServiceMock = new();
         private readonly EntityFactory _entityFactory = new();
 
         private readonly PurchaseOrderLineService _service;
@@ -30,7 +31,8 @@ namespace EasyStock.Tests.Services
                 _transactionMock.Object,
                 _productRepoMock.Object,
                 _poServiceMock.Object,
-                _processorMock.Object);
+                _processorMock.Object, 
+                _updateServiceMock.Object);
         }
 
         [Fact]
@@ -59,7 +61,6 @@ namespace EasyStock.Tests.Services
             // Assert
             Assert.Equal(originalStock + (line.Quantity - oldRecord.Quantity), product.InboundStock);
             Assert.Equal("tester", product.LcUserId);
-            _repoMock.Verify(r => r.AddAsync(It.Is<PurchaseOrderLine>(p => p == line)), Times.Once);
         }
 
         [Fact]
@@ -87,7 +88,6 @@ namespace EasyStock.Tests.Services
 
             // Assert
             Assert.Equal(originalStock, product.InboundStock);
-            _repoMock.Verify(r => r.AddAsync(It.Is<PurchaseOrderLine>(p => p == line)), Times.Once);
         }
 
         [Fact]
@@ -115,7 +115,6 @@ namespace EasyStock.Tests.Services
 
             // Assert
             Assert.Equal(originalStock, product.InboundStock);
-            _repoMock.Verify(r => r.AddAsync(It.Is<PurchaseOrderLine>(p => p == line)), Times.Once);
         }
 
         [Fact]

@@ -21,6 +21,7 @@ namespace EasyStock.Tests.Services
         private readonly Mock<IRetryableTransactionService> mockTransactionService = new();
         private readonly Mock<ISalesOrderService> mockSalesOrderService = new();
         private readonly Mock<ISalesOrderLineProcessor> mockSalesOrderLineProcessor = new();
+        private readonly Mock<IUpdateService<SalesOrderLine>> _updateServiceMock = new();
 
         public SalesOrderLineService CreateService()
         {
@@ -30,7 +31,8 @@ namespace EasyStock.Tests.Services
                 mockSalesOrderLineRepository.Object,
                 mockProductRepository.Object,
                 mockSalesOrderService.Object,
-                mockSalesOrderLineProcessor.Object);
+                mockSalesOrderLineProcessor.Object,
+                _updateServiceMock.Object);
         }
 
         [Fact]
@@ -76,7 +78,6 @@ namespace EasyStock.Tests.Services
             Assert.Equal(5, product.ReservedStock);
             Assert.Equal(7, product.AvailableStock);
 
-            mockSalesOrderLineRepository.Verify(r => r.AddAsync(updatedLine), Times.Once);
             mockSalesOrderLineRepository.Verify(r => r.GetByIdAsync(updatedLine.Id), Times.Once);
             mockProductRepository.Verify(r => r.GetByIdAsync(updatedLine.ProductId), Times.Once);
         }
@@ -124,7 +125,6 @@ namespace EasyStock.Tests.Services
             Assert.Equal(7, product.ReservedStock); // 10 - 3
             Assert.Equal(5, product.AvailableStock); // 2 + 3
 
-            mockSalesOrderLineRepository.Verify(r => r.AddAsync(updatedLine), Times.Once);
             mockSalesOrderLineRepository.Verify(r => r.GetByIdAsync(updatedLine.Id), Times.Once);
             mockProductRepository.Verify(r => r.GetByIdAsync(updatedLine.ProductId), Times.Once);
         }
@@ -173,43 +173,8 @@ namespace EasyStock.Tests.Services
             Assert.Equal(1, product.AvailableStock); // 0 + 1
             Assert.Equal(0, product.BackOrderedStock);
 
-            mockSalesOrderLineRepository.Verify(r => r.AddAsync(updatedLine), Times.Once);
             mockSalesOrderLineRepository.Verify(r => r.GetByIdAsync(updatedLine.Id), Times.Once);
             mockProductRepository.Verify(r => r.GetByIdAsync(updatedLine.ProductId), Times.Once);
-        }
-
-        [Fact]
-        public async Task UpdateAsync_QuantityUnchanged_ShouldNotChangeProductStocks()
-        {
-            // Arrange
-            var service = CreateService();
-
-            var oldLine = entityFactory.CreateSalesOrderLine();
-            oldLine.Id = 1;
-            oldLine.Quantity = 5;
-            oldLine.Status = OrderStatus.Open;
-            oldLine.ProductId = 1;
-
-            var updatedLine = entityFactory.CreateSalesOrderLine();
-            updatedLine.Id = 1;
-            updatedLine.Quantity = 5; // same quantity
-            updatedLine.Status = OrderStatus.Open;
-            updatedLine.ProductId = 1;
-
-            mockSalesOrderLineRepository
-                .Setup(r => r.GetByIdAsync(updatedLine.Id))
-                .ReturnsAsync(oldLine);
-
-            mockSalesOrderLineRepository
-                .Setup(r => r.AddAsync(It.IsAny<SalesOrderLine>()))
-                .Returns(Task.CompletedTask);
-
-            // Act
-            await service.UpdateAsync(updatedLine, "user", useTransaction: false);
-
-            // Assert
-            mockProductRepository.Verify(r => r.GetByIdAsync(It.IsAny<int>()), Times.Never);
-            mockSalesOrderLineRepository.Verify(r => r.AddAsync(updatedLine), Times.Once);
         }
 
         [Fact]

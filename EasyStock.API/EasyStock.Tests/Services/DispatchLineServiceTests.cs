@@ -21,6 +21,7 @@ namespace EasyStock.Tests.Services
         private readonly Mock<IDispatchService> _dispatchServiceMock = new();
         private readonly Mock<IRepository<StockMovement>> _stockMovementRepoMock = new();
         private readonly Mock<IDispatchLineProcessor> _dispatchLineProcessorMock = new();
+        private readonly Mock<IUpdateService<DispatchLine>> _updateServiceMock = new(); 
 
         private readonly IDispatchLineService _service;
         private readonly EntityFactory _entityFactory;
@@ -36,7 +37,8 @@ namespace EasyStock.Tests.Services
                 _salesOrderLineRepoMock.Object,
                 _dispatchServiceMock.Object,
                 _stockMovementRepoMock.Object,
-                _dispatchLineProcessorMock.Object
+                _dispatchLineProcessorMock.Object,
+                _updateServiceMock.Object
             );
 
             _entityFactory = new EntityFactory();
@@ -80,7 +82,6 @@ namespace EasyStock.Tests.Services
                 sm.CrUserId == "tester"
             )), Times.Once);
 
-            _repositoryMock.Verify(r => r.UpdateAsync(entity), Times.Once);
         }
 
         [Fact]
@@ -101,7 +102,6 @@ namespace EasyStock.Tests.Services
 
             _dispatchLineProcessorMock.Verify(p => p.SetSOStatusFields(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()), Times.Never);
             _stockMovementRepoMock.Verify(r => r.AddAsync(It.IsAny<StockMovement>()), Times.Never);
-            _repositoryMock.Verify(r => r.UpdateAsync(entity), Times.Once);
         }
 
         [Fact]

@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { DetailView } from '../../../shared/components/detail-view/detail-view';
+import { EditView } from '../../../shared/components/edit-view/edit-view';
 import { ActivatedRoute } from '@angular/router';
 import { CategoryOverviewDto } from '../category-overview.dto';
 import { ColumnMetaData } from '../../../shared/column-meta-data';
@@ -14,7 +14,7 @@ import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/
 
 @Component({
   selector: 'app-category-detail',
-  imports: [DetailView],
+  imports: [EditView],
   templateUrl: './category-detail.html',
   styleUrl: './category-detail.css'
 })
@@ -30,7 +30,7 @@ export class CategoryDetail {
   columnMetaData: ColumnMetaData[] = [];
   selectedCategory?: CategoryOverviewDto;
 
-  @ViewChild(DetailView) detailView!: DetailView<CategoryOverviewDto>;
+  @ViewChild(EditView) detailView!: EditView<CategoryOverviewDto>;
 
 
   constructor(

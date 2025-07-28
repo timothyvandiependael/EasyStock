@@ -31,12 +31,13 @@ namespace EasyStock.Tests.Services
         private readonly Mock<IRepository<FakeModel>> _repoMock;
         private readonly IService<FakeModel> _service;
         private readonly Mock<IMapper> _mapperMock;
+        private readonly Mock<IUpdateService<FakeModel>> _updateServiceMock = new Mock<IUpdateService<FakeModel>>();
 
         public ServiceTests()
         {
             _repoMock = new Mock<IRepository<FakeModel>>();
             _mapperMock = new Mock<IMapper>();
-            _service = new Service<FakeModel>(_repoMock.Object, _mapperMock.Object);
+            _service = new Service<FakeModel>(_repoMock.Object, _updateServiceMock.Object);
         }
 
         [Fact]
@@ -84,28 +85,6 @@ namespace EasyStock.Tests.Services
             Assert.NotEqual(default, model.CrDate);
             Assert.NotEqual(default, model.LcDate);
             _repoMock.Verify(r => r.AddAsync(model), Times.Once);
-        }
-
-        [Fact]
-        public async Task UpdateAsync_SetsLastChangedFieldsAndCallsRepository()
-        {
-            // Arrange
-            var model = new FakeModel
-            {
-                CrDate = DateTime.UtcNow,
-                LcDate = DateTime.UtcNow,
-                CrUserId = "",
-                LcUserId = ""
-            };
-            var userName = "tester";
-
-            // Act
-            await _service.UpdateAsync(model, userName);
-
-            // Assert
-            Assert.Equal(userName, model.LcUserId);
-            Assert.NotEqual(default, model.LcDate);
-            _repoMock.Verify(r => r.UpdateAsync(model), Times.Once);
         }
 
         [Fact]

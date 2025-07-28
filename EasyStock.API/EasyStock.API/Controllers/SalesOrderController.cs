@@ -16,12 +16,14 @@ namespace EasyStock.API.Controllers
         private readonly IService<SalesOrder> _service;
         private readonly ISalesOrderService _salesOrderService;
         private readonly IMapper _mapper;
+        private readonly IExportService<OutputSalesOrderOverviewDto> _exportService;
 
-        public SalesOrderController(IService<SalesOrder> service, IMapper mapper, ISalesOrderService salesOrderService)
+        public SalesOrderController(IService<SalesOrder> service, IMapper mapper, ISalesOrderService salesOrderService, IExportService<OutputSalesOrderOverviewDto> exportService)
         {
             _service = service;
             _mapper = mapper;
             _salesOrderService = salesOrderService;
+            _exportService = exportService;
         }
 
         [HttpGet]
@@ -124,6 +126,36 @@ namespace EasyStock.API.Controllers
             return Ok(productSuppliers);
         }
 
+        [HttpPost("export")]
+        public async Task<IActionResult> ExportAdvanced([FromBody] ExportRequestDto dto)
+        {
+            if (dto.Parameters == null || dto.Parameters.Filters == null || dto.Parameters.Sorting == null || string.IsNullOrEmpty(dto.Format)) return BadRequest("Missing parameters");
 
+            var result = await _service.GetAdvancedAsync(dto.Parameters.Filters, dto.Parameters.Sorting, null);
+            var dtoItems = _mapper.Map<List<OutputSalesOrderOverviewDto>>(result.Data);
+
+            var title = "SalesOrders";
+            var contentType = "";
+            var fileName = title + "_" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+            var file = _exportService.GenerateExport(dtoItems, dto.Format, OutputSalesOrderColumnDto.Columns, title);
+
+            if (dto.Format == "csv")
+            {
+                contentType = "text/csv";
+                fileName += ".csv";
+            }
+            else if (dto.Format == "excel")
+            {
+                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                fileName += ".xlsx";
+            }
+            else
+            {
+                return BadRequest("Unsupported export format.");
+            }
+
+            return File(file, contentType, fileName);
+
+        }
     }
 }
