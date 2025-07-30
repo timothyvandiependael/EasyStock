@@ -144,6 +144,7 @@ export class DispatchOverview {
       case 'block': this.onBlockClicked(); break;
       case 'unblock': this.onUnblockClicked(); break;
       case 'export': this.onExportClicked(); break;
+      case 'lines': this.onLinesClicked(); break;
       default: break;
     }
   }
@@ -281,6 +282,15 @@ export class DispatchOverview {
     };
 
     this.dispatchService.export(query, format);
+  }
+
+  onLinesClicked() {
+    const id = this.selectedRow.id;
+    this.router.navigate(['app/dispatchline'], {
+      queryParams: {
+        parentId: id
+      }
+    });
   }
 
   onSortChanged(sort: Sort) {

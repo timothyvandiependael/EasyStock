@@ -11,6 +11,10 @@ import { UpdatePurchaseOrderLineDto } from '../dtos/update-purchase-order-line.d
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
+import { StorageService } from '../../../shared/storage/storage-service';
+import { CreatePurchaseOrderDto } from '../../purchase-order/dtos/create-purchase-order.dto';
+import { PurchaseOrderService } from '../../purchase-order/purchase-order-service';
+import { PurchaseOrderDetailDto } from '../../purchase-order/dtos/purchase-order-detail.dto';
 
 @Component({
   selector: 'app-purchase-order-line-edit',
@@ -25,21 +29,32 @@ export class PurchaseOrderLineEdit {
   private saveNewExitSub?: Subscription;
   private saveExitSub?: Subscription;
   private getByIdSub?: Subscription;
+  private purchaseOrderSaveSub?: Subscription;
 
   detailMode: 'add' | 'edit' = 'add';
   columnMetaData: ColumnMetaData[] = [];
   selectedPurchaseOrderLine?: PurchaseOrderLineDetailDto;
+
+  parentId?: number = undefined;
+
+  procedureStep2 = false;
+
+  addModeHideFields = [
+    'orderNumber', 'lineNumber', 'status', 'deliveredQuantity'
+  ]
 
   @ViewChild(EditView) detailView!: EditView<PurchaseOrderLineDetailDto>;
 
 
   constructor(
     private purchaseOrderLineService: PurchaseOrderLineService,
+    private purchaseOrderService: PurchaseOrderService,
     private router: Router,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
     private persistentSnackbar: PersistentSnackbarService,
-    private confirmDialogService: ConfirmDialogService) { }
+    private confirmDialogService: ConfirmDialogService,
+    private storage: StorageService) { }
 
   ngOnInit() {
     this.loadColumnMeta();
@@ -64,6 +79,22 @@ export class PurchaseOrderLineEdit {
       const mode = params.get('mode') as 'add' | 'edit';
       this.detailMode = mode;
 
+      if (mode == 'add') {
+        const fromParent = params.get('id');
+        if (fromParent)
+          this.procedureStep2 = true;
+
+        this.route.queryParamMap.subscribe(queryParams => {
+          const parentId = queryParams.get('parentId');
+          if (!parentId) {
+            this.parentId = undefined;
+          }
+          else {
+            this.parentId = parseInt(parentId);
+          }
+        });
+      }
+
       if (mode === 'edit') {
         const id = Number(params.get('id'));
         this.getByIdSub = this.purchaseOrderLineService.getById(id).subscribe({
@@ -86,9 +117,13 @@ export class PurchaseOrderLineEdit {
     this.saveAndAddSub?.unsubscribe();
     this.saveNewExitSub?.unsubscribe();
     this.saveExitSub?.unsubscribe();
+    this.purchaseOrderSaveSub?.unsubscribe();
   }
 
   handleSaveAndAddAnother(purchaseOrderLine: CreatePurchaseOrderLineDto) {
+    if (this.parentId) {
+      purchaseOrderLine.purchaseOrderId = this.parentId;
+    }
     this.saveAndAddSub = this.purchaseOrderLineService.add(purchaseOrderLine).subscribe({
       next: (saved: PurchaseOrderLineDetailDto) => {
         this.selectedPurchaseOrderLine = undefined;
@@ -107,6 +142,9 @@ export class PurchaseOrderLineEdit {
   }
 
   handleSaveNewAndExit(purchaseOrderLine: CreatePurchaseOrderLineDto) {
+    if (this.parentId) {
+      purchaseOrderLine.purchaseOrderId = this.parentId;
+    }
     this.saveNewExitSub = this.purchaseOrderLineService.add(purchaseOrderLine).subscribe({
       next: (saved: PurchaseOrderLineDetailDto) => {
         this.selectedPurchaseOrderLine = undefined;
@@ -115,7 +153,18 @@ export class PurchaseOrderLineEdit {
           horizontalPosition: 'right',
           verticalPosition: 'top',
         });
-        this.router.navigate(['app/purchaseorderline']);
+        
+        if (this.parentId) {
+          this.router.navigate(['app/purchaseorderline'], {
+            queryParams: {
+              parentId: this.parentId
+            }
+          });
+        }
+        else {
+          this.router.navigate(['app/purchaseorderline']);
+        }
+
       },
       error: (err) => {
         console.error('Error saving purchaseOrderLine ', err);
@@ -159,5 +208,74 @@ export class PurchaseOrderLineEdit {
 
   executeCancel() {
     this.router.navigate(['app/purchaseorderline']);
+  }
+
+  handleAddMoreLines(line: CreatePurchaseOrderLineDto) {
+    this.addLineToOrder(line);
+    this.selectedPurchaseOrderLine = undefined;
+    this.detailView.clearForm();
+  }
+
+  handleSaveAllAndExit(line: CreatePurchaseOrderLineDto) {
+    this.addLineToOrder(line);
+    this.saveOrder();
+
+  }
+
+  saveOrder() {
+    var po = this.getOrder();
+
+    this.purchaseOrderSaveSub = this.purchaseOrderService.add(po).subscribe({
+      next: (saved: PurchaseOrderDetailDto) => {
+        this.selectedPurchaseOrderLine = undefined;
+        this.snackBar.open(`Purchase order saved`, 'Close', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+        });
+        this.router.navigate(['app/purchaseorder']);
+      },
+      error: (err) => {
+        this.persistentSnackbar.showError(`Error saving purchase order. If the problem persists, please contact support.`);
+        this.removeLastLineAfterError();
+      }
+    })
+  }
+
+  removeLastLineAfterError() {
+    var po = this.getOrder();
+    if (po.lines.length > 0) {
+      po.lines.pop();
+    }
+    this.storage.store('PurchaseOrder', po);
+  }
+
+  addLineToOrder(line: CreatePurchaseOrderLineDto) {
+    var po = this.getOrder();
+    po.lines.push(line);
+    this.storage.store('PurchaseOrder', po);
+  }
+
+  getOrder() {
+    var po = this.storage.retrieve('PurchaseOrder') as CreatePurchaseOrderDto;
+    if (!po) {
+      this.persistentSnackbar.showError(`Error retrieving purchase order. If the problem persist, contact support.`);
+    }
+    if (po.lines == null) po.lines = [];
+    return po;
+  }
+
+  handleProcedureCancel() {
+    this.confirmDialogService.open({
+      title: 'Discard order?',
+      message: 'If you exit now, the entire order will not be saved. Discard?',
+      confirmText: 'Yes, discard',
+      cancelText: 'Keep editing'
+    }).subscribe(cancelled => {
+      if (cancelled) {
+        this.router.navigate(['app/purchaseorder']);
+      }
+    });
+
   }
 }

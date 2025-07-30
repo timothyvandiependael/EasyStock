@@ -62,8 +62,19 @@ namespace EasyStock.API.Repositories
                     };
                 }
 
+                if (filters.Any(f => f.Field == "SupplierId"))
+                {
+                    var supplierIdFilter = filters.First(f => f.Field == "SupplierId");
+
+                    query = supplierIdFilter.Operator switch
+                    {
+                        "equals" or "=" => query.Where(p => p.PurchaseOrder.SupplierId.Equals(int.Parse(supplierIdFilter.Value))),
+                        _ => throw new NotSupportedException($"Operator is not supported.")
+                    };
+                }
+
                 // Regular Filters
-                query = query.ApplyFilters(filters.Where(f => f.Field != "ProductName" && f.Field != "OrderNumber").ToList());
+                query = query.ApplyFilters(filters.Where(f => f.Field != "ProductName" && f.Field != "OrderNumber" && f.Field != "SupplierId").ToList());
             }
 
             // Sorting

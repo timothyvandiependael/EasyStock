@@ -33,7 +33,9 @@ export class SupplierService {
     }
 
     private formatBeforePost(supplier: CreateSupplierDto) {
-
+      if (!supplier.email) supplier.email = undefined;
+      if (!supplier.phone) supplier.phone = undefined;
+      if (!supplier.website) supplier.website = undefined;
     }
   
     add(dto: CreateSupplierDto): Observable<SupplierDetailDto> {

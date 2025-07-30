@@ -42,8 +42,12 @@ namespace EasyStock.API.Dtos
                 IsSortable = true,
                 DisplayName = "Supplier",
                 IsLookup = true,
-                LookupIdField = "SupplierId",
-                LookupTarget = "Supplier"
+                LookupIdField = "supplierId",
+                LookupTarget = "Supplier",
+                 ValidationRules = new ValidationRules
+                {
+                    Required = true
+                }
             },
             new ColumnMetaData {
                 Name = "status",

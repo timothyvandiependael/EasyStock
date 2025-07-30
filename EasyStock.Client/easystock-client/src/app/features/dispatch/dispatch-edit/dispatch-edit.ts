@@ -11,6 +11,7 @@ import { UpdateDispatchDto } from '../dtos/update-dispatch.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
+import { StorageService } from '../../../shared/storage/storage-service';
 
 @Component({
   selector: 'app-dispatch-edit',
@@ -30,6 +31,13 @@ export class DispatchEdit {
   columnMetaData: ColumnMetaData[] = [];
   selectedDispatch?: DispatchDetailDto;
 
+  procedureStep1 = true;
+  procedureStep2 = false;
+
+  addModeHideFields = [
+    'dispatchNumber', 'status'
+  ]
+
   @ViewChild(EditView) detailView!: EditView<DispatchDetailDto>;
 
 
@@ -39,7 +47,8 @@ export class DispatchEdit {
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
     private persistentSnackbar: PersistentSnackbarService,
-    private confirmDialogService: ConfirmDialogService) { }
+    private confirmDialogService: ConfirmDialogService,
+    private storage: StorageService) { }
 
   ngOnInit() {
     this.loadColumnMeta();
@@ -160,5 +169,10 @@ export class DispatchEdit {
   executeCancel() {
     this.router.navigate(['app/dispatch']);
   }
+
+  handleCreateLines(dispatch: CreateDispatchDto) {
+      this.storage.store('Dispatch', dispatch);
+      this.router.navigate(['app/dispatchline/edit', 'add', 1]);
+    }
 }
 

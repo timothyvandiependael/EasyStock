@@ -32,7 +32,14 @@ export class ClientService {
     return this.http.post<PaginationResult<ClientOverviewDto>>(this.apiUrl + 'advanced', params);
   }
 
+  private formatBeforePost(client: CreateClientDto) {
+        if (!client.email) client.email = undefined;
+        if (!client.phone) client.phone = undefined;
+        if (!client.website) client.website = undefined;
+      }
+
   add(dto: CreateClientDto): Observable<ClientDetailDto> {
+    this.formatBeforePost(dto);
     return this.http.post<ClientDetailDto>(this.apiUrl, dto);
   }
 
@@ -41,6 +48,7 @@ export class ClientService {
   }
 
   edit(id: number, dto: UpdateClientDto) {
+    this.formatBeforePost(dto);
     return this.http.put<void>(this.apiUrl + id, dto);
   }
 

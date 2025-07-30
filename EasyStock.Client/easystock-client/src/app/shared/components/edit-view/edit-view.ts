@@ -20,12 +20,22 @@ export class EditView<T> {
   @Input() metaData: ColumnMetaData[] = [];
   @Input() mode: 'add' | 'edit' | 'tabedit' = 'add';
   @Input() model?: T;
+  @Input() isProcedureStep1: boolean = false;
+  @Input() isProcedureStep2: boolean = false;
+  @Input() addModeHideFields: string[] = [];
+  @Input() additionalFilters: any;
+  @Input() parentType: string = '';
 
   @Output() saveAndAddAnother = new EventEmitter<any>();
   @Output() saveAndExit = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
   @Output() saveNewAndExit = new EventEmitter<any>();
   @Output() save = new EventEmitter<any>();
+  @Output() createLines = new EventEmitter<any>();
+  @Output() addMoreLines = new EventEmitter<any>();
+  @Output() saveAllAndExit = new EventEmitter<any>();
+  @Output() procedureCancel = new EventEmitter<any>();
+
 
   constructor(private dialog: MatDialog, private stringService: StringService) { }
 
@@ -59,9 +69,36 @@ export class EditView<T> {
 
     for (const col of this.metaData) {
       const isSystemField = this.systemFields.includes(col.name);
-      if (this.mode === 'add' && isSystemField) continue;
+      const hideInAddMode = this.addModeHideFields.includes(col.name);
+      debugger;
+      if (this.mode === 'add' && (isSystemField || hideInAddMode)) continue;
 
       let initialValue = this.model ? (this.model as any)[col.name] : '';
+
+      if (this.mode === 'edit' && !initialValue && this.model) {
+        var m = this.model as any;
+        switch (col.name.toLowerCase()) {
+          case "ordernumber":
+            if (m.purchaseOrder) {
+              initialValue = m.purchaseOrder.orderNumber;
+            }
+            else if (m.salesOrder)
+              initialValue = m.salesOrder.orderNumber;
+            break;
+          case "receptionnumber":
+            if (m.reception) {
+              initialValue = m.reception.receptionNumber;
+            }
+            break;
+          case "dispatchnumber":
+            if (m.dispatch) {
+              initialValue = m.dispatch.dispatchNumber;
+            }
+            break;
+          default:
+            break;
+        }
+      }
 
       if (col.type?.toLowerCase() === 'date') {
         if (initialValue) {
@@ -139,7 +176,8 @@ export class EditView<T> {
   get visibleFields(): ColumnMetaData[] {
     return this.metaData.filter(col => {
       const isSystemField = this.systemFields.includes(col.name);
-      if (this.mode === 'add' && isSystemField) return false;
+      const hideInAddMode = this.addModeHideFields.includes(col.name);
+      if (this.mode === 'add' && (isSystemField || hideInAddMode)) return false;
       return true;
     });
   }
@@ -188,6 +226,25 @@ export class EditView<T> {
     this.cancel.emit();
   }
 
+  onCreateLines() {
+    this.form.markAllAsTouched();
+    if (this.form.valid) this.createLines.emit(this.form.getRawValue());
+  }
+
+  onAddMoreLines() {
+    this.form.markAllAsTouched();
+    if (this.form.valid) this.addMoreLines.emit(this.form.getRawValue());
+  }
+
+  onSaveAllAndExit() {
+    this.form.markAllAsTouched();
+    if (this.form.valid) this.saveAllAndExit.emit(this.form.getRawValue());
+  }
+
+  onProcedureCancel() {
+    this.procedureCancel.emit();
+  }
+
   mapType(type: string): string {
     switch (type) {
       case 'number': return 'number';
@@ -201,15 +258,27 @@ export class EditView<T> {
     const idField = col.lookupIdField!;
     const idValue = this.form.get(idField)?.value;
     if (!idValue) return 'Unassigned';
-    debugger;
     var displayValue = this.lookupDisplayCache[col.lookupIdField!]?.[idValue] ?? '';
     if (displayValue == '' && col.lookupTarget != null) {
-      var referencedEntity = this.stringService.toLowerFirst(col.lookupTarget);
-      var referencedField = this.getReferenceFieldFromLookupFieldName(col.name, referencedEntity);
-      displayValue = 
-        this.model 
-        ? (this.model as any)[referencedEntity][referencedField] 
-        : '';
+
+      if (col.name == "purchaseOrderLink") {
+        displayValue = (this.model as any).purchaseOrderLine.purchaseOrder.orderNumber
+          + "/"
+          + (this.model as any).purchaseOrderLine.lineNumber
+      }
+      else if (col.name == "salesOrderLink") {
+        displayValue = (this.model as any).salesOrderLine.salesOrder.orderNumber
+          + "/"
+          + (this.model as any).salesOrderLine.lineNumber
+      }
+      else {
+        var referencedEntity = this.stringService.toLowerFirst(col.lookupTarget);
+        var referencedField = this.getReferenceFieldFromLookupFieldName(col.name, referencedEntity);
+        displayValue =
+          this.model
+            ? (this.model as any)[referencedEntity][referencedField]
+            : '';
+      }
     }
 
     return displayValue;
@@ -227,14 +296,22 @@ export class EditView<T> {
       return;
     }
 
+    var filters = this.additionalFilters 
+      ? (this.additionalFilters[lookupType.toLowerCase()] == undefined 
+        ? [] 
+        : this.additionalFilters[lookupType.toLowerCase()])
+      : [];
+
     const dialogRef = this.dialog.open(LookupDialog, {
-      width: '500px',
+      width: '1000px',
       height: '800px',
-      data: { type: lookupType }
+      maxWidth: '1000px',
+      data: { type: lookupType, filters: filters }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        debugger;
         if (col.lookupIdField) {
           var ctrl = this.form.get(col.lookupIdField);
           ctrl?.setValue(result.id);
@@ -243,11 +320,34 @@ export class EditView<T> {
           if (!this.lookupDisplayCache[col.lookupIdField]) {
             this.lookupDisplayCache[col.lookupIdField] = {};
           }
-          this.lookupDisplayCache[col.lookupIdField][result.id] = result.name;
+
+          if (col.name == "purchaseOrderLink") {
+            this.lookupDisplayCache[col.lookupIdField][result.id] = result.orderNumber + "/" + result.lineNumber;
+            this.form.get('productId')?.setValue(result.productId);
+            this.form.get('productName')?.setValue(result.productName);
+            this.form.get('quantity')?.setValue(result.quantity);
+          }
+          else if (col.name == "salesOrderLink") {
+            this.lookupDisplayCache[col.lookupIdField][result.id] = result.orderNumber + "/" + result.lineNumber;
+            this.form.get('productId')?.setValue(result.productId);
+            this.form.get('productName')?.setValue(result.productName);
+            this.form.get('quantity')?.setValue(result.quantity);
+          }
+          else {
+            this.lookupDisplayCache[col.lookupIdField][result.id] = result.name;
+
+            if (col.name == 'productName') {
+              var price = 0;
+              var isSalesOrderLine = this.metaData
+              if (this.parentType == 'salesOrder') 
+                price = result.retailPrice;
+              else
+                price = result.costPrice;
+              
+              this.form.get('unitPrice')?.setValue(price);
+            }
+          }
         }
-        //this.form.get(col.name)?.setValue(result.name);
-
-
       }
     })
   }

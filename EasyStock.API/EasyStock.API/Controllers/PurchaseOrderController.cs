@@ -62,8 +62,18 @@ namespace EasyStock.API.Controllers
             entity.Lines = _mapper.Map<List<PurchaseOrderLine>>(dto.Lines);
             await _purchaseOrderService.AddAsync(entity, HttpContext.User.Identity!.Name!);
 
-            var resultDto = _mapper.Map<OutputPurchaseOrderDetailDto>(entity);
-            return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
+            OutputPurchaseOrderDetailDto resultDto = null;
+            try
+            {
+                resultDto = _mapper.Map<OutputPurchaseOrderDetailDto>(entity);
+                return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
+            }
+            catch (Exception ex)
+            {
+                var x = ex;
+                throw;
+            }
+            
         }
 
         [PermissionAuthorize("PurchaseOrder", "add")]

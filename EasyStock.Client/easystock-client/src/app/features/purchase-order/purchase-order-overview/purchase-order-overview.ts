@@ -41,7 +41,7 @@ export class PurchaseOrderOverview {
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
     { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
     { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
-    { label: 'Lines', icon: 'receipt_long', action: 'lines', color: 'detail', disabled: false }
+    { label: 'Lines', icon: 'receipt_long', action: 'lines', color: 'detail', disabled: true }
   ]
 
   checkboxOptions: CheckboxData[] = [
@@ -119,6 +119,8 @@ export class PurchaseOrderOverview {
   onRowSelected(row: any) {
     this.selectedRow = row;
 
+    const linesBtn = this.buttons.find(b => b.action === 'lines');
+    if (linesBtn) linesBtn.disabled = false;
     const editBtn = this.buttons.find(b => b.action === 'edit');
     if (editBtn) editBtn.disabled = !this.authService.canEdit("PurchaseOrder");
     const blockBtn = this.buttons.find(b => b.action === 'block' || b.action === 'unblock');
@@ -144,6 +146,7 @@ export class PurchaseOrderOverview {
       case 'block': this.onBlockClicked(); break;
       case 'unblock': this.onUnblockClicked(); break;
       case 'export': this.onExportClicked(); break;
+      case 'lines': this.onLinesClicked(); break;
       default: break;
     }
   }
@@ -281,6 +284,15 @@ export class PurchaseOrderOverview {
     };
 
     this.purchaseOrderService.export(query, format);
+  }
+
+  onLinesClicked() {
+    const id = this.selectedRow.id;
+    this.router.navigate(['app/purchaseorderline'], {
+      queryParams: {
+        parentId: id
+      }
+    });
   }
 
   onSortChanged(sort: Sort) {

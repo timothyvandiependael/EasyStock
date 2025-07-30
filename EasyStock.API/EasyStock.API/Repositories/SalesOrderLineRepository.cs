@@ -6,6 +6,8 @@ using EasyStock.API.Extensions;
 using EasyStock.API.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
+using System.Linq.Expressions;
+using System.Reflection.Metadata;
 
 namespace EasyStock.API.Repositories
 {
@@ -62,8 +64,19 @@ namespace EasyStock.API.Repositories
                     };
                 }
 
+                if (filters.Any(f => f.Field == "ClientId"))
+                {
+                    var clientIdFilter = filters.First(f => f.Field == "ClientId");
+
+                    query = clientIdFilter.Operator switch
+                    {
+                        "equals" or "=" => query.Where(p => p.SalesOrder.ClientId.Equals(int.Parse(clientIdFilter.Value))),
+                        _ => throw new NotSupportedException($"Operator is not supported.")
+                    };
+                }
+
                 // Regular Filters
-                query = query.ApplyFilters(filters.Where(f => f.Field != "ProductName" && f.Field != "OrderNumber").ToList());
+                query = query.ApplyFilters(filters.Where(f => f.Field != "ProductName" && f.Field != "OrderNumber" && f.Field != "ClientId").ToList());
             }
 
             // Sorting

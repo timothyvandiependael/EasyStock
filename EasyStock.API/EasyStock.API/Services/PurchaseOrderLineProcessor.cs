@@ -24,7 +24,9 @@ namespace EasyStock.API.Services
             entity.Status = OrderStatus.Open;
             if (!fromParent && getNextLineNumberAsync != null)
                 entity.LineNumber = await getNextLineNumberAsync(entity.PurchaseOrderId);
+
             await _repository.AddAsync(entity);
+
 
             var product = await _genericProductRepository.GetByIdAsync(entity.ProductId);
             if (product == null)

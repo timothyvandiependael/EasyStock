@@ -51,8 +51,12 @@ namespace EasyStock.API.Dtos
                 IsSortable = true,
                 DisplayName = "Product",
                 IsLookup = true,
-                LookupIdField = "ProductId",
-                LookupTarget = "Product"
+                LookupIdField = "productId",
+                LookupTarget = "Product",
+                 ValidationRules = new ValidationRules
+                {
+                    Required = true
+                }
             },
             new ColumnMetaData {
                 Name = "quantity",

@@ -5,7 +5,7 @@
         <div class="flex flex-wrap gap-2 -ml-4">
             @for(btn of buttons; track btn) {
             @if (btn.action === 'export') {
-            <!-- Wrapper for export button with relative positioning -->
+
             <div class="relative">
                 <button (click)="onButtonClick(btn)" [disabled]="btn.disabled" [hidden]="btn.hidden" class="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium shadow
                  transition-colors duration-150
@@ -16,7 +16,6 @@
                     {{ btn.label }}
                 </button>
 
-                <!-- Dropdown menu for export -->
                 @if (isExportMenuOpen) {
                 <div class="absolute left-0 mt-1 w-40 bg-white border rounded shadow-lg z-50">
                     <button (click)="exportCsv()" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
@@ -30,7 +29,6 @@
             </div>
             }
             @else {
-            <!-- Normal buttons -->
             <button (click)="onButtonClick(btn)" [disabled]="btn.disabled" [hidden]="btn.hidden" class="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium shadow
                transition-colors duration-150
                disabled:opacity-50 disabled:cursor-not-allowed" [ngClass]="{
@@ -57,7 +55,7 @@
         </div>
 
     </div>
-
+    @if(!hideRangeFilter) {
     <div class="flex items-center space-x-4">
         <div class="flex items-center space-x-2">
             <label class="text-sm font-medium">Start Date:</label>
@@ -70,6 +68,7 @@
                 class="border rounded px-2 py-1 text-sm" />
         </div>
     </div>
+    }
 
 </div>
 

@@ -4,7 +4,7 @@ export interface CreatePersonDto {
     city: string;
     postalCode: string;
     country: string;
-    phone: string;
-    email: string;
-    website: string;
+    phone?: string;
+    email?: string;
+    website?: string;
 }

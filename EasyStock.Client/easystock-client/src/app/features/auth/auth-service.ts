@@ -6,6 +6,7 @@ import { LoginDto } from './login.dto';
 import { jwtDecode } from 'jwt-decode';
 import { ChangePasswordDto } from './change-password.dto';
 import { UserPermissionService } from '../userpermission/user-permission-service';
+import { Router } from '@angular/router';
 
 interface AuthResult {
   token: string;
@@ -20,7 +21,7 @@ export class AuthService {
   private readonly apiUrl = environment.auth;
   private permissions: ApplyPermissionDto[] = [];
 
-  constructor(private http: HttpClient, private userPermissionService: UserPermissionService) { }
+  constructor(private http: HttpClient, private userPermissionService: UserPermissionService, private router: Router) { }
 
   login(dto: LoginDto): Observable<AuthResult> {
     return this.http.post<AuthResult>(this.apiUrl + 'login', dto)
@@ -36,6 +37,11 @@ export class AuthService {
           }
           return throwError(() => err);
         }))
+  }
+
+  logout() {
+    this.clearToken();
+    this.router.navigate(['/login']);
   }
 
   changePassword(dto: ChangePasswordDto): Observable<any> {

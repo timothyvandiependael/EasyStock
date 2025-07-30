@@ -63,8 +63,21 @@ namespace EasyStock.API.Repositories
                     };
                 }
 
+                if (filters.Any(f => f.Field == "SalesOrderLink"))
+                {
+                    var salesOrderFilter = filters.First(f => f.Field == "SalesOrderLink");
+
+                    query = salesOrderFilter.Operator switch
+                    {
+                        "contains" => query.Where(p => p.SalesOrderLine.SalesOrder.OrderNumber.Contains(salesOrderFilter.Value)),
+                        "startswith" => query.Where(p => p.SalesOrderLine.SalesOrder.OrderNumber.StartsWith(salesOrderFilter.Value)),
+                        "endswith" => query.Where(p => p.SalesOrderLine.SalesOrder.OrderNumber.EndsWith(salesOrderFilter.Value)),
+                        _ => throw new NotSupportedException($"Operator is not supported for strings.")
+                    };
+                }
+
                 // Regular Filters
-                query = query.ApplyFilters(filters.Where(f => f.Field != "ProductName" && f.Field != "DispatchNumber").ToList());
+                query = query.ApplyFilters(filters.Where(f => f.Field != "ProductName" && f.Field != "DispatchNumber" && f.Field != "SalesOrderLink").ToList());
             }
 
             // Sorting

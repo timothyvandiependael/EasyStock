@@ -89,6 +89,32 @@
 
   <div class="mt-6 flex space-x-3">
     @if (mode === 'add') {
+    @if (isProcedureStep1) {
+    <button type="button" (click)="onCreateLines()"
+      class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+      Next (Add Lines)
+    </button>
+    <!-- Cancel -->
+    <button type="button" (click)="onCancel()"
+      class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg shadow hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+      Cancel
+    </button>
+    }
+    @else if (isProcedureStep2) {
+    <button type="button" (click)="onAddMoreLines()"
+      class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+      Add more lines
+    </button>
+    <button type="button" (click)="onSaveAllAndExit()"
+      class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      Save all and exit
+    </button>
+    <button type="button" (click)="onProcedureCancel()"
+      class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg shadow hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+      Exit without saving
+    </button>
+    }
+    @else {
     <!-- Save & Add Another -->
     <button type="button" (click)="onSaveAndAddAnother()"
       class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
@@ -107,13 +133,13 @@
       Cancel
     </button>
     }
+    }
     @else if (mode === 'edit') {
-    <!-- Edit mode: Save & Exit -->
+
     <button type="button" (click)="onSaveAndExit()"
       class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
       Save & Return
     </button>
-
     <!-- Cancel -->
     <button type="button" (click)="onCancel()"
       class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg shadow hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
@@ -121,7 +147,6 @@
     </button>
     }
     @else {
-      <!-- Subtab of other entity: Save -->
     <button type="button" (click)="onSave()"
       class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
       Save & Return

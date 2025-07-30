@@ -55,17 +55,21 @@ namespace EasyStock.API.Services
 
             var lines = entity.Lines.ToList();
             entity.Lines.Clear();
+
+            await _repository.AddAsync(entity);
+
             var lineCounter = 1;
             foreach (var line in lines)
             {
                 line.LineNumber = lineCounter;
+                line.DispatchId = entity.Id;
 
                 await _dispatchLineProcessor.AddAsync(line, userName, null, true);
 
                 lineCounter++;
             }
 
-            await _repository.AddAsync(entity);
+            
 
         }
 

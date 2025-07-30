@@ -54,16 +54,18 @@ namespace EasyStock.API.Services
             var lines = entity.Lines.ToList();
             entity.Lines.Clear();
 
+            await _repository.AddAsync(entity);
+
             var lineCounter = 1;
             foreach (var line in lines)
             {
                 line.LineNumber = lineCounter;
+                line.ReceptionId = entity.Id;
                 await _receptionLineProcessor.AddAsync(line, userName, null, true);
 
                 lineCounter++;
             }
 
-            await _repository.AddAsync(entity);
         }
 
         public async Task DeleteAsync(int id, string userName, bool useTransaction = true)

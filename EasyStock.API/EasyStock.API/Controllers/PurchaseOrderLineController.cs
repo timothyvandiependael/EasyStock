@@ -122,7 +122,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto.Parameters == null || dto.Parameters.Filters == null || dto.Parameters.Sorting == null || string.IsNullOrEmpty(dto.Format)) return BadRequest("Missing parameters");
 
-            var result = await _service.GetAdvancedAsync(dto.Parameters.Filters, dto.Parameters.Sorting, null);
+            var result = await _purchaseOrderLineService.GetAdvancedAsync(dto.Parameters.Filters, dto.Parameters.Sorting, null);
             var dtoItems = _mapper.Map<List<OutputPurchaseOrderLineOverviewDto>>(result.Data);
 
             var title = "PurchaseOrderLines";

@@ -119,6 +119,8 @@ export class ReceptionOverview {
   onRowSelected(row: any) {
     this.selectedRow = row;
 
+    const linesBtn = this.buttons.find(b => b.action === 'lines');
+    if (linesBtn) linesBtn.disabled = false;
     const editBtn = this.buttons.find(b => b.action === 'edit');
     if (editBtn) editBtn.disabled = !this.authService.canEdit("Reception");
     const blockBtn = this.buttons.find(b => b.action === 'block' || b.action === 'unblock');
@@ -144,6 +146,7 @@ export class ReceptionOverview {
       case 'block': this.onBlockClicked(); break;
       case 'unblock': this.onUnblockClicked(); break;
       case 'export': this.onExportClicked(); break;
+      case 'lines': this.onLinesClicked(); break;
       default: break;
     }
   }
@@ -281,6 +284,15 @@ export class ReceptionOverview {
     };
 
     this.receptionService.export(query, format);
+  }
+
+  onLinesClicked() {
+    const id = this.selectedRow.id;
+    this.router.navigate(['app/receptionline'], {
+      queryParams: {
+        parentId: id
+      }
+    });
   }
 
   onSortChanged(sort: Sort) {

@@ -11,6 +11,7 @@ import { UpdateSalesOrderDto } from '../dtos/update-sales-order.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
+import { StorageService } from '../../../shared/storage/storage-service';
 
 @Component({
   selector: 'app-sales-order-edit',
@@ -30,8 +31,14 @@ export class SalesOrderEdit {
   columnMetaData: ColumnMetaData[] = [];
   selectedSalesOrder?: SalesOrderDetailDto;
 
-  @ViewChild(EditView) detailView!: EditView<SalesOrderDetailDto>;
+  procedureStep1 = true;
+  procedureStep2 = false;
 
+  addModeHideFields = [
+    'orderNumber', 'status'
+  ]
+
+  @ViewChild(EditView) detailView!: EditView<SalesOrderDetailDto>;
 
   constructor(
     private salesOrderService: SalesOrderService,
@@ -39,7 +46,8 @@ export class SalesOrderEdit {
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
     private persistentSnackbar: PersistentSnackbarService,
-    private confirmDialogService: ConfirmDialogService) { }
+    private confirmDialogService: ConfirmDialogService,
+    private storage: StorageService) { }
 
   ngOnInit() {
     this.loadColumnMeta();
@@ -160,5 +168,10 @@ export class SalesOrderEdit {
   executeCancel() {
     this.router.navigate(['app/salesorder']);
   }
+
+  handleCreateLines(salesOrder: CreateSalesOrderDto) {
+      this.storage.store('SalesOrder', salesOrder);
+      this.router.navigate(['app/salesorderline/edit', 'add', 1]);
+    }
 }
 

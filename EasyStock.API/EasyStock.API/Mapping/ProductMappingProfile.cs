@@ -15,6 +15,7 @@ namespace EasyStock.API.Mapping
             CreateMap<Product, OutputProductDetailDto>()
                 .ForMember(dest => dest.Photo, opt => opt.MapFrom(src => Base64Helper.ToBase64String(src.Photo)));
             CreateMap<ProductOverview, OutputProductOverviewDto>();
+            CreateMap<Product, OutputProductOverviewDto>();
             CreateMap<CreateProductDto, Product>()
                 .ForMember(
                     dest => dest.Photo,

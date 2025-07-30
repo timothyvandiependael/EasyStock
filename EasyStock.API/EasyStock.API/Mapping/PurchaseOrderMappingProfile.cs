@@ -9,6 +9,7 @@ namespace EasyStock.API.Mapping
         {
             CreateMap<PurchaseOrder, PurchaseOrderOverview>()
                 .ForMember(dest => dest.SupplierName, opt => opt.MapFrom(src => src.Supplier.Name));
+            CreateMap<PurchaseOrder, OutputPurchaseOrderOverviewDto>();
             CreateMap<PurchaseOrder, OutputPurchaseOrderDetailDto>();
             CreateMap<PurchaseOrderOverview, OutputPurchaseOrderOverviewDto>();
             CreateMap<CreatePurchaseOrderDto, PurchaseOrder>();

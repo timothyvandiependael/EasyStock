@@ -144,6 +144,7 @@ export class SalesOrderOverview {
       case 'block': this.onBlockClicked(); break;
       case 'unblock': this.onUnblockClicked(); break;
       case 'export': this.onExportClicked(); break;
+      case 'lines': this.onLinesClicked(); break;
       default: break;
     }
   }
@@ -281,6 +282,15 @@ export class SalesOrderOverview {
     };
 
     this.salesOrderService.export(query, format);
+  }
+
+  onLinesClicked() {
+    const id = this.selectedRow.id;
+    this.router.navigate(['app/salesorderline'], {
+      queryParams: {
+        parentId: id
+      }
+    });
   }
 
   onSortChanged(sort: Sort) {

@@ -76,11 +76,15 @@ export class LeftNav {
   }
 
   ngAfterViewInit() {
-    this.navElement.nativeElement.addEventListener('transitionend', this.transitionEndHandler);
+    if (this.navElement?.nativeElement) {
+      this.navElement.nativeElement.addEventListener('transitionend', this.transitionEndHandler);
+    }
   }
 
   ngOnDestroy() {
-    this.navElement.nativeElement.removeEventListener('transitionend', this.transitionEndHandler);
+    if (this.navElement?.nativeElement) {
+      this.navElement.nativeElement.removeEventListener('transitionend', this.transitionEndHandler);
+    }
   }
 
   getSections(): string[] {

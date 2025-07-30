@@ -7,10 +7,12 @@ import { AdvancedQueryParametersDto, FilterCondition } from '../../query';
 import { Sort } from '@angular/material/sort';
 import { Subscription } from 'rxjs';
 
-//import { ClientService } from '../../../features/client/client-service';
+import { ClientService } from '../../../features/client/client-service';
 import { ProductService } from '../../../features/product/product-service';
-//import { SupplierService } from '../../../features/supplier/supplier-service';
+import { SupplierService } from '../../../features/supplier/supplier-service';
 import { CategoryService } from '../../../features/category/category-service';
+import { PurchaseOrderLineService } from '../../../features/purchase-order-line/purchase-order-line-service';
+import { SalesOrderLineService } from '../../../features/sales-order-line/sales-order-line-service';
 
 import { PersistentSnackbarService } from '../../services/persistent-snackbar.service';
 import { PageEvent } from '@angular/material/paginator';
@@ -23,23 +25,13 @@ import { PageEvent } from '@angular/material/paginator';
   styleUrl: './lookup-dialog.css'
 })
 export class LookupDialog {
-  private getAdvancedSub?: Subscription; 
+  private getAdvancedSub?: Subscription;
 
   data: any[] = [];
-  columnsMeta: ColumnMetaData[] = [
-    {
-      name: 'name',
-      displayName: 'Name',
-      type: 'string',
-      isSortable: true,
-      isFilterable: true,
-      isEditable: false,
-      isLookup: false,
-      isOnlyDetail: false
-    }
-  ];
 
-  displayedColumns: string[] = ['name'];
+  columnsMeta: ColumnMetaData[] = [];
+
+  displayedColumns: string[] = [];
 
   totalCount = 0;
   pageSize = 10;
@@ -52,7 +44,7 @@ export class LookupDialog {
   ];
 
   currentFilters: FilterCondition[] = [];
-  currentSort: Sort = { active: 'Name', direction: 'asc' };
+  currentSort: Sort = { active: 'id', direction: 'asc' };
   selectedRow: any = null;
 
   private activeService: any;
@@ -60,24 +52,86 @@ export class LookupDialog {
   constructor(
     private categoryService: CategoryService,
     private productService: ProductService,
-    // private clientService: ClientService,
-    //private supplierService: SupplierService,
+    private clientService: ClientService,
+    private supplierService: SupplierService,
+    private purchaseOrderLineService: PurchaseOrderLineService,
+    private salesOrderLineService: SalesOrderLineService,
     private persistentSnackbar: PersistentSnackbarService,
     private dialogRef: MatDialogRef<LookupDialog>,
-    @Inject(MAT_DIALOG_DATA) public dataInput: { type: string }
+    @Inject(MAT_DIALOG_DATA) public dataInput: { type: string, filters: FilterCondition[] }
   ) { }
 
   ngOnInit(): void {
-    // pick which service to use
+    debugger;
+    if (this.dataInput.type.toLowerCase() == 'salesorderline' || this.dataInput.type.toLowerCase() == 'purchaseorderline') {
+      this.columnsMeta = [
+        {
+          name: 'orderNumber',
+          displayName: 'Order',
+          type: 'string',
+          isSortable: true,
+          isFilterable: true,
+          isEditable: false,
+          isLookup: false,
+          isOnlyDetail: false
+        },
+        {
+          name: 'lineNumber',
+          displayName: 'Line',
+          type: 'number',
+          isSortable: true,
+          isFilterable: true,
+          isEditable: false,
+          isLookup: false,
+          isOnlyDetail: false
+        },
+        {
+          name: 'productName',
+          displayName: 'Product',
+          type: 'string',
+          isSortable: true,
+          isFilterable: true,
+          isEditable: false,
+          isLookup: false,
+          isOnlyDetail: false
+        }
+      ];
+
+      this.displayedColumns = [ 'orderNumber', 'lineNumber', 'productName'];
+    }
+    else {
+      this.columnsMeta = [
+        {
+          name: 'name',
+          displayName: 'Name',
+          type: 'string',
+          isSortable: true,
+          isFilterable: true,
+          isEditable: false,
+          isLookup: false,
+          isOnlyDetail: false
+        }
+      ]
+
+      this.displayedColumns = [ 'name' ];
+    }
+
     switch (this.dataInput.type.toLowerCase()) {
-      //case 'client': this.activeService = this.clientService; break;
+      case 'client': this.activeService = this.clientService; break;
       case 'product': this.activeService = this.productService; break;
-      //case 'supplier': this.activeService = this.supplierService; break;
+      case 'supplier': this.activeService = this.supplierService; break;
       case 'category': this.activeService = this.categoryService; break;
+      case 'purchaseorderline': this.activeService = this.purchaseOrderLineService; break;
+      case 'salesorderline': this.activeService = this.salesOrderLineService; break;
       default:
         console.error('Unknown lookup type', this.dataInput.type);
         return;
     }
+
+    if (this.dataInput.filters && this.dataInput.filters.length > 0) {
+      this.filters = this.dataInput.filters;
+    }
+    else this.filters = [];
 
     this.loadData();
   }
@@ -91,6 +145,13 @@ export class LookupDialog {
     const sortOptions = direction === 'asc' || direction === 'desc'
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
+
+    var fc: FilterCondition = {
+      field: 'BlUserId',
+      operator: '=',
+      value: ''
+    }
+    this.filters.push(fc);
 
     const query: AdvancedQueryParametersDto = {
       filters: this.filters,

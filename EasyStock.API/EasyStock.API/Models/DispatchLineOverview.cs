@@ -4,5 +4,6 @@
     {
         public required string DispatchNumber { get; set; }
         public required string ProductName { get; set; }
+        public required string SalesOrderLink { get; set; }
     }
 }

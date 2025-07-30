@@ -11,6 +11,7 @@ namespace EasyStock.API.Mapping
             CreateMap<Dispatch, DispatchOverview>()
                 .ForMember(dest => dest.ClientName, opt => opt.MapFrom(src => src.Client.Name));
             CreateMap<Dispatch, OutputDispatchDetailDto>();
+            CreateMap<Dispatch, OutputDispatchOverviewDto>();
             CreateMap<DispatchOverview, OutputDispatchOverviewDto>();
             CreateMap<CreateDispatchDto, Dispatch>();
             CreateMap<UpdateDispatchDto, Dispatch>()

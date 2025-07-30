@@ -9,9 +9,12 @@
   [metaData]="columnMetaData"
   [mode]="detailMode"
   [model]="selectedReception"
+  [isProcedureStep1]="procedureStep1"
+  [addModeHideFields]="addModeHideFields"
   (saveAndAddAnother)="handleSaveAndAddAnother($event)"
   (saveNewAndExit)="handleSaveNewAndExit($event)"
   (saveAndExit)="handleSaveAndExit($event)"
-  (cancel)="handleCancel()">
+  (cancel)="handleCancel()"
+  (createLines)="handleCreateLines($event)">
 </app-edit-view>
 

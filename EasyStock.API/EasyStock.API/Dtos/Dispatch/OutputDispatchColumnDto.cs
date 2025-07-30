@@ -42,7 +42,7 @@ namespace EasyStock.API.Dtos
                 IsSortable = true,
                 DisplayName = "Client",
                 IsLookup = true,
-                LookupIdField = "ClientId",
+                LookupIdField = "clientId",
                 LookupTarget = "Client"
             }
 

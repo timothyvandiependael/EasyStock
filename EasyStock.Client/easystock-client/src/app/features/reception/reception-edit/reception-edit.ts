@@ -11,6 +11,7 @@ import { UpdateReceptionDto } from '../dtos/update-reception.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
+import { StorageService } from '../../../shared/storage/storage-service';
 
 @Component({
   selector: 'app-reception-edit',
@@ -30,6 +31,13 @@ export class ReceptionEdit {
   columnMetaData: ColumnMetaData[] = [];
   selectedReception?: ReceptionDetailDto;
 
+  procedureStep1 = true;
+  procedureStep2 = false;
+
+  addModeHideFields = [
+    'receptionNumber', 'status'
+  ]
+
   @ViewChild(EditView) detailView!: EditView<ReceptionDetailDto>;
 
 
@@ -39,7 +47,8 @@ export class ReceptionEdit {
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
     private persistentSnackbar: PersistentSnackbarService,
-    private confirmDialogService: ConfirmDialogService) { }
+    private confirmDialogService: ConfirmDialogService,
+    private storage: StorageService) { }
 
   ngOnInit() {
     this.loadColumnMeta();
@@ -159,6 +168,11 @@ export class ReceptionEdit {
 
   executeCancel() {
     this.router.navigate(['app/reception']);
+  }
+
+  handleCreateLines(reception: CreateReceptionDto) {
+    this.storage.store('Reception', reception);
+    this.router.navigate(['app/receptionline/edit', 'add', 1]);
   }
 }
 

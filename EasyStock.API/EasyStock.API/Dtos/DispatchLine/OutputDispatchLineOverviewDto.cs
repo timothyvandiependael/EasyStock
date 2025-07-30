@@ -3,6 +3,7 @@
     public class OutputDispatchLineOverviewDto : BaseOutputDispatchLineDto
     {
         public required string DispatchNumber { get; set; }
+        public required string SalesOrderLink { get; set; }
         public required string ProductName { get; set; }
     }
 }

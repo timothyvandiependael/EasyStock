@@ -7,7 +7,7 @@ import { ColumnMetaData } from '../../../shared/column-meta-data';
 import { Subscription } from 'rxjs';
 import { AdvancedQueryParametersDto, FilterCondition, SortOption } from '../../../shared/query';
 import { DataTable } from '../../../shared/components/data-table/data-table';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CheckboxData } from '../../../shared/checkbox';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
@@ -16,7 +16,7 @@ import { AuthService } from '../../auth/auth-service';
 
 @Component({
   selector: 'app-dispatch-line-overview',
-  imports: [ DataTable ],
+  imports: [DataTable],
   templateUrl: './dispatch-line-overview.html',
   styleUrl: './dispatch-line-overview.css'
 })
@@ -25,6 +25,7 @@ export class DispatchLineOverview {
   private getAdvancedSub?: Subscription;
   private blockSub?: Subscription;
   private unblockSub?: Subscription;
+  private routeSub?: Subscription;
 
   data: any[] = [];
   columnsMeta: ColumnMetaData[] = [];
@@ -35,6 +36,8 @@ export class DispatchLineOverview {
   filters: FilterCondition[] = [];
 
   selectedRow: any;
+
+  dispatchId?: number = undefined;
 
   buttons: ButtonConfig[] = [
     { label: 'Add', icon: 'add', action: 'add', color: 'primary', disabled: true },
@@ -52,6 +55,7 @@ export class DispatchLineOverview {
   constructor(
     private dispatchLineService: DispatchLineService,
     private router: Router,
+    private route: ActivatedRoute,
     private snackbar: MatSnackBar,
     private persistentSnackbar: PersistentSnackbarService,
     private confirmDialogService: ConfirmDialogService,
@@ -61,7 +65,7 @@ export class DispatchLineOverview {
     const addBtn = this.buttons.find(b => b.action === 'add');
     if (addBtn) addBtn.disabled = !this.authService.canAdd("DispatchLine");
 
-    this.loadColumns();
+    this.loadRouteParams();
   }
 
   ngOnDestroy() {
@@ -69,6 +73,23 @@ export class DispatchLineOverview {
     this.getAdvancedSub?.unsubscribe();
     this.blockSub?.unsubscribe();
     this.unblockSub?.unsubscribe();
+    this.routeSub?.unsubscribe();
+  }
+
+  loadRouteParams() {
+    this.routeSub = this.route.queryParamMap.subscribe(params => {
+      var id = params.get('parentId');
+
+      if (!id) {
+        this.dispatchId = undefined;
+      }
+      else {
+        this.dispatchId = parseInt(id);
+      }
+
+      this.loadColumns();
+    })
+
   }
 
   loadColumns() {
@@ -93,6 +114,15 @@ export class DispatchLineOverview {
     const sortOptions = direction === 'asc' || direction === 'desc'
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
+
+    if (this.dispatchId) {
+      var fc: FilterCondition = {
+        field: 'DispatchId',
+        operator: 'equals',
+        value: this.dispatchId
+      }
+      this.filters.push(fc);
+    }
 
     const query: AdvancedQueryParametersDto = {
       filters: this.filters,
@@ -177,7 +207,16 @@ export class DispatchLineOverview {
   }
 
   onAddClicked() {
-    this.router.navigate(['app/dispatchline/edit', 'add']);
+    if (this.dispatchId) {
+      this.router.navigate(['app/dispatchline/edit', 'add'], {
+        queryParams: {
+          parentId: this.dispatchId
+        }
+      });
+    }
+    else {
+      this.router.navigate(['app/dispatchline/edit', 'add']);
+    }
   }
 
   onRowDoubleClicked(row: any) {
@@ -253,11 +292,11 @@ export class DispatchLineOverview {
   }
 
   onExportClicked() {
-    
+
   }
 
   onExportCsv() {
-   this.export('csv')
+    this.export('csv')
   }
 
   onExportExcel() {

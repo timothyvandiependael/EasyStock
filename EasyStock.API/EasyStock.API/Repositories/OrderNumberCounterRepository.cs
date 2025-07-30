@@ -34,7 +34,15 @@ namespace EasyStock.API.Repositories
                 counter.LastNumber++;
             }
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                var x = ex;
+                throw;
+            }
 
             return counter.LastNumber;
         }

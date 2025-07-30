@@ -41,6 +41,7 @@ export class DataTable {
   @Input() pageIndex = 0;
   @Input() buttons: ButtonConfig[] = [];
   @Input() checkboxOptions: CheckboxData[] = [];
+  @Input() hideRangeFilter: boolean = false;
 
   @Output() buttonClicked = new EventEmitter<string>();
   @Output() sortChanged = new EventEmitter<Sort>();

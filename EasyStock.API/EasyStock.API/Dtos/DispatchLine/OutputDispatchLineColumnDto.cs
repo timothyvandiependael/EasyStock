@@ -43,15 +43,27 @@ namespace EasyStock.API.Dtos
                 }
             },
             new ColumnMetaData {
+                Name = "salesOrderLink",
+                Type = "string",
+                IsEditable = false,
+                IsFilterable = true,
+                IsSortable = true,
+                DisplayName = "Sales Order Link",
+                IsLookup = true,
+                LookupIdField = "salesOrderLineId",
+                LookupTarget = "SalesOrderLine",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true,
+                }
+            },
+            new ColumnMetaData {
                 Name = "productName",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,
                 IsSortable = true,
                 DisplayName = "Product",
-                IsLookup = true,
-                LookupIdField = "ProductId",
-                LookupTarget = "Product"
             },
             new ColumnMetaData {
                 Name = "quantity",

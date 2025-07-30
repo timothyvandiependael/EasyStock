@@ -50,7 +50,7 @@ namespace EasyStock.API.Dtos
                 IsSortable = true,
                 DisplayName = "Product",
                 IsLookup = true,
-                LookupIdField = "ProductId",
+                LookupIdField = "productId",
                 LookupTarget = "Product"
             },
             new ColumnMetaData {

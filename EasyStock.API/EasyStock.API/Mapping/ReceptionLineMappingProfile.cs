@@ -10,8 +10,10 @@ namespace EasyStock.API.Mapping
         {
             CreateMap<ReceptionLine, ReceptionLineOverview>()
                 .ForMember(dest => dest.ReceptionNumber, opt => opt.MapFrom(src => src.Reception.ReceptionNumber))
-                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+                .ForMember(dest => dest.PurchaseOrderLink, opt => opt.MapFrom(src => src.PurchaseOrderLine.PurchaseOrder.OrderNumber + "/" + src.PurchaseOrderLine.LineNumber));
             CreateMap<ReceptionLine, OutputReceptionLineDetailDto>();
+            CreateMap<ReceptionLine, OutputReceptionLineOverviewDto>();
             CreateMap<ReceptionLineOverview, OutputReceptionLineOverviewDto>();
             CreateMap<CreateReceptionLineDto, ReceptionLine>();
             CreateMap<UpdateReceptionLineDto, ReceptionLine>()

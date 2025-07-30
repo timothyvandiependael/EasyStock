@@ -11,6 +11,7 @@ import { UpdatePurchaseOrderDto } from '../dtos/update-purchase-order.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
+import { StorageService } from '../../../shared/storage/storage-service';
 
 @Component({
   selector: 'app-purchase-order-edit',
@@ -30,6 +31,13 @@ export class PurchaseOrderEdit {
   columnMetaData: ColumnMetaData[] = [];
   selectedPurchaseOrder?: PurchaseOrderDetailDto;
 
+  procedureStep1 = true;
+  procedureStep2 = false;
+
+  addModeHideFields = [
+    'orderNumber', 'status'
+  ]
+
   @ViewChild(EditView) detailView!: EditView<PurchaseOrderDetailDto>;
 
 
@@ -39,7 +47,8 @@ export class PurchaseOrderEdit {
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
     private persistentSnackbar: PersistentSnackbarService,
-    private confirmDialogService: ConfirmDialogService) { }
+    private confirmDialogService: ConfirmDialogService,
+    private storage: StorageService) { }
 
   ngOnInit() {
     this.loadColumnMeta();
@@ -86,6 +95,7 @@ export class PurchaseOrderEdit {
     this.saveAndAddSub?.unsubscribe();
     this.saveNewExitSub?.unsubscribe();
     this.saveExitSub?.unsubscribe();
+    this.getByIdSub?.unsubscribe();
   }
 
   handleSaveAndAddAnother(purchaseOrder: CreatePurchaseOrderDto) {
@@ -159,6 +169,11 @@ export class PurchaseOrderEdit {
 
   executeCancel() {
     this.router.navigate(['app/purchaseorder']);
+  }
+
+  handleCreateLines(purchaseOrder: CreatePurchaseOrderDto) {
+    this.storage.store('PurchaseOrder', purchaseOrder);
+    this.router.navigate(['app/purchaseorderline/edit', 'add', 1]);
   }
 }
 

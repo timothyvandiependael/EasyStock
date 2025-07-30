@@ -11,6 +11,10 @@ import { UpdateSalesOrderLineDto } from '../dtos/update-sales-order-line.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
+import { SalesOrderService } from '../../sales-order/sales-order-service';
+import { StorageService } from '../../../shared/storage/storage-service';
+import { SalesOrderDetailDto } from '../../sales-order/dtos/sales-order-detail.dto';
+import { CreateSalesOrderDto } from '../../sales-order/dtos/create-sales-order.dto';
 
 @Component({
   selector: 'app-sales-order-line-edit',
@@ -25,21 +29,32 @@ export class SalesOrderLineEdit {
   private saveNewExitSub?: Subscription;
   private saveExitSub?: Subscription;
   private getByIdSub?: Subscription;
+  private salesOrderSaveSub?: Subscription;
 
   detailMode: 'add' | 'edit' = 'add';
   columnMetaData: ColumnMetaData[] = [];
   selectedSalesOrderLine?: SalesOrderLineDetailDto;
+
+  procedureStep2 = false;
+
+  parentId?: number = undefined;
+
+  addModeHideFields = [
+    'orderNumber', 'lineNumber', 'status'
+  ]
 
   @ViewChild(EditView) detailView!: EditView<SalesOrderLineDetailDto>;
 
 
   constructor(
     private salesOrderLineService: SalesOrderLineService,
+    private salesOrderService: SalesOrderService,
     private router: Router,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
-    private persistentSnackbar: PersistentSnackbarService,
-    private confirmDialogService: ConfirmDialogService) { }
+    private persistentSnackbar: PersistentSnackbarService, 
+    private confirmDialogService: ConfirmDialogService,
+    private storage: StorageService) { }
 
   ngOnInit() {
     this.loadColumnMeta();
@@ -64,6 +79,22 @@ export class SalesOrderLineEdit {
       const mode = params.get('mode') as 'add' | 'edit';
       this.detailMode = mode;
 
+      if (mode == 'add') {
+        const fromParent = params.get('id');
+        if (fromParent)
+          this.procedureStep2 = true;
+
+        this.route.queryParamMap.subscribe(queryParams => {
+          const parentId = queryParams.get('parentId');
+          if (!parentId) {
+            this.parentId = undefined;
+          }
+          else {
+            this.parentId = parseInt(parentId);
+          }
+        });
+      }
+
       if (mode === 'edit') {
         const id = Number(params.get('id'));
         this.getByIdSub = this.salesOrderLineService.getById(id).subscribe({
@@ -86,9 +117,13 @@ export class SalesOrderLineEdit {
     this.saveAndAddSub?.unsubscribe();
     this.saveNewExitSub?.unsubscribe();
     this.saveExitSub?.unsubscribe();
+    this.salesOrderSaveSub?.unsubscribe();
   }
 
   handleSaveAndAddAnother(salesOrderLine: CreateSalesOrderLineDto) {
+    if (this.parentId) {
+      salesOrderLine.salesOrderId = this.parentId;
+    }
     this.saveAndAddSub = this.salesOrderLineService.add(salesOrderLine).subscribe({
       next: (saved: SalesOrderLineDetailDto) => {
         this.selectedSalesOrderLine = undefined;
@@ -107,6 +142,9 @@ export class SalesOrderLineEdit {
   }
 
   handleSaveNewAndExit(salesOrderLine: CreateSalesOrderLineDto) {
+    if (this.parentId) {
+      salesOrderLine.salesOrderId = this.parentId;
+    }
     this.saveNewExitSub = this.salesOrderLineService.add(salesOrderLine).subscribe({
       next: (saved: SalesOrderLineDetailDto) => {
         this.selectedSalesOrderLine = undefined;
@@ -115,10 +153,19 @@ export class SalesOrderLineEdit {
           horizontalPosition: 'right',
           verticalPosition: 'top',
         });
-        this.router.navigate(['app/salesorderline']);
+
+        if (this.parentId) {
+          this.router.navigate(['app/salesorderline'], {
+            queryParams: {
+              parentId: this.parentId
+            }
+          });
+        }
+        else {
+          this.router.navigate(['app/salesorderline']);
+        }
       },
       error: (err) => {
-        console.error('Error saving salesOrderLine ', err);
         this.persistentSnackbar.showError(`Error saving sales order line. If the problem persists, please contact support.`);
       }
     })
@@ -160,4 +207,73 @@ export class SalesOrderLineEdit {
   executeCancel() {
     this.router.navigate(['app/salesorderline']);
   }
+
+  handleAddMoreLines(line: CreateSalesOrderLineDto) {
+      this.addLineToOrder(line);
+      this.selectedSalesOrderLine = undefined;
+      this.detailView.clearForm();
+    }
+  
+    handleSaveAllAndExit(line: CreateSalesOrderLineDto) {
+      this.addLineToOrder(line);
+      this.saveOrder();
+  
+    }
+  
+    saveOrder() {
+      var so = this.getOrder();
+  
+      this.salesOrderSaveSub = this.salesOrderService.add(so).subscribe({
+        next: (saved: SalesOrderDetailDto) => {
+          this.selectedSalesOrderLine = undefined;
+          this.snackBar.open(`Sales order saved`, 'Close', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+          });
+          this.router.navigate(['app/salesorder']);
+        },
+        error: (err) => {
+          this.persistentSnackbar.showError(`Error saving sales order. If the problem persists, please contact support.`);
+          this.removeLastLineAfterError();
+        }
+      })
+    }
+  
+    removeLastLineAfterError() {
+      var so = this.getOrder();
+      if (so.lines.length > 0) {
+        so.lines.pop();
+      }
+      this.storage.store('SalesOrder', so);
+    }
+  
+    addLineToOrder(line: CreateSalesOrderLineDto) {
+      var so = this.getOrder();
+      so.lines.push(line);
+      this.storage.store('SalesOrder', so);
+    }
+  
+    getOrder() {
+      var so = this.storage.retrieve('SalesOrder') as CreateSalesOrderDto;
+      if (!so) {
+        this.persistentSnackbar.showError(`Error retrieving sales order. If the problem persist, contact support.`);
+      }
+      if (so.lines == null) so.lines = [];
+      return so;
+    }
+  
+    handleProcedureCancel() {
+        this.confirmDialogService.open({
+          title: 'Discard order?',
+          message: 'If you exit now, the entire order will not be saved. Discard?',
+          confirmText: 'Yes, discard',
+          cancelText: 'Keep editing'
+        }).subscribe(cancelled => {
+          if (cancelled) {
+            this.router.navigate(['app/salesorder']);
+          }
+        });
+  
+    }
 }
