@@ -17,6 +17,10 @@ namespace EasyStock.API.Extensions
 
             foreach (var filter in filters)
             {
+                var member = typeof(T).GetProperty(filter.Field);
+                if (member == null || typeof(System.Collections.IEnumerable).IsAssignableFrom(member.PropertyType) && member.PropertyType != typeof(string))
+                    continue;
+
                 var property = Expression.Property(parameter, filter.Field);
                 var propertyType = Nullable.GetUnderlyingType(property.Type) ?? property.Type;
 

@@ -13,6 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 import { AuthService } from '../../auth/auth-service';
+import { PageTitleService } from '../../../shared/services/page-title-service';
 
 @Component({
   selector: 'app-dispatch-overview',
@@ -54,11 +55,13 @@ export class DispatchOverview {
     private dispatchService: DispatchService,
     private router: Router,
     private snackbar: MatSnackBar,
+    private pageTitleService: PageTitleService,
     private persistentSnackbar: PersistentSnackbarService,
     private confirmDialogService: ConfirmDialogService,
     private authService: AuthService) { }
 
   ngOnInit() {
+    this.pageTitleService.setTitle('Dispatches');
     const addBtn = this.buttons.find(b => b.action === 'add');
     if (addBtn) addBtn.disabled = !this.authService.canAdd("Dispatch");
 
@@ -288,7 +291,8 @@ export class DispatchOverview {
     const id = this.selectedRow.id;
     this.router.navigate(['app/dispatchline'], {
       queryParams: {
-        parentId: id
+        parentId: id,
+        parentDispatchNumber: this.selectedRow.dispatchNumber
       }
     });
   }

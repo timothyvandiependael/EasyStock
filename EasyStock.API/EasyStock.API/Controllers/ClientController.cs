@@ -16,12 +16,14 @@ namespace EasyStock.API.Controllers
         private readonly IService<Client> _service;
         private readonly IMapper _mapper;
         private readonly IExportService<OutputClientOverviewDto> _exportService;
+        private readonly IClientService _clientService;
 
-        public ClientController(IService<Client> service, IMapper mapper, IExportService<OutputClientOverviewDto> exportService)
+        public ClientController(IService<Client> service, IMapper mapper, IExportService<OutputClientOverviewDto> exportService, IClientService clientService)
         {
             _service = service;
             _mapper = mapper;
             _exportService = exportService;
+            _clientService = clientService;
         }
 
         [HttpGet]
@@ -100,7 +102,7 @@ namespace EasyStock.API.Controllers
         {
             if (parameters == null || parameters.Filters == null || parameters.Sorting == null) return BadRequest("Missing parameters");
 
-            var result = await _service.GetAdvancedAsync(parameters.Filters, parameters.Sorting, parameters.Pagination);
+            var result = await _clientService.GetAdvancedAsync(parameters.Filters, parameters.Sorting, parameters.Pagination);
             var dtoItems = _mapper.Map<List<OutputClientOverviewDto>>(result.Data);
 
             return Ok(new PaginationResult<OutputClientOverviewDto>
@@ -115,7 +117,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto.Parameters == null || dto.Parameters.Filters == null || dto.Parameters.Sorting == null || string.IsNullOrEmpty(dto.Format)) return BadRequest("Missing parameters");
 
-            var result = await _service.GetAdvancedAsync(dto.Parameters.Filters, dto.Parameters.Sorting, null);
+            var result = await _clientService.GetAdvancedAsync(dto.Parameters.Filters, dto.Parameters.Sorting, null);
             var dtoItems = _mapper.Map<List<OutputClientOverviewDto>>(result.Data);
 
             var title = "Clients";

@@ -13,6 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 import { AuthService } from '../../auth/auth-service';
+import { PageTitleService } from '../../../shared/services/page-title-service';
 
 @Component({
   selector: 'app-purchase-order-line-overview',
@@ -44,7 +45,7 @@ export class PurchaseOrderLineOverview {
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
     { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
     { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
-    { label: 'Reception Lines', icon: 'list_alt', action: 'suppliers', color: 'detail', disabled: false }
+    { label: 'Reception Lines', icon: 'list_alt', action: 'receptionlines', color: 'detail', disabled: true }
   ]
 
   checkboxOptions: CheckboxData[] = [
@@ -58,6 +59,7 @@ export class PurchaseOrderLineOverview {
     private router: Router,
     private route: ActivatedRoute,
     private snackbar: MatSnackBar,
+    private pageTitleService: PageTitleService,
     private persistentSnackbar: PersistentSnackbarService,
     private confirmDialogService: ConfirmDialogService,
     private authService: AuthService) { }
@@ -80,6 +82,7 @@ export class PurchaseOrderLineOverview {
   loadRouteParams() {
     this.routeSub = this.route.queryParamMap.subscribe(params => {
       var purchaseOrderId = params.get('parentId');
+      var purchaseOrderNumber = params.get('parentOrderNumber');
 
       if (!purchaseOrderId) {
         this.purchaseOrderId = undefined;
@@ -87,6 +90,14 @@ export class PurchaseOrderLineOverview {
       else {
         this.purchaseOrderId = parseInt(purchaseOrderId);
       }
+
+      if (!purchaseOrderNumber) {
+        this.pageTitleService.setTitle('Purchase Order Lines');
+      }
+      else {
+        this.pageTitleService.setTitle('Purchase Order Lines for Order: ' + purchaseOrderNumber);
+      }
+
 
       this.loadColumns();
     })
@@ -149,6 +160,8 @@ export class PurchaseOrderLineOverview {
   onRowSelected(row: any) {
     this.selectedRow = row;
 
+    const rcpBtn = this.buttons.find(b => b.action === 'receptionlines');
+    if (rcpBtn) rcpBtn.disabled = !this.authService.canView("ReceptionLine");
     const editBtn = this.buttons.find(b => b.action === 'edit');
     if (editBtn) editBtn.disabled = !this.authService.canEdit("PurchaseOrderLine");
     const blockBtn = this.buttons.find(b => b.action === 'block' || b.action === 'unblock');
@@ -174,6 +187,7 @@ export class PurchaseOrderLineOverview {
       case 'block': this.onBlockClicked(); break;
       case 'unblock': this.onUnblockClicked(); break;
       case 'export': this.onExportClicked(); break;
+      case 'receptionlines': this.onReceptionLinesClicked(); break;
       default: break;
     }
   }
@@ -321,6 +335,15 @@ export class PurchaseOrderLineOverview {
     };
 
     this.purchaseOrderLineService.export(query, format);
+  }
+
+  onReceptionLinesClicked() {
+    this.router.navigate(['app/receptionline'], {
+      queryParams: {
+        fromPurchaseOrderLineId: this.selectedRow.id,
+        fromOrderNumber: this.selectedRow.orderNumber
+      }
+    })
   }
 
   onSortChanged(sort: Sort) {

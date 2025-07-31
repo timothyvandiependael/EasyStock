@@ -62,8 +62,20 @@ namespace EasyStock.API.Repositories
                     };
                 }
 
+                if (filters.Any(f => f.Field == "SupplierId"))
+                {
+                    var supplierFilter = filters.First(f => f.Field == "SupplierId");
+
+                    query = supplierFilter.Operator switch
+                    {
+                        "equals" or "=" => query.Where(p => p.Suppliers.Any(s => s.Id == int.Parse(supplierFilter.Value))),
+                        "notequals" or "<>" or "!=" => query.Where(p => !p.Suppliers.Any(p => p.Id == int.Parse(supplierFilter.Value))),
+                        _ => throw new NotSupportedException($"Operator is not supported.")
+                    };
+                }
+
                 // Regular Filters
-                query = query.ApplyFilters(filters.Where(f => f.Field != "AutoRestockSupplierName" && f.Field != "CategoryName").ToList());
+                query = query.ApplyFilters(filters.Where(f => f.Field != "AutoRestockSupplierName" && f.Field != "CategoryName" && f.Field != "SupplierId").ToList());
             }
 
             // Sorting
@@ -102,6 +114,42 @@ namespace EasyStock.API.Repositories
                 TotalCount = totalCount,
                 Data = data
             };
+        }
+
+        public async Task AddSupplierAsync(int id, int supplierId)
+        {
+            var product = _context.Products
+                .Include(p => p.Suppliers)
+                .FirstOrDefault(p => p.Id == id);
+            if (product == null) throw new Exception("Product not found when attempting to add supplier.");
+
+            var supplier = _context.Suppliers
+                .FirstOrDefault(s => s.Id == supplierId);
+            if (product == null) throw new Exception("Supplier not found when attempting to add to product.");
+
+            if (!product.Suppliers.Contains(supplier))
+            {
+                product.Suppliers.Add(supplier);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task RemoveSupplierAsync(int id, int supplierId)
+        {
+            var product = _context.Products
+                .Include(p => p.Suppliers)
+                .FirstOrDefault(p => p.Id == id);
+            if (product == null) throw new Exception("Product not found when attempting to remove supplier.");
+
+            var supplier = _context.Suppliers
+                .FirstOrDefault(s => s.Id == supplierId);
+            if (product == null) throw new Exception("Supplier not found when attempting to remove from product.");
+
+            if (product.Suppliers.Contains(supplier))
+            {
+                product.Suppliers.Remove(supplier);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

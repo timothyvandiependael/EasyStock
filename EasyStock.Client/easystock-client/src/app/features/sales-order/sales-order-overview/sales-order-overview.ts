@@ -7,16 +7,17 @@ import { ColumnMetaData } from '../../../shared/column-meta-data';
 import { Subscription } from 'rxjs';
 import { AdvancedQueryParametersDto, FilterCondition, SortOption } from '../../../shared/query';
 import { DataTable } from '../../../shared/components/data-table/data-table';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CheckboxData } from '../../../shared/checkbox';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 import { AuthService } from '../../auth/auth-service';
+import { PageTitleService } from '../../../shared/services/page-title-service';
 
 @Component({
   selector: 'app-sales-order-overview',
-  imports: [ DataTable ],
+  imports: [DataTable],
   templateUrl: './sales-order-overview.html',
   styleUrl: './sales-order-overview.css'
 })
@@ -25,6 +26,7 @@ export class SalesOrderOverview {
   private getAdvancedSub?: Subscription;
   private blockSub?: Subscription;
   private unblockSub?: Subscription;
+  private routeSub?: Subscription;
 
   data: any[] = [];
   columnsMeta: ColumnMetaData[] = [];
@@ -36,8 +38,19 @@ export class SalesOrderOverview {
 
   selectedRow: any;
 
-  buttons: ButtonConfig[] = [
+  fromClientId?: number = undefined;
+
+  buttons: ButtonConfig[] = [];
+
+  normalButtons: ButtonConfig[] = [
     { label: 'Add', icon: 'add', action: 'add', color: 'primary', disabled: true },
+    { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
+    { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
+    { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
+    { label: 'Lines', icon: 'receipt_long', action: 'lines', color: 'detail', disabled: false }
+  ]
+
+  fromClientButtons: ButtonConfig[] = [
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
     { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
     { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
@@ -53,16 +66,44 @@ export class SalesOrderOverview {
   constructor(
     private salesOrderService: SalesOrderService,
     private router: Router,
+    private route: ActivatedRoute,
     private snackbar: MatSnackBar,
+    private pageTitleService: PageTitleService,
     private persistentSnackbar: PersistentSnackbarService,
     private confirmDialogService: ConfirmDialogService,
     private authService: AuthService) { }
 
   ngOnInit() {
+    this.buttons = this.normalButtons;
+
     const addBtn = this.buttons.find(b => b.action === 'add');
     if (addBtn) addBtn.disabled = !this.authService.canAdd("SalesOrder");
 
-    this.loadColumns();
+    this.loadRouteParams();
+  }
+
+  loadRouteParams() {
+    this.routeSub = this.route.queryParamMap.subscribe(params => {
+      var id = params.get('fromClientId');
+      var name = params.get('fromClientName');
+
+      if (!id) {
+        this.fromClientId = undefined;
+      }
+      else {
+        this.fromClientId = parseInt(id);
+        this.buttons = this.fromClientButtons;
+      }
+
+      if (name) {
+        this.pageTitleService.setTitle('Sales Orders for Client: ' + name);
+      }
+      else {
+        this.pageTitleService.setTitle('Sales Orders');
+      }
+
+      this.loadColumns();
+    })
   }
 
   ngOnDestroy() {
@@ -70,6 +111,7 @@ export class SalesOrderOverview {
     this.getAdvancedSub?.unsubscribe();
     this.blockSub?.unsubscribe();
     this.unblockSub?.unsubscribe();
+    this.routeSub?.unsubscribe();
   }
 
   loadColumns() {
@@ -94,6 +136,15 @@ export class SalesOrderOverview {
     const sortOptions = direction === 'asc' || direction === 'desc'
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
+
+    if (this.fromClientId) {
+      var fc: FilterCondition = {
+        field: 'ProductId',
+        operator: 'equals',
+        value: this.fromClientId
+      }
+      this.filters.push(fc);
+    }
 
     const query: AdvancedQueryParametersDto = {
       filters: this.filters,
@@ -255,11 +306,11 @@ export class SalesOrderOverview {
   }
 
   onExportClicked() {
-    
+
   }
 
   onExportCsv() {
-   this.export('csv')
+    this.export('csv')
   }
 
   onExportExcel() {
@@ -288,7 +339,8 @@ export class SalesOrderOverview {
     const id = this.selectedRow.id;
     this.router.navigate(['app/salesorderline'], {
       queryParams: {
-        parentId: id
+        parentId: id,
+        parentOrderNumber: this.selectedRow.orderNumber
       }
     });
   }

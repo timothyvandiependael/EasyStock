@@ -7,16 +7,17 @@ import { ColumnMetaData } from '../../../shared/column-meta-data';
 import { Subscription } from 'rxjs';
 import { AdvancedQueryParametersDto, FilterCondition, SortOption } from '../../../shared/query';
 import { DataTable } from '../../../shared/components/data-table/data-table';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CheckboxData } from '../../../shared/checkbox';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 import { AuthService } from '../../auth/auth-service';
+import { PageTitleService } from '../../../shared/services/page-title-service';
 
 @Component({
   selector: 'app-purchase-order-overview',
-  imports: [ DataTable ],
+  imports: [DataTable],
   templateUrl: './purchase-order-overview.html',
   styleUrl: './purchase-order-overview.css'
 })
@@ -25,6 +26,7 @@ export class PurchaseOrderOverview {
   private getAdvancedSub?: Subscription;
   private blockSub?: Subscription;
   private unblockSub?: Subscription;
+  private routeSub?: Subscription;
 
   data: any[] = [];
   columnsMeta: ColumnMetaData[] = [];
@@ -36,8 +38,19 @@ export class PurchaseOrderOverview {
 
   selectedRow: any;
 
-  buttons: ButtonConfig[] = [
+  fromSupplierId?: number = undefined;
+
+  buttons: ButtonConfig[] = [];
+
+  normalButtons: ButtonConfig[] = [
     { label: 'Add', icon: 'add', action: 'add', color: 'primary', disabled: true },
+    { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
+    { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
+    { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
+    { label: 'Lines', icon: 'receipt_long', action: 'lines', color: 'detail', disabled: true }
+  ]
+
+  fromSupplierButtons: ButtonConfig[] = [
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
     { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
     { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
@@ -54,15 +67,19 @@ export class PurchaseOrderOverview {
     private purchaseOrderService: PurchaseOrderService,
     private router: Router,
     private snackbar: MatSnackBar,
+    private route: ActivatedRoute,
+    private pageTitleService: PageTitleService,
     private persistentSnackbar: PersistentSnackbarService,
     private confirmDialogService: ConfirmDialogService,
     private authService: AuthService) { }
 
   ngOnInit() {
+    this.buttons = this.normalButtons;
+
     const addBtn = this.buttons.find(b => b.action === 'add');
     if (addBtn) addBtn.disabled = !this.authService.canAdd("PurchaseOrder");
 
-    this.loadColumns();
+    this.loadRouteParams();
   }
 
   ngOnDestroy() {
@@ -70,6 +87,31 @@ export class PurchaseOrderOverview {
     this.getAdvancedSub?.unsubscribe();
     this.blockSub?.unsubscribe();
     this.unblockSub?.unsubscribe();
+    this.routeSub?.unsubscribe();
+  }
+
+  loadRouteParams() {
+    this.routeSub = this.route.queryParamMap.subscribe(params => {
+      var id = params.get('fromSupplierId');
+      var name = params.get('fromSupplierName');
+
+      if (!id) {
+        this.fromSupplierId = undefined;
+      }
+      else {
+        this.fromSupplierId = parseInt(id);
+        this.buttons = this.fromSupplierButtons;
+      }
+
+      if (name) {
+        this.pageTitleService.setTitle('Purchase Orders for Supplier: ' + name);
+      }
+      else {
+        this.pageTitleService.setTitle('Purchase Orders');
+      }
+
+      this.loadColumns();
+    })
   }
 
   loadColumns() {
@@ -94,6 +136,15 @@ export class PurchaseOrderOverview {
     const sortOptions = direction === 'asc' || direction === 'desc'
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
+
+    if (this.fromSupplierId) {
+      var fc: FilterCondition = {
+        field: 'SupplierId',
+        operator: 'equals',
+        value: this.fromSupplierId
+      }
+      this.filters.push(fc);
+    }
 
     const query: AdvancedQueryParametersDto = {
       filters: this.filters,
@@ -257,11 +308,11 @@ export class PurchaseOrderOverview {
   }
 
   onExportClicked() {
-    
+
   }
 
   onExportCsv() {
-   this.export('csv')
+    this.export('csv')
   }
 
   onExportExcel() {
@@ -290,7 +341,8 @@ export class PurchaseOrderOverview {
     const id = this.selectedRow.id;
     this.router.navigate(['app/purchaseorderline'], {
       queryParams: {
-        parentId: id
+        parentId: id,
+        parentOrderNumber: this.selectedRow.orderNumber
       }
     });
   }

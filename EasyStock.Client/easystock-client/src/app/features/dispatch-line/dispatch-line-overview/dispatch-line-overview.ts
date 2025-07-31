@@ -13,6 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 import { AuthService } from '../../auth/auth-service';
+import { PageTitleService } from '../../../shared/services/page-title-service';
 
 @Component({
   selector: 'app-dispatch-line-overview',
@@ -38,9 +39,18 @@ export class DispatchLineOverview {
   selectedRow: any;
 
   dispatchId?: number = undefined;
+  fromSalesOrderLineId?: number = undefined;
 
-  buttons: ButtonConfig[] = [
+  buttons: ButtonConfig[] = [];
+
+  normalButtons: ButtonConfig[] = [
     { label: 'Add', icon: 'add', action: 'add', color: 'primary', disabled: true },
+    { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
+    { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
+    { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false }
+  ]
+
+  fromSalesOrderLineButtons: ButtonConfig[] = [
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
     { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
     { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false }
@@ -57,11 +67,14 @@ export class DispatchLineOverview {
     private router: Router,
     private route: ActivatedRoute,
     private snackbar: MatSnackBar,
+    private pageTitleService: PageTitleService,
     private persistentSnackbar: PersistentSnackbarService,
     private confirmDialogService: ConfirmDialogService,
     private authService: AuthService) { }
 
   ngOnInit() {
+    this.buttons = this.normalButtons;
+
     const addBtn = this.buttons.find(b => b.action === 'add');
     if (addBtn) addBtn.disabled = !this.authService.canAdd("DispatchLine");
 
@@ -79,12 +92,34 @@ export class DispatchLineOverview {
   loadRouteParams() {
     this.routeSub = this.route.queryParamMap.subscribe(params => {
       var id = params.get('parentId');
+      var dispatchNumber = params.get('parentDispatchNumber');
+
+      var fromSalesOrderLineId = params.get('fromSalesOrderLineId');
+      var fromOrderNumber = params.get('fromOrderNumber');
 
       if (!id) {
         this.dispatchId = undefined;
       }
       else {
         this.dispatchId = parseInt(id);
+      }
+
+      if (fromSalesOrderLineId) {
+        this.fromSalesOrderLineId = parseInt(fromSalesOrderLineId);
+        this.buttons = this.fromSalesOrderLineButtons;
+      }
+      else {
+        this.fromSalesOrderLineId = undefined;
+      }
+
+      if (dispatchNumber) {
+        this.pageTitleService.setTitle('Dispatch Lines for Dispatch: ' + dispatchNumber);
+      }
+      else if (fromOrderNumber) {
+        this.pageTitleService.setTitle('Dispatch Lines for Sales Order Line: ' + fromOrderNumber);
+      }
+      else {
+        this.pageTitleService.setTitle('Dispatch Lines');
       }
 
       this.loadColumns();
@@ -120,6 +155,15 @@ export class DispatchLineOverview {
         field: 'DispatchId',
         operator: 'equals',
         value: this.dispatchId
+      }
+      this.filters.push(fc);
+    }
+
+    if (this.fromSalesOrderLineId) {
+      var fc: FilterCondition = {
+        field: 'SalesOrderLineId',
+        operator: 'equals',
+        value: this.fromSalesOrderLineId
       }
       this.filters.push(fc);
     }

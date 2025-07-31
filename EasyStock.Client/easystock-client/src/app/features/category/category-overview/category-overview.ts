@@ -13,6 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 import { AuthService } from '../../auth/auth-service';
+import { PageTitleService } from '../../../shared/services/page-title-service';
 
 @Component({
   selector: 'app-category',
@@ -55,9 +56,11 @@ export class CategoryOverview {
     private snackbar: MatSnackBar,
     private persistentSnackbar: PersistentSnackbarService,
     private confirmDialogService: ConfirmDialogService,
+    private pageTitleService: PageTitleService,
     private authService: AuthService) { }
 
   ngOnInit() {
+    this.pageTitleService.setTitle('Categories');
     const addBtn = this.buttons.find(b => b.action === 'add');
     if (addBtn) addBtn.disabled = !this.authService.canAdd("Category");
 

@@ -7,16 +7,20 @@ import { ColumnMetaData } from '../../../shared/column-meta-data';
 import { Subscription } from 'rxjs';
 import { AdvancedQueryParametersDto, FilterCondition, SortOption } from '../../../shared/query';
 import { DataTable } from '../../../shared/components/data-table/data-table';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CheckboxData } from '../../../shared/checkbox';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 import { AuthService } from '../../auth/auth-service';
+import { ProductService } from '../../product/product-service';
+import { LookupDialog } from '../../../shared/components/lookup-dialog/lookup-dialog';
+import { MatDialog } from '@angular/material/dialog';
+import { PageTitleService } from '../../../shared/services/page-title-service';
 
 @Component({
   selector: 'app-supplier-overview',
-  imports: [ DataTable ],
+  imports: [DataTable],
   templateUrl: './supplier-overview.html',
   styleUrl: './supplier-overview.css'
 })
@@ -25,6 +29,9 @@ export class SupplierOverview {
   private getAdvancedSub?: Subscription;
   private blockSub?: Subscription;
   private unblockSub?: Subscription;
+  private routeSub?: Subscription;
+  private addToProductSub?: Subscription;
+  private removeFromProductSub?: Subscription;
 
   data: any[] = [];
   columnsMeta: ColumnMetaData[] = [];
@@ -36,13 +43,27 @@ export class SupplierOverview {
 
   selectedRow: any;
 
-  buttons: ButtonConfig[] = [
+  fromProductId?: number = undefined;
+
+  buttons: ButtonConfig[] = [];
+
+  normalButtons: ButtonConfig[] = [
     { label: 'Add', icon: 'add', action: 'add', color: 'primary', disabled: true },
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
     { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
     { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
-    { label: 'Purchase Orders', icon: 'group', action: 'purchaseorders', color: 'detail', disabled: false },
-    { label: 'Products', icon: 'inventory_2', action: 'products', color: 'detail', disabled: false }
+    { label: 'Purchase Orders', icon: 'group', action: 'purchaseorders', color: 'detail', disabled: true },
+    { label: 'Products', icon: 'inventory_2', action: 'products', color: 'detail', disabled: true }
+  ]
+
+  fromProductButtons: ButtonConfig[] = [
+    { label: 'Add to Product', icon: 'add', action: 'addtoproduct', color: 'primary', disabled: true },
+    { label: 'Remove from Product', icon: 'delete', action: 'removefromproduct', color: 'warn', disabled: true },
+    { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
+    { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
+    { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
+    { label: 'Purchase Orders', icon: 'group', action: 'purchaseorders', color: 'detail', disabled: true },
+    { label: 'Products', icon: 'inventory_2', action: 'products', color: 'detail', disabled: true }
   ]
 
   checkboxOptions: CheckboxData[] = [
@@ -53,17 +74,50 @@ export class SupplierOverview {
 
   constructor(
     private supplierService: SupplierService,
+    private productService: ProductService,
     private router: Router,
+    private route: ActivatedRoute,
     private snackbar: MatSnackBar,
+    private pageTitleService: PageTitleService,
+    private dialog: MatDialog,
     private persistentSnackbar: PersistentSnackbarService,
     private confirmDialogService: ConfirmDialogService,
     private authService: AuthService) { }
 
   ngOnInit() {
+    this.buttons = this.normalButtons;
+
     const addBtn = this.buttons.find(b => b.action === 'add');
     if (addBtn) addBtn.disabled = !this.authService.canAdd("Supplier");
 
-    this.loadColumns();
+    this.loadRouteParams();
+  }
+
+  loadRouteParams() {
+    this.routeSub = this.route.queryParamMap.subscribe(params => {
+      var id = params.get('fromProductId');
+      var name = params.get('fromProductName');
+
+      if (!id) {
+        this.fromProductId = undefined;
+      }
+      else {
+        this.fromProductId = parseInt(id);
+        this.buttons = this.fromProductButtons;
+
+        const addBtn = this.buttons.find(b => b.action == 'addtoproduct');
+        if (addBtn) addBtn.disabled = !this.authService.canAdd("Supplier");
+      }
+
+      if (name) {
+        this.pageTitleService.setTitle('Suppliers for Product: ' + name);
+      }
+      else {
+        this.pageTitleService.setTitle('Suppliers');
+      }
+
+      this.loadColumns();
+    })
   }
 
   ngOnDestroy() {
@@ -71,6 +125,9 @@ export class SupplierOverview {
     this.getAdvancedSub?.unsubscribe();
     this.blockSub?.unsubscribe();
     this.unblockSub?.unsubscribe();
+    this.routeSub?.unsubscribe();
+    this.addToProductSub?.unsubscribe();
+    this.removeFromProductSub?.unsubscribe();
   }
 
   loadColumns() {
@@ -96,6 +153,15 @@ export class SupplierOverview {
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
 
+    if (this.fromProductId) {
+      var fc: FilterCondition = {
+        field: 'ProductId',
+        operator: 'equals',
+        value: this.fromProductId
+      }
+      this.filters.push(fc);
+    }
+
     const query: AdvancedQueryParametersDto = {
       filters: this.filters,
       sorting: sortOptions,
@@ -120,6 +186,12 @@ export class SupplierOverview {
   onRowSelected(row: any) {
     this.selectedRow = row;
 
+    const posBtn = this.buttons.find(b => b.action == 'purchaseorders');
+    if (posBtn) posBtn.disabled = !this.authService.canView('PurchaseOrder');
+    const productsBtn = this.buttons.find(b => b.action == 'products');
+    if (productsBtn) productsBtn.disabled = !this.authService.canView('Product');
+    const removeBtn = this.buttons.find(b => b.action === "removefromproduct");
+    if (removeBtn) removeBtn.disabled = !this.authService.canDelete("Supplier");
     const editBtn = this.buttons.find(b => b.action === 'edit');
     if (editBtn) editBtn.disabled = !this.authService.canEdit("Supplier");
     const blockBtn = this.buttons.find(b => b.action === 'block' || b.action === 'unblock');
@@ -145,6 +217,10 @@ export class SupplierOverview {
       case 'block': this.onBlockClicked(); break;
       case 'unblock': this.onUnblockClicked(); break;
       case 'export': this.onExportClicked(); break;
+      case 'addtoproduct': this.onAddToProductClicked(); break;
+      case 'removefromproduct': this.onRemoveFromProductClicked(); break;
+      case 'products': this.onProductsClicked(); break;
+      case 'purchaseorders': this.onPurchaseOrdersClicked(); break;
       default: break;
     }
   }
@@ -255,11 +331,11 @@ export class SupplierOverview {
   }
 
   onExportClicked() {
-    
+
   }
 
   onExportCsv() {
-   this.export('csv')
+    this.export('csv')
   }
 
   onExportExcel() {
@@ -282,6 +358,79 @@ export class SupplierOverview {
     };
 
     this.supplierService.export(query, format);
+  }
+
+  onAddToProductClicked() {
+    const lookupType = "Supplier";
+
+    var filters: FilterCondition[] = [
+      {
+        field: 'ProductId',
+        operator: '<>',
+        value: this.fromProductId
+      }
+    ];
+
+    const dialogRef = this.dialog.open(LookupDialog, {
+      width: '1000px',
+      height: '800px',
+      maxWidth: '1000px',
+      data: { type: lookupType, filters: filters }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        var productId = this.fromProductId ? this.fromProductId : 0;
+        this.addToProductSub = this.productService.addSupplier(productId, result.id).subscribe({
+          next: () => {
+            this.snackbar.open(`Supplier added to product.`, 'Close', {
+              duration: 3000,
+              horizontalPosition: 'right',
+              verticalPosition: 'top',
+            });
+            this.loadData();
+          },
+          error: (err) => {
+            this.persistentSnackbar.showError('Error while adding supplier to product.');
+          }
+        });
+      }
+    });
+  }
+
+  onRemoveFromProductClicked() {
+    var productId = this.fromProductId ? this.fromProductId : 0;
+    this.removeFromProductSub = this.productService.removeSupplier(productId, this.selectedRow.id).subscribe({
+      next: () => {
+        this.snackbar.open(`Supplier removed from product.`, 'Close', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+        });
+        this.loadData();
+      },
+      error: (err) => {
+        this.persistentSnackbar.showError('Error while removing supplier from product.');
+      }
+    });
+  }
+
+  onProductsClicked() {
+    this.router.navigate(['app/product'], {
+      queryParams: {
+        fromSupplierId: this.selectedRow.id,
+        fromSupplierName: this.selectedRow.name
+      }
+    })
+  }
+
+  onPurchaseOrdersClicked() {
+    this.router.navigate(['app/purchaseorder'], {
+      queryParams: {
+        fromSupplierId: this.selectedRow.id,
+        fromSupplierName: this.selectedRow.name
+      }
+    })
   }
 
   onSortChanged(sort: Sort) {

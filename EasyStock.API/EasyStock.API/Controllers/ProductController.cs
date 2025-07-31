@@ -147,5 +147,23 @@ namespace EasyStock.API.Controllers
 
         }
 
+        [PermissionAuthorize("Supplier", "add")]
+        [HttpPost("addsupplier")]
+        public async Task<ActionResult> AddSupplier(int id, int supplierId)
+        {
+            
+            await _productService.AddSupplierAsync(id, supplierId);
+            return Ok();
+
+        }
+
+        [PermissionAuthorize("Supplier", "delete")]
+        [HttpPost("removesupplier")]
+        public async Task<ActionResult> RemoveSupplier(int id, int supplierId)
+        {
+            await _productService.RemoveSupplierAsync(id, supplierId);
+            return Ok();
+        }
+
     }
 }

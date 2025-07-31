@@ -13,6 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 import { AuthService } from '../../auth/auth-service';
+import { PageTitleService } from '../../../shared/services/page-title-service';
 
 @Component({
   selector: 'app-reception-overview',
@@ -54,11 +55,13 @@ export class ReceptionOverview {
     private receptionService: ReceptionService,
     private router: Router,
     private snackbar: MatSnackBar,
+    private pageTitleService: PageTitleService,
     private persistentSnackbar: PersistentSnackbarService,
     private confirmDialogService: ConfirmDialogService,
     private authService: AuthService) { }
 
   ngOnInit() {
+    this.pageTitleService.setTitle('Receptions');
     const addBtn = this.buttons.find(b => b.action === 'add');
     if (addBtn) addBtn.disabled = !this.authService.canAdd("Reception");
 
@@ -290,7 +293,8 @@ export class ReceptionOverview {
     const id = this.selectedRow.id;
     this.router.navigate(['app/receptionline'], {
       queryParams: {
-        parentId: id
+        parentId: id,
+        parentReceptionNumber: this.selectedRow.receptionNumber
       }
     });
   }

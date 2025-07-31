@@ -8,6 +8,7 @@ import { StockMovementOverviewDto } from './dtos/stock-movement-overview.dto';
 import { CreateStockMovementDto } from './dtos/create-stock-movement.dto';
 import { UpdateStockMovementDto } from './dtos/update-stock-movement.dto';
 import { StockMovementDetailDto } from './dtos/stock-movement-detail.dto';
+import { PageTitleService } from '../../shared/services/page-title-service';
 
 @Injectable({
   providedIn: 'root'

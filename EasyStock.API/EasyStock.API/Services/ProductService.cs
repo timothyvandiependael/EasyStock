@@ -90,5 +90,9 @@ namespace EasyStock.API.Services
             await _repository.UpdateAsync(record);
         }
 
+        public async Task AddSupplierAsync(int id, int supplierId) => await _productRepository.AddSupplierAsync(id, supplierId);
+
+        public async Task RemoveSupplierAsync(int id, int supplierId) => await _productRepository.RemoveSupplierAsync(id, supplierId);
+
     }
 }

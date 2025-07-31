@@ -13,6 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 import { AuthService } from '../../auth/auth-service';
+import { PageTitleService } from '../../../shared/services/page-title-service';
 
 @Component({
   selector: 'app-reception-line-overview',
@@ -38,6 +39,8 @@ export class ReceptionLineOverview {
   selectedRow: any;
 
   receptionId?: number = undefined;
+  fromPurchaseOrderLineId?: number = undefined;
+
 
   buttons: ButtonConfig[] = [
     { label: 'Add', icon: 'add', action: 'add', color: 'primary', disabled: true },
@@ -57,11 +60,13 @@ export class ReceptionLineOverview {
     private router: Router,
     private route: ActivatedRoute,
     private snackbar: MatSnackBar,
+    private pageTitleService: PageTitleService,
     private persistentSnackbar: PersistentSnackbarService,
     private confirmDialogService: ConfirmDialogService,
     private authService: AuthService) { }
 
   ngOnInit() {
+
     const addBtn = this.buttons.find(b => b.action === 'add');
     if (addBtn) addBtn.disabled = !this.authService.canAdd("ReceptionLine");
 
@@ -79,12 +84,20 @@ export class ReceptionLineOverview {
   loadRouteParams() {
     this.routeSub = this.route.queryParamMap.subscribe(params => {
       var id = params.get('parentId');
+      var receptionNumber = params.get('parentReceptionNumber');
 
       if (!id) {
         this.receptionId = undefined;
       }
       else {
         this.receptionId = parseInt(id);
+      }
+
+      if (receptionNumber) {
+        this.pageTitleService.setTitle('Reception Lines for Reception: ' + receptionNumber);
+      }
+      else {
+        this.pageTitleService.setTitle('Reception Lines');
       }
 
       this.loadColumns();

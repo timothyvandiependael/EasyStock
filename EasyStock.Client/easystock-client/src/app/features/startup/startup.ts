@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { PageTitleService } from '../../shared/services/page-title-service';
 
 @Component({
   selector: 'app-startup',
@@ -8,4 +9,9 @@ import { Component } from '@angular/core';
 })
 export class Startup {
 
+  constructor(private pageTitleService: PageTitleService) {};
+
+  ngOnInit() {
+    this.pageTitleService.setTitle('Home');
+  }
 }

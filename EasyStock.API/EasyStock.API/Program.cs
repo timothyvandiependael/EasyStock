@@ -106,6 +106,10 @@ builder.Services.AddScoped<IOrderNumberCounterService, OrderNumberCounterService
 builder.Services.AddScoped<IRetryableTransactionService, RetryableTransactionService>();
 
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
+
+builder.Services.AddScoped<IClientRepository, ClientRepository>();
+builder.Services.AddScoped<IClientService, ClientService>();
 
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 

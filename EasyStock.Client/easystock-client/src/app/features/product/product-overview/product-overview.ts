@@ -7,16 +7,20 @@ import { ColumnMetaData } from '../../../shared/column-meta-data';
 import { Subscription } from 'rxjs';
 import { AdvancedQueryParametersDto, FilterCondition, SortOption } from '../../../shared/query';
 import { DataTable } from '../../../shared/components/data-table/data-table';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CheckboxData } from '../../../shared/checkbox';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 import { AuthService } from '../../auth/auth-service';
+import { PageTitleService } from '../../../shared/services/page-title-service';
+import { SupplierService } from '../../supplier/supplier-service';
+import { LookupDialog } from '../../../shared/components/lookup-dialog/lookup-dialog';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-product-overview',
-  imports: [ DataTable ],
+  imports: [DataTable],
   templateUrl: './product-overview.html',
   styleUrl: './product-overview.css'
 })
@@ -25,6 +29,9 @@ export class ProductOverview {
   private getAdvancedSub?: Subscription;
   private blockSub?: Subscription;
   private unblockSub?: Subscription;
+  private routeSub?: Subscription;
+  private addToSupplierSub?: Subscription;
+  private removeFromSupplierSub?: Subscription;
 
   data: any[] = [];
   columnsMeta: ColumnMetaData[] = [];
@@ -36,12 +43,25 @@ export class ProductOverview {
 
   selectedRow: any;
 
-  buttons: ButtonConfig[] = [
+  fromSupplierId?: number = undefined;
+
+  buttons: ButtonConfig[] = [];
+
+  normalButtons: ButtonConfig[] = [
     { label: 'Add', icon: 'add', action: 'add', color: 'primary', disabled: true },
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
     { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
     { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
-    { label: 'Suppliers', icon: 'group', action: 'suppliers', color: 'detail', disabled: false }
+    { label: 'Suppliers', icon: 'group', action: 'suppliers', color: 'detail', disabled: true }
+  ]
+
+  fromSupplierButtons: ButtonConfig[] = [
+    { label: 'Add to Supplier', icon: 'add', action: 'addtosupplier', color: 'primary', disabled: true },
+    { label: 'Remove from Supplier', icon: 'delete', action: 'removefromsupplier', color: 'warn', disabled: true },
+    { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
+    { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
+    { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
+    { label: 'Suppliers', icon: 'group', action: 'suppliers', color: 'detail', disabled: true }
   ]
 
   checkboxOptions: CheckboxData[] = [
@@ -52,17 +72,50 @@ export class ProductOverview {
 
   constructor(
     private productService: ProductService,
+    private supplierService: SupplierService,
     private router: Router,
+    private route: ActivatedRoute,
     private snackbar: MatSnackBar,
+    private pageTitleService: PageTitleService,
+    private dialog: MatDialog,
     private persistentSnackbar: PersistentSnackbarService,
     private confirmDialogService: ConfirmDialogService,
     private authService: AuthService) { }
 
   ngOnInit() {
+    this.buttons = this.normalButtons;
+
     const addBtn = this.buttons.find(b => b.action === 'add');
     if (addBtn) addBtn.disabled = !this.authService.canAdd("Product");
 
-    this.loadColumns();
+    this.loadRouteParams();
+  }
+
+  loadRouteParams() {
+    this.routeSub = this.route.queryParamMap.subscribe(params => {
+      var id = params.get('fromSupplierId');
+      var name = params.get('fromSupplierName');
+
+      if (!id) {
+        this.fromSupplierId = undefined;
+      }
+      else {
+        this.fromSupplierId = parseInt(id);
+        this.buttons = this.fromSupplierButtons;
+
+        const addBtn = this.buttons.find(b => b.action == 'addtosupplier');
+        if (addBtn) addBtn.disabled = !this.authService.canAdd("Product");
+      }
+
+      if (name) {
+        this.pageTitleService.setTitle('Products for Supplier: ' + name);
+      }
+      else {
+        this.pageTitleService.setTitle('Products');
+      }
+
+      this.loadColumns();
+    })
   }
 
   ngOnDestroy() {
@@ -70,6 +123,9 @@ export class ProductOverview {
     this.getAdvancedSub?.unsubscribe();
     this.blockSub?.unsubscribe();
     this.unblockSub?.unsubscribe();
+    this.routeSub?.unsubscribe();
+    this.addToSupplierSub?.unsubscribe();
+    this.removeFromSupplierSub?.unsubscribe();
   }
 
   loadColumns() {
@@ -95,6 +151,15 @@ export class ProductOverview {
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
 
+    if (this.fromSupplierId) {
+      var fc: FilterCondition = {
+        field: 'SupplierId',
+        operator: 'equals',
+        value: this.fromSupplierId
+      }
+      this.filters.push(fc);
+    }
+
     const query: AdvancedQueryParametersDto = {
       filters: this.filters,
       sorting: sortOptions,
@@ -119,6 +184,10 @@ export class ProductOverview {
   onRowSelected(row: any) {
     this.selectedRow = row;
 
+    const suppliersBtn = this.buttons.find(b => b.action === 'suppliers');
+    if (suppliersBtn) suppliersBtn.disabled = !this.authService.canView("Supplier");
+    const removeBtn = this.buttons.find(b => b.action === "removefromsupplier");
+    if (removeBtn) removeBtn.disabled = !this.authService.canDelete("Product")
     const editBtn = this.buttons.find(b => b.action === 'edit');
     if (editBtn) editBtn.disabled = !this.authService.canEdit("Product");
     const blockBtn = this.buttons.find(b => b.action === 'block' || b.action === 'unblock');
@@ -144,6 +213,9 @@ export class ProductOverview {
       case 'block': this.onBlockClicked(); break;
       case 'unblock': this.onUnblockClicked(); break;
       case 'export': this.onExportClicked(); break;
+      case 'suppliers': this.onSuppliersClicked(); break;
+      case 'addtosupplier': this.onAddToSupplierClicked(); break;
+      case 'removefromsupplier': this.onRemoveFromSupplierClicked(); break;
       default: break;
     }
   }
@@ -254,11 +326,11 @@ export class ProductOverview {
   }
 
   onExportClicked() {
-    
+
   }
 
   onExportCsv() {
-   this.export('csv')
+    this.export('csv')
   }
 
   onExportExcel() {
@@ -281,6 +353,71 @@ export class ProductOverview {
     };
 
     this.productService.export(query, format);
+  }
+
+  onSuppliersClicked() {
+    const id = this.selectedRow.id;
+    this.router.navigate(['app/supplier'], {
+      queryParams: {
+        fromProductId: id,
+        fromProductName: this.selectedRow.name
+      }
+    });
+  }
+
+  onAddToSupplierClicked() {
+    const lookupType = "Product";
+
+    var filters: FilterCondition[] = [
+      {
+        field: 'SupplierId',
+        operator: '<>',
+        value: this.fromSupplierId
+      }
+    ];
+
+    const dialogRef = this.dialog.open(LookupDialog, {
+      width: '1000px',
+      height: '800px',
+      maxWidth: '1000px',
+      data: { type: lookupType, filters: filters }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        var supplierId = this.fromSupplierId ? this.fromSupplierId : 0;
+        this.addToSupplierSub = this.supplierService.addProduct(supplierId, result.id).subscribe({
+          next: () => {
+            this.snackbar.open(`Product added to supplier.`, 'Close', {
+              duration: 3000,
+              horizontalPosition: 'right',
+              verticalPosition: 'top',
+            });
+            this.loadData();
+          },
+          error: (err) => {
+            this.persistentSnackbar.showError('Error while adding product to supplier.');
+          }
+        });
+      }
+    });
+  }
+
+  onRemoveFromSupplierClicked() {
+    var supplierId = this.fromSupplierId ? this.fromSupplierId : 0;
+    this.removeFromSupplierSub = this.supplierService.removeProduct(supplierId, this.selectedRow.id).subscribe({
+      next: () => {
+        this.snackbar.open(`Product removed from supplier.`, 'Close', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+        });
+        this.loadData();
+      },
+      error: (err) => {
+        this.persistentSnackbar.showError('Error while removing product from supplier.');
+      }
+    });
   }
 
   onSortChanged(sort: Sort) {

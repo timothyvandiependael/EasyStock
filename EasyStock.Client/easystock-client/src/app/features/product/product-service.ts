@@ -103,4 +103,12 @@ export class ProductService {
       }
     });
   }
+
+  addSupplier(id: number, supplierId: number) {
+    return this.http.post(this.apiUrl + 'addsupplier?id=' + id + '&supplierId=' + supplierId, null);
+  }
+
+  removeSupplier(id: number, supplierId: number) {
+    return this.http.post(this.apiUrl + 'removesupplier?id=' + id + '&supplierId=' + supplierId, null);
+  }
 }

@@ -13,6 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 import { AuthService } from '../../auth/auth-service';
+import { PageTitleService } from '../../../shared/services/page-title-service';
 
 @Component({
   selector: 'app-sales-order-line-overview',
@@ -58,6 +59,7 @@ export class SalesOrderLineOverview {
     private router: Router,
     private route: ActivatedRoute,
     private snackbar: MatSnackBar,
+    private pageTitleService: PageTitleService,
     private persistentSnackbar: PersistentSnackbarService,
     private confirmDialogService: ConfirmDialogService,
     private authService: AuthService) { }
@@ -80,12 +82,20 @@ export class SalesOrderLineOverview {
   loadRouteParams() {
     this.routeSub = this.route.queryParamMap.subscribe(params => {
       var id = params.get('parentId');
+      var orderNumber = params.get('parentOrderNumber');
 
       if (!id) {
         this.salesOrderId = undefined;
       }
       else {
         this.salesOrderId = parseInt(id);
+      }
+
+      if (orderNumber) {
+        this.pageTitleService.setTitle('Sales Order Lines for Order: ' + orderNumber);
+      }
+      else {
+        this.pageTitleService.setTitle('Sales Order Lines');
       }
 
       this.loadColumns();

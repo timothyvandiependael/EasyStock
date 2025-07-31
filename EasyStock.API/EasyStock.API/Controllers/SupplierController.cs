@@ -16,12 +16,14 @@ namespace EasyStock.API.Controllers
         private readonly IService<Supplier> _service;
         private readonly IMapper _mapper;
         private readonly IExportService<OutputSupplierOverviewDto> _exportService;
+        private readonly ISupplierService _supplierService;
 
-        public SupplierController(IService<Supplier> service, IMapper mapper, IExportService<OutputSupplierOverviewDto> exportService)
+        public SupplierController(IService<Supplier> service, IMapper mapper, IExportService<OutputSupplierOverviewDto> exportService, ISupplierService supplierService)
         {
             _service = service;
             _mapper = mapper;
             _exportService = exportService;
+            _supplierService = supplierService;
         }
 
         [HttpGet]
@@ -101,7 +103,7 @@ namespace EasyStock.API.Controllers
         {
             if (parameters == null || parameters.Filters == null || parameters.Sorting == null) return BadRequest("Missing parameters");
 
-            var result = await _service.GetAdvancedAsync(parameters.Filters, parameters.Sorting, parameters.Pagination);
+            var result = await _supplierService.GetAdvancedAsync(parameters.Filters, parameters.Sorting, parameters.Pagination);
             var dtoItems = _mapper.Map<List<OutputSupplierOverviewDto>>(result.Data);
 
             return Ok(new PaginationResult<OutputSupplierOverviewDto>
@@ -116,7 +118,7 @@ namespace EasyStock.API.Controllers
         {
             if (dto.Parameters == null || dto.Parameters.Filters == null || dto.Parameters.Sorting == null || string.IsNullOrEmpty(dto.Format)) return BadRequest("Missing parameters");
 
-            var result = await _service.GetAdvancedAsync(dto.Parameters.Filters, dto.Parameters.Sorting, null);
+            var result = await _supplierService.GetAdvancedAsync(dto.Parameters.Filters, dto.Parameters.Sorting, null);
             var dtoItems = _mapper.Map<List<OutputSupplierOverviewDto>>(result.Data);
 
             var title = "Suppliers";
@@ -141,6 +143,24 @@ namespace EasyStock.API.Controllers
 
             return File(file, contentType, fileName);
 
+        }
+
+        [PermissionAuthorize("Product", "add")]
+        [HttpPost("addproduct")]
+        public async Task<ActionResult> AddSupplier(int id, int productId)
+        {
+
+            await _supplierService.AddProductAsync(id, productId);
+            return Ok();
+
+        }
+
+        [PermissionAuthorize("Product", "delete")]
+        [HttpPost("removeproduct")]
+        public async Task<ActionResult> RemoveSupplier(int id, int productId)
+        {
+            await _supplierService.RemoveProductAsync(id, productId);
+            return Ok();
         }
 
     }

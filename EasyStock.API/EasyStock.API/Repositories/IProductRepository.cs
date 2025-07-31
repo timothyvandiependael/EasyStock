@@ -7,5 +7,9 @@ namespace EasyStock.API.Repositories
     {
         Task<IEnumerable<ProductOverview>> GetAllAsync();
         Task<PaginationResult<ProductOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination);
+
+        Task AddSupplierAsync(int id, int supplierId);
+
+        Task RemoveSupplierAsync(int id, int supplierId);
     }
 }
