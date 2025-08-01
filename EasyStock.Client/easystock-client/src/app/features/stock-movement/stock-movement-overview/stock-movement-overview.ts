@@ -17,7 +17,7 @@ import { PageTitleService } from '../../../shared/services/page-title-service';
 
 @Component({
   selector: 'app-stock-movement-overview',
-  imports: [ DataTable ],
+  imports: [DataTable],
   templateUrl: './stock-movement-overview.html',
   styleUrl: './stock-movement-overview.css'
 })
@@ -95,6 +95,15 @@ export class StockMovementOverview {
     const sortOptions = direction === 'asc' || direction === 'desc'
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
+
+    var blFilter = this.filters.find(f => f.field == 'BlUserId');
+    if (!blFilter) {
+      var chk = this.checkboxOptions.find(o => o.id == 'showblocked');
+      if (chk) {
+        this.onShowBlockedClicked({ id: 'showblocked', label: 'Show blocked', checked: chk.checked });
+      }
+
+    }
 
     const query: AdvancedQueryParametersDto = {
       filters: this.filters,
@@ -255,11 +264,11 @@ export class StockMovementOverview {
   }
 
   onExportClicked() {
-    
+
   }
 
   onExportCsv() {
-   this.export('csv')
+    this.export('csv')
   }
 
   onExportExcel() {

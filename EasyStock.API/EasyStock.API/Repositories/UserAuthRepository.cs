@@ -1,4 +1,5 @@
-﻿using EasyStock.API.Data;
+﻿using EasyStock.API.Common;
+using EasyStock.API.Data;
 using EasyStock.API.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,6 +33,19 @@ namespace EasyStock.API.Repositories
         {
             await _dbContext.UserAuths.AddAsync(userAuth);
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(UserAuth userAuth)
+        {
+            _dbContext.UserAuths.Update(userAuth);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<Dictionary<string, UserRole>> GetRolesAsync()
+        {
+            return await _dbContext.UserAuths
+                .Select(u => new { u.UserName, u.Role })
+                .ToDictionaryAsync(u => u.UserName, u => u.Role);
         }
     }
 }

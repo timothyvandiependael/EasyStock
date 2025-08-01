@@ -8,6 +8,7 @@ import { DispatchOverviewDto } from './dtos/dispatch-overview.dto';
 import { CreateDispatchDto } from './dtos/create-dispatch.dto';
 import { UpdateDispatchDto } from './dtos/update-dispatch.dto';
 import { DispatchDetailDto } from './dtos/dispatch-detail.dto';
+import { CreateDispatchFromSalesOrderDto } from './dtos/create-dispatch-from-salesorder.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -39,6 +40,10 @@ export class DispatchService {
     add(dto: CreateDispatchDto): Observable<DispatchDetailDto> {
       this.formatBeforePost(dto);
       return this.http.post<DispatchDetailDto>(this.apiUrl, dto);
+    }
+
+    addFromSalesOrder(dto: CreateDispatchFromSalesOrderDto):Observable<DispatchDetailDto> {
+      return this.http.post<DispatchDetailDto>(this.apiUrl + 'fromsalesorder', dto);
     }
   
     getById(id: number) {

@@ -15,13 +15,20 @@ namespace EasyStock.API.Dtos
                 IsSortable = true,
                 DisplayName = "Id"
             },
-            new ColumnMetaData {
+             new ColumnMetaData {
                 Name = "receptionNumber",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,
                 IsSortable = true,
                 DisplayName = "Reception Number",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true
+                },
+                IsLookup = true,
+                LookupIdField = "receptionId",
+                LookupTarget = "Reception"
             },
             new ColumnMetaData {
                 Name = "lineNumber",

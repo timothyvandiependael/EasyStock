@@ -18,7 +18,7 @@ namespace EasyStock.API.Dtos
             new ColumnMetaData {
                 Name = "userName",
                 Type = "string",
-                IsEditable = false,
+                IsEditable = true,
                 IsFilterable = true,
                 IsSortable = true,
                 DisplayName = "User Name",
@@ -27,7 +27,15 @@ namespace EasyStock.API.Dtos
                     MaxLength = 20,
                     Required = true
                 }
-            }
+            },
+            new ColumnMetaData {
+                Name = "role",
+                Type = "string",
+                IsEditable = true,
+                IsFilterable = false,
+                IsSortable = false,
+                DisplayName = "Role"
+            },
         }.Concat(OutputColumnDtoBase.Columns).ToList();
     }
 }

@@ -51,7 +51,7 @@ namespace EasyStock.API.Controllers
         {
             var permissions = await _userPermissionService.GetPermissionsForUser(name);
             if (permissions == null || permissions.Count == 0) return NotFound();
-            var dtos = _mapper.Map<ApplyPermissionDto>(permissions);
+            var dtos = _mapper.Map<List<ApplyPermissionDto>>(permissions);
             return Ok(dtos);
         }
 

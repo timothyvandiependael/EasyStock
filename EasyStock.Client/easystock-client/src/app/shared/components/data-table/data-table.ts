@@ -14,6 +14,7 @@ import { debounceTime } from 'rxjs/operators';
 import { FilterCondition } from '../../query';
 import { DatePipe } from '@angular/common';
 import { CheckboxData } from '../../checkbox';
+import { StringService } from '../../services/string-service';
 
 @Component({
   selector: 'app-data-table',
@@ -65,12 +66,12 @@ export class DataTable {
 
   @ViewChild('dtcontainer') container!: ElementRef<HTMLDivElement>;
 
-  constructor(private datePipe: DatePipe) { }
+  constructor(private datePipe: DatePipe, private stringService: StringService) { }
 
   ngOnInit() {
     this.filterColumns = this.columnsMeta.map(c => 'filter_' + c.name);
     this.filterSubject.pipe(debounceTime(300)).subscribe(() => {
-      const filterPayload: FilterCondition[] = Object.entries(this.filters)
+      var filterPayload: FilterCondition[] = Object.entries(this.filters)
         .filter(([_, val]) => {
           // For booleans, skip 'All'
           if (val.operator === 'All') return false;
@@ -81,6 +82,12 @@ export class DataTable {
           operator: val.operator,
           value: val.value
         } as FilterCondition));
+
+      for (var i = 0; i < filterPayload.length; i++) {
+        var fil = filterPayload[i];
+        fil.field = this.stringService.toUpperFirst(fil.field);
+        fil.operator = fil.operator.toLowerCase();
+      }
 
       this.filterChanged.emit(filterPayload);
     });

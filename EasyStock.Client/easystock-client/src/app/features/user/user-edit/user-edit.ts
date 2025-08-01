@@ -107,27 +107,43 @@ export class UserEdit {
   }
 
   handleSaveNewAndExit(user: CreateUserDto) {
-    this.saveNewExitSub = this.userService.add(user).subscribe({
-      next: (saved: UserDetailDto) => {
-        this.selectedUser = undefined;
-        this.snackBar.open(`${saved.userName} saved`, 'Close', {
-          duration: 3000, // 3 seconds
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
-        });
-        this.router.navigate(['app/user']);
-      },
-      error: (err) => {
-        console.error('Error saving user ', err);
-        this.persistentSnackbar.showError(`Error saving ${user.userName}. If the problem persists, please contact support.`);
-      }
-    })
+    if (user.role == "Regular") {
+      this.router.navigate(['app/user/permission'], {
+        queryParams: {
+          userName: user.userName,
+          userRole: user.role,
+          newMode: true
+        }
+      })
+    }
+    else {
+      this.saveNewExitSub = this.userService.add(user).subscribe({
+        next: (pwData) => {
+          this.selectedUser = undefined;
+          debugger;
+          this.persistentSnackbar.showMessage(`User ${user.userName} added. Provide temporary password to user (warning: this password is only visible once here): ${pwData.password}`);
+          this.router.navigate(['app/user']);
+
+        },
+        error: (err) => {
+          if (err.error?.errors?.userName) {
+            this.persistentSnackbar.showError(`Username already exists.`);
+          }
+          else {
+            this.persistentSnackbar.showError(`Error saving ${user.userName}. If the problem persists, please contact support.`);
+          }
+
+        }
+      })
+    }
+
+
   }
 
   handleSaveAndExit(user: UpdateUserDto) {
     this.saveExitSub = this.userService.edit(user.id, user).subscribe({
       next: () => {
-        this.snackBar.open(`${user.userName} updated`, 'Close', {
+        this.snackBar.open(`User updated`, 'Close', {
           duration: 3000, // 3 seconds
           horizontalPosition: 'right',
           verticalPosition: 'top',

@@ -19,7 +19,7 @@ export class UserPermissionService {
   constructor(private http: HttpClient) {}
 
   getForUser(name: string) {
-    return this.http.get<ApplyPermissionDto[]>(this.apiUrl + 'getforuser?name=' + name);
+    return this.http.get<ApplyPermissionDto[]>(this.apiUrl + 'getforuser/' + name);
   }
 
    getColumns(): Observable<ColumnMetaData[]> {

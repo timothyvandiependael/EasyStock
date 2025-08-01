@@ -16,6 +16,10 @@ import { SalesOrderLineService } from '../../../features/sales-order-line/sales-
 
 import { PersistentSnackbarService } from '../../services/persistent-snackbar.service';
 import { PageEvent } from '@angular/material/paginator';
+import { PurchaseOrderService } from '../../../features/purchase-order/purchase-order-service';
+import { SalesOrderService } from '../../../features/sales-order/sales-order-service';
+import { ReceptionService } from '../../../features/reception/reception-service';
+import { DispatchService } from '../../../features/dispatch/dispatch-service';
 
 
 @Component({
@@ -56,13 +60,16 @@ export class LookupDialog {
     private supplierService: SupplierService,
     private purchaseOrderLineService: PurchaseOrderLineService,
     private salesOrderLineService: SalesOrderLineService,
+    private purchaseOrderService: PurchaseOrderService,
+    private salesOrderService: SalesOrderService,
+    private receptionService: ReceptionService,
+    private dispatchService: DispatchService,
     private persistentSnackbar: PersistentSnackbarService,
     private dialogRef: MatDialogRef<LookupDialog>,
     @Inject(MAT_DIALOG_DATA) public dataInput: { type: string, filters: FilterCondition[] }
   ) { }
 
   ngOnInit(): void {
-    debugger;
     if (this.dataInput.type.toLowerCase() == 'salesorderline' || this.dataInput.type.toLowerCase() == 'purchaseorderline') {
       this.columnsMeta = [
         {
@@ -97,7 +104,55 @@ export class LookupDialog {
         }
       ];
 
-      this.displayedColumns = [ 'orderNumber', 'lineNumber', 'productName'];
+      this.displayedColumns = ['orderNumber', 'lineNumber', 'productName'];
+    }
+    else if (this.dataInput.type.toLowerCase() == 'salesorder' || this.dataInput.type.toLowerCase() == 'purchaseorder') {
+      this.columnsMeta = [
+        {
+          name: 'orderNumber',
+          displayName: 'Order',
+          type: 'string',
+          isSortable: true,
+          isFilterable: true,
+          isEditable: false,
+          isLookup: false,
+          isOnlyDetail: false
+        }
+      ];
+
+      this.displayedColumns = ['orderNumber'];
+    }
+    else if (this.dataInput.type.toLowerCase() == 'reception') {
+      this.columnsMeta = [
+        {
+          name: 'receptionNumber',
+          displayName: 'Order',
+          type: 'string',
+          isSortable: true,
+          isFilterable: true,
+          isEditable: false,
+          isLookup: false,
+          isOnlyDetail: false
+        }
+      ];
+
+      this.displayedColumns = ['receptionNumber'];
+    }
+    else if (this.dataInput.type.toLowerCase() == 'dispatch') {
+      this.columnsMeta = [
+        {
+          name: 'dispatchNumber',
+          displayName: 'Order',
+          type: 'string',
+          isSortable: true,
+          isFilterable: true,
+          isEditable: false,
+          isLookup: false,
+          isOnlyDetail: false
+        }
+      ];
+
+      this.displayedColumns = ['dispatchNumber'];
     }
     else {
       this.columnsMeta = [
@@ -113,7 +168,7 @@ export class LookupDialog {
         }
       ]
 
-      this.displayedColumns = [ 'name' ];
+      this.displayedColumns = ['name'];
     }
 
     switch (this.dataInput.type.toLowerCase()) {
@@ -123,6 +178,10 @@ export class LookupDialog {
       case 'category': this.activeService = this.categoryService; break;
       case 'purchaseorderline': this.activeService = this.purchaseOrderLineService; break;
       case 'salesorderline': this.activeService = this.salesOrderLineService; break;
+      case 'purchaseorder': this.activeService = this.purchaseOrderService; break;
+      case 'salesorder': this.activeService = this.salesOrderService; break;
+      case 'reception': this.activeService = this.receptionService; break;
+      case 'dispatch': this.activeService = this.dispatchService; break;
       default:
         console.error('Unknown lookup type', this.dataInput.type);
         return;

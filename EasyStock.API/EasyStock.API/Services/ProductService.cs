@@ -35,6 +35,14 @@ namespace EasyStock.API.Services
             return product.MinimumStock > product.AvailableStock;
         }
 
+        public async Task<bool> IsProductOrderedEnough(int id)
+        {
+            var product = await _repository.GetByIdAsync(id);
+            if (product == null)
+                throw new Exception($"Product with id {id} not found.");
+            return product.InboundStock + product.AvailableStock >= product.MinimumStock;
+        }
+
         public async Task UpdateAsync(Product product, string userName, bool useTransaction = true)
         {
             if (useTransaction) {

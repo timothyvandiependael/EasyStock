@@ -36,9 +36,9 @@ export class UserService {
       
     }
   
-    add(dto: CreateUserDto): Observable<UserDetailDto> {
+    add(dto: CreateUserDto): Observable<any> {
       this.formatBeforePost(dto);
-      return this.http.post<UserDetailDto>(this.apiUrl, dto);
+      return this.http.post<any>(this.apiUrl, dto);
     }
   
     getById(id: number) {

@@ -22,6 +22,13 @@ namespace EasyStock.API.Dtos
                 IsFilterable = true,
                 IsSortable = true,
                 DisplayName = "Order Number",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true
+                },
+                IsLookup = true,
+                LookupIdField = "purchaseOrderId",
+                LookupTarget = "PurchaseOrder"
             },
             new ColumnMetaData {
                 Name = "lineNumber",

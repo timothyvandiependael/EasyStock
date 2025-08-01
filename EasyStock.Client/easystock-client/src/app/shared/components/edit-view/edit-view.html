@@ -29,10 +29,20 @@
     </div>
     }
     @else {
+    @if (col.name == "role") {
+    <select [formControlName]="col.name"
+      class="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      <option value="Admin">Admin</option>
+      <option value="Regular">Regular</option>
+    </select>
+    }
+    @else {
     <input [type]="mapType(col.type)" [formControlName]="col.name"
       [ngClass]="mapType(col.type) === 'checkbox' 
     ? 'h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500' 
     : 'border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'" />
+    }
+
 
     @if (form.get(col.name)?.touched && form.get(col.name)?.errors) {
     <div class="mt-2 rounded-md border border-red-400 bg-red-50 p-3">
@@ -63,7 +73,12 @@
       }
       @if (form.get(col.name)?.errors?.['max']) {
       <div class="text-sm text-red-600 font-medium">
-        Value must be at most {{ col.validationRules?.max }}.
+        Value must be at most {{ this.maxQuantity }}.
+      </div>
+      }
+      @if (form.get(col.name)?.errors?.['maxQuantity']) {
+      <div class="text-sm text-red-600 font-medium">
+        Value must be at most {{ this.maxQuantity }}.
       </div>
       }
       @if (form.get(col.name)?.errors?.['email']) {
@@ -115,16 +130,18 @@
     </button>
     }
     @else {
+    @if (parentType != 'user') {
     <!-- Save & Add Another -->
     <button type="button" (click)="onSaveAndAddAnother()"
       class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
       Save & Add Another
     </button>
+    }
 
     <!-- Save & Exit -->
     <button type="button" (click)="onSaveNewAndExit()"
       class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-      Save & Return
+      {{ parentType == 'user' ? 'Save' : 'Save & Return' }}
     </button>
 
     <!-- Cancel -->

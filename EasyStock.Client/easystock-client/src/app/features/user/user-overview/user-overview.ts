@@ -17,7 +17,7 @@ import { PageTitleService } from '../../../shared/services/page-title-service';
 
 @Component({
   selector: 'app-user-overview',
-  imports: [ DataTable ],
+  imports: [DataTable],
   templateUrl: './user-overview.html',
   styleUrl: './user-overview.css'
 })
@@ -42,7 +42,7 @@ export class UserOverview {
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
     { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
     { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
-    { label: 'Permissions', icon: 'lock_person', action: 'permissions', color: 'detail', disabled: false }
+    { label: 'Permissions', icon: 'lock_person', action: 'permissions', color: 'detail', disabled: true }
   ]
 
   checkboxOptions: CheckboxData[] = [
@@ -98,6 +98,15 @@ export class UserOverview {
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
 
+    var blFilter = this.filters.find(f => f.field == 'BlUserId');
+    if (!blFilter) {
+      var chk = this.checkboxOptions.find(o => o.id == 'showblocked');
+      if (chk) {
+        this.onShowBlockedClicked({ id: 'showblocked', label: 'Show blocked', checked: chk.checked });
+      }
+
+    }
+
     const query: AdvancedQueryParametersDto = {
       filters: this.filters,
       sorting: sortOptions,
@@ -122,6 +131,8 @@ export class UserOverview {
   onRowSelected(row: any) {
     this.selectedRow = row;
 
+    const permBtn = this.buttons.find(b => b.action === 'permissions');
+    if (permBtn) permBtn.disabled = !(this.authService.canEdit("User") && this.selectedRow.role == "Regular");
     const editBtn = this.buttons.find(b => b.action === 'edit');
     if (editBtn) editBtn.disabled = !this.authService.canEdit("User");
     const blockBtn = this.buttons.find(b => b.action === 'block' || b.action === 'unblock');
@@ -147,6 +158,7 @@ export class UserOverview {
       case 'block': this.onBlockClicked(); break;
       case 'unblock': this.onUnblockClicked(); break;
       case 'export': this.onExportClicked(); break;
+      case 'permissions': this.onPermissionsClicked(); break;
       default: break;
     }
   }
@@ -210,7 +222,7 @@ export class UserOverview {
   executeBlock(id: number) {
     this.blockSub = this.userService.block(id).subscribe({
       next: () => {
-        this.snackbar.open(`${this.selectedRow.name} blocked`, 'Close', {
+        this.snackbar.open(`${this.selectedRow.userName} blocked`, 'Close', {
           duration: 3000,
           horizontalPosition: 'right',
           verticalPosition: 'top',
@@ -220,7 +232,7 @@ export class UserOverview {
       error: (err) => {
         console.error(err);
 
-        this.persistentSnackbar.showError(`Error blocking ${this.selectedRow.name}. If the problem persists, please contact support.`);
+        this.persistentSnackbar.showError(`Error blocking ${this.selectedRow.userName}. If the problem persists, please contact support.`);
       }
     })
   }
@@ -241,7 +253,7 @@ export class UserOverview {
   executeUnblock(id: number) {
     this.unblockSub = this.userService.unblock(id).subscribe({
       next: () => {
-        this.snackbar.open(`${this.selectedRow.name} unblocked`, 'Close', {
+        this.snackbar.open(`${this.selectedRow.userName} unblocked`, 'Close', {
           duration: 3000,
           horizontalPosition: 'right',
           verticalPosition: 'top',
@@ -251,17 +263,17 @@ export class UserOverview {
       error: (err) => {
         console.error(err);
 
-        this.persistentSnackbar.showError(`Error unblocking ${this.selectedRow.name}. If the problem persists, please contact support.`);
+        this.persistentSnackbar.showError(`Error unblocking ${this.selectedRow.userName}. If the problem persists, please contact support.`);
       }
     })
   }
 
   onExportClicked() {
-    
+
   }
 
   onExportCsv() {
-   this.export('csv')
+    this.export('csv')
   }
 
   onExportExcel() {
@@ -284,6 +296,16 @@ export class UserOverview {
     };
 
     this.userService.export(query, format);
+  }
+
+  onPermissionsClicked() {
+    this.router.navigate(['app/user/permission'], {
+      queryParams: {
+        userId: this.selectedRow.id,
+        userName: this.selectedRow.userName,
+        userRole: this.selectedRow.role
+      }
+    })
   }
 
   onSortChanged(sort: Sort) {

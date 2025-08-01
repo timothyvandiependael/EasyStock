@@ -8,6 +8,7 @@ import { SalesOrderLineOverviewDto } from './dtos/sales-order-line-overview.dto'
 import { CreateSalesOrderLineDto } from './dtos/create-sales-order-line.dto';
 import { UpdateSalesOrderLineDto } from './dtos/update-sales-order-line.dto';
 import { SalesOrderLineDetailDto } from './dtos/sales-order-line-detail.dto';
+import { AutoRestockDto } from '../../shared/autorestock.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -37,18 +38,18 @@ export class SalesOrderLineService {
       if (!salesOrderLine.unitPrice) salesOrderLine.unitPrice = 0;
     }
   
-    add(dto: CreateSalesOrderLineDto): Observable<SalesOrderLineDetailDto> {
+    add(dto: CreateSalesOrderLineDto): Observable<AutoRestockDto> {
       this.formatBeforePost(dto);
-      return this.http.post<SalesOrderLineDetailDto>(this.apiUrl, dto);
+      return this.http.post<AutoRestockDto>(this.apiUrl, dto);
     }
   
     getById(id: number) {
       return this.http.get<SalesOrderLineDetailDto>(this.apiUrl + 'id/' + id);
     }
   
-    edit(id: number, dto: UpdateSalesOrderLineDto) {
+    edit(id: number, dto: UpdateSalesOrderLineDto): Observable<AutoRestockDto> {
       this.formatBeforePost(dto);
-      return this.http.put<void>(this.apiUrl + id, dto);
+      return this.http.put<AutoRestockDto>(this.apiUrl + id, dto);
     }
   
     block(id: number) {

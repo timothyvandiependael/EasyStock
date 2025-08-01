@@ -1,4 +1,5 @@
-﻿using EasyStock.API.Models;
+﻿using EasyStock.API.Common;
+using EasyStock.API.Models;
 namespace EasyStock.API.Repositories
 {
     public interface IUserAuthRepository
@@ -7,5 +8,7 @@ namespace EasyStock.API.Repositories
         Task<UserAuth?> GetByIdAsync(int id);
         Task SaveChangesAsync();
         Task AddAsync(UserAuth userAuth);
+        Task UpdateAsync(UserAuth userAuth);
+        Task<Dictionary<string, UserRole>> GetRolesAsync();
     }
 }

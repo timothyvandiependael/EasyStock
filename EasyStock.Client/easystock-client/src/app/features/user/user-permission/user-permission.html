@@ -1,0 +1,32 @@
+<form [formGroup]="form" class="space-y-4">
+  <div class="grid grid-cols-5 gap-4 font-semibold border-b pb-2">
+    <div>Module</div>
+    <div>View</div>
+    <div>Add</div>
+    <div>Edit</div>
+    <div>Delete</div>
+  </div>
+
+  <div formArrayName="permissions">
+    @for (permission of permissionsArray.controls; track $index) {
+    <div class="grid grid-cols-5 items-center gap-4 border-b py-2" [formGroupName]="$index">
+      <div><label>
+          {{ permission.get('resource')?.value }}
+        </label></div>
+      <div><input type="checkbox" formControlName="canView" /></div>
+      <div><input type="checkbox" formControlName="canAdd" /></div>
+      <div><input type="checkbox" formControlName="canEdit" /></div>
+      <div><input type="checkbox" formControlName="canDelete" /></div>
+    </div>
+    }
+  </div>
+
+  <div class="mt-6 flex justify-end space-x-3">
+    <button type="button" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" (click)="save()">
+      Save
+    </button>
+    <button type="button" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300" (click)="cancel()">
+      Cancel
+    </button>
+  </div>
+</form>

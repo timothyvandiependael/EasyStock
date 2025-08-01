@@ -135,6 +135,17 @@ namespace EasyStock.API.Services
             return pw;
         }
 
+        public async Task UpdateRoleAsync(User user, UserRole role, string userName)
+        {
+            var userAuth = await _userAuthRepository.GetByUserNameAsync(user.UserName);
+            if (userAuth == null) throw new Exception("User auth record not found.");
+            userAuth.Role = role;
+            userAuth.LcDate = DateTime.UtcNow;
+            userAuth.LcUserId = userName;
+
+            await _userAuthRepository.UpdateAsync(userAuth);
+        }
+
         private string GenerateTempPassword(int length = 12)
         {
             const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@$?_-";
@@ -150,11 +161,21 @@ namespace EasyStock.API.Services
             return new string(password);
         }
 
+        public async Task<UserRole> GetRoleAsync(string userName)
+        {
+            var user = await _userAuthRepository.GetByUserNameAsync(userName);
+            if (user == null) throw new Exception("User not found.");
+            return user.Role;
+        }
+
         public async Task<bool> UserExists(string userName)
         {
             var user = await _userAuthRepository.GetByUserNameAsync(userName);
             if (user == null) return false;
             return true;
         }
+
+        public async Task<Dictionary<string, UserRole>> GetRolesAsync()
+            => await _userAuthRepository.GetRolesAsync();
     }
 }

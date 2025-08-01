@@ -39,6 +39,7 @@ export class DispatchLineOverview {
   selectedRow: any;
 
   dispatchId?: number = undefined;
+  dispatchNumber?: string = undefined;
   fromSalesOrderLineId?: number = undefined;
 
   buttons: ButtonConfig[] = [];
@@ -114,12 +115,14 @@ export class DispatchLineOverview {
 
       if (dispatchNumber) {
         this.pageTitleService.setTitle('Dispatch Lines for Dispatch: ' + dispatchNumber);
+        this.dispatchNumber = dispatchNumber;
       }
       else if (fromOrderNumber) {
         this.pageTitleService.setTitle('Dispatch Lines for Sales Order Line: ' + fromOrderNumber);
       }
       else {
         this.pageTitleService.setTitle('Dispatch Lines');
+        this.dispatchNumber = undefined;
       }
 
       this.loadColumns();
@@ -149,6 +152,15 @@ export class DispatchLineOverview {
     const sortOptions = direction === 'asc' || direction === 'desc'
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
+
+    var blFilter = this.filters.find(f => f.field == 'BlUserId');
+    if (!blFilter) {
+      var chk = this.checkboxOptions.find(o => o.id == 'showblocked');
+      if (chk) {
+        this.onShowBlockedClicked({ id: 'showblocked', label: 'Show blocked', checked: chk.checked });
+      }
+
+    }
 
     if (this.dispatchId) {
       var fc: FilterCondition = {
@@ -254,7 +266,8 @@ export class DispatchLineOverview {
     if (this.dispatchId) {
       this.router.navigate(['app/dispatchline/edit', 'add'], {
         queryParams: {
-          parentId: this.dispatchId
+          parentId: this.dispatchId,
+          parentNumber: this.dispatchNumber
         }
       });
     }

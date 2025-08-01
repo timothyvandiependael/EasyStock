@@ -39,13 +39,14 @@ export class SalesOrderLineOverview {
   selectedRow: any;
 
   salesOrderId?: number = undefined;
+  salesOrderNumber?: string = undefined;
 
   buttons: ButtonConfig[] = [
     { label: 'Add', icon: 'add', action: 'add', color: 'primary', disabled: true },
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
     { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
     { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
-    { label: 'Dispatch Lines', icon: 'group', action: 'dispatchlines', color: 'detail', disabled: false }
+    { label: 'Dispatch Lines', icon: 'group', action: 'dispatchlines', color: 'detail', disabled: true }
   ]
 
   checkboxOptions: CheckboxData[] = [
@@ -93,9 +94,11 @@ export class SalesOrderLineOverview {
 
       if (orderNumber) {
         this.pageTitleService.setTitle('Sales Order Lines for Order: ' + orderNumber);
+        this.salesOrderNumber = orderNumber;
       }
       else {
         this.pageTitleService.setTitle('Sales Order Lines');
+        this.salesOrderNumber = undefined;
       }
 
       this.loadColumns();
@@ -125,6 +128,15 @@ export class SalesOrderLineOverview {
     const sortOptions = direction === 'asc' || direction === 'desc'
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
+
+    var blFilter = this.filters.find(f => f.field == 'BlUserId');
+    if (!blFilter) {
+      var chk = this.checkboxOptions.find(o => o.id == 'showblocked');
+      if (chk) {
+        this.onShowBlockedClicked({ id: 'showblocked', label: 'Show blocked', checked: chk.checked });
+      }
+
+    }
 
     if (this.salesOrderId) {
       var fc: FilterCondition = {
@@ -159,6 +171,8 @@ export class SalesOrderLineOverview {
   onRowSelected(row: any) {
     this.selectedRow = row;
 
+    const dspBtn = this.buttons.find(b => b.action === 'dispatchlines');
+    if (dspBtn) dspBtn.disabled = !this.authService.canView("DispatchLine");
     const editBtn = this.buttons.find(b => b.action === 'edit');
     if (editBtn) editBtn.disabled = !this.authService.canEdit("SalesOrderLine");
     const blockBtn = this.buttons.find(b => b.action === 'block' || b.action === 'unblock');
@@ -184,6 +198,7 @@ export class SalesOrderLineOverview {
       case 'block': this.onBlockClicked(); break;
       case 'unblock': this.onUnblockClicked(); break;
       case 'export': this.onExportClicked(); break;
+      case 'dispatchlines': this.onDispatchLinesClicked(); break;
       default: break;
     }
   }
@@ -221,7 +236,8 @@ export class SalesOrderLineOverview {
     if (this.salesOrderId) {
       this.router.navigate(['app/salesorderline/edit', 'add'], {
         queryParams: {
-          parentId: this.salesOrderId
+          parentId: this.salesOrderId,
+          parentNumber: this.salesOrderNumber
         }
       });
     }
@@ -331,6 +347,15 @@ export class SalesOrderLineOverview {
     };
 
     this.salesOrderLineService.export(query, format);
+  }
+
+  onDispatchLinesClicked() {
+    this.router.navigate(['app/dispatchline'], {
+      queryParams: {
+        fromSalesOrderLineId: this.selectedRow.id,
+        fromOrderNumber: this.selectedRow.orderNumber + "/" + this.selectedRow.lineNumber
+      }
+    })
   }
 
   onSortChanged(sort: Sort) {

@@ -39,6 +39,7 @@ export class PurchaseOrderLineOverview {
   selectedRow: any;
 
   purchaseOrderId?: number = undefined;
+  purchaseOrderNumber?: string = undefined;
 
   buttons: ButtonConfig[] = [
     { label: 'Add', icon: 'add', action: 'add', color: 'primary', disabled: true },
@@ -93,9 +94,11 @@ export class PurchaseOrderLineOverview {
 
       if (!purchaseOrderNumber) {
         this.pageTitleService.setTitle('Purchase Order Lines');
+        this.purchaseOrderNumber = undefined;
       }
       else {
         this.pageTitleService.setTitle('Purchase Order Lines for Order: ' + purchaseOrderNumber);
+        this.purchaseOrderNumber = purchaseOrderNumber;
       }
 
 
@@ -126,6 +129,15 @@ export class PurchaseOrderLineOverview {
     const sortOptions = direction === 'asc' || direction === 'desc'
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
+
+    var blFilter = this.filters.find(f => f.field == 'BlUserId');
+    if (!blFilter) {
+      var chk = this.checkboxOptions.find(o => o.id == 'showblocked');
+      if (chk) {
+        this.onShowBlockedClicked({ id: 'showblocked', label: 'Show blocked', checked: chk.checked });
+      }
+
+    }
 
     if (this.purchaseOrderId) {
       var fc: FilterCondition = {
@@ -225,7 +237,8 @@ export class PurchaseOrderLineOverview {
     if (this.purchaseOrderId) {
       this.router.navigate(['app/purchaseorderline/edit', 'add'], {
         queryParams: {
-          parentId: this.purchaseOrderId
+          parentId: this.purchaseOrderId,
+          parentNumber: this.purchaseOrderNumber
         }
       });
     }
@@ -341,7 +354,7 @@ export class PurchaseOrderLineOverview {
     this.router.navigate(['app/receptionline'], {
       queryParams: {
         fromPurchaseOrderLineId: this.selectedRow.id,
-        fromOrderNumber: this.selectedRow.orderNumber
+        fromOrderNumber: this.selectedRow.orderNumber + "/" + this.selectedRow.lineNumber
       }
     })
   }

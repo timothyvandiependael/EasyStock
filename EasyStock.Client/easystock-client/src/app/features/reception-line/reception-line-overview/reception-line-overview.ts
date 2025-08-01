@@ -39,11 +39,19 @@ export class ReceptionLineOverview {
   selectedRow: any;
 
   receptionId?: number = undefined;
+  receptionNumber?: string = undefined;
   fromPurchaseOrderLineId?: number = undefined;
 
+  buttons: ButtonConfig[] = [];
 
-  buttons: ButtonConfig[] = [
+  normalButtons: ButtonConfig[] = [
     { label: 'Add', icon: 'add', action: 'add', color: 'primary', disabled: true },
+    { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
+    { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
+    { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false }
+  ]
+
+  fromPurchaseOrderLineButtons: ButtonConfig[] = [
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
     { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
     { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false }
@@ -66,6 +74,7 @@ export class ReceptionLineOverview {
     private authService: AuthService) { }
 
   ngOnInit() {
+    this.buttons = this.normalButtons;
 
     const addBtn = this.buttons.find(b => b.action === 'add');
     if (addBtn) addBtn.disabled = !this.authService.canAdd("ReceptionLine");
@@ -86,6 +95,9 @@ export class ReceptionLineOverview {
       var id = params.get('parentId');
       var receptionNumber = params.get('parentReceptionNumber');
 
+      var fromPurchaseOrderLineId = params.get('fromPurchaseOrderLineId');
+      var fromOrderNumber = params.get('fromOrderNumber');
+
       if (!id) {
         this.receptionId = undefined;
       }
@@ -93,10 +105,23 @@ export class ReceptionLineOverview {
         this.receptionId = parseInt(id);
       }
 
-      if (receptionNumber) {
-        this.pageTitleService.setTitle('Reception Lines for Reception: ' + receptionNumber);
+      if (fromPurchaseOrderLineId) {
+        this.fromPurchaseOrderLineId = parseInt(fromPurchaseOrderLineId);
+        this.buttons = this.fromPurchaseOrderLineButtons;
       }
       else {
+        this.fromPurchaseOrderLineId = undefined;
+      }
+
+      if (receptionNumber) {
+        this.pageTitleService.setTitle('Reception Lines for Reception: ' + receptionNumber);
+        this.receptionNumber = receptionNumber;
+      }
+      else if (fromOrderNumber) {
+        this.pageTitleService.setTitle('Reception Lines for Purchase Order Line: ' + fromOrderNumber);
+      }
+      else {
+        this.receptionNumber = undefined;
         this.pageTitleService.setTitle('Reception Lines');
       }
 
@@ -128,12 +153,29 @@ export class ReceptionLineOverview {
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
 
+    var blFilter = this.filters.find(f => f.field == 'BlUserId');
+    if (!blFilter) {
+      var chk = this.checkboxOptions.find(o => o.id == 'showblocked');
+      if (chk) {
+        this.onShowBlockedClicked({ id: 'showblocked', label: 'Show blocked', checked: chk.checked });
+      }
+
+    }
 
     if (this.receptionId) {
       var fc: FilterCondition = {
         field: 'ReceptionId',
         operator: 'equals',
         value: this.receptionId
+      }
+      this.filters.push(fc);
+    }
+
+    if (this.fromPurchaseOrderLineId) {
+      var fc: FilterCondition = {
+        field: 'PurchaseOrderLineId',
+        operator: 'equals',
+        value: this.fromPurchaseOrderLineId
       }
       this.filters.push(fc);
     }
@@ -224,7 +266,8 @@ export class ReceptionLineOverview {
     if (this.receptionId) {
       this.router.navigate(['app/receptionline/edit', 'add'], {
         queryParams: {
-          parentId: this.receptionId
+          parentId: this.receptionId,
+          parentNumber: this.receptionNumber
         }
       });
     }

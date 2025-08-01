@@ -17,13 +17,15 @@ namespace EasyStock.API.Controllers
         private readonly IMapper _mapper;
         private readonly IAuthService _authService;
         private readonly IExportService<OutputUserOverviewDto> _exportService;
+        private readonly IUserService _userService;
 
-        public UserController(IService<User> service, IMapper mapper, IAuthService authService, IExportService<OutputUserOverviewDto> exportService)
+        public UserController(IService<User> service, IMapper mapper, IAuthService authService, IExportService<OutputUserOverviewDto> exportService, IUserService userService)
         {
             _service = service;
             _mapper = mapper;
             _authService = authService;
             _exportService = exportService;
+            _userService = userService;
         }
 
         [PermissionAuthorize("User", "view")]
@@ -42,6 +44,8 @@ namespace EasyStock.API.Controllers
             var entity = await _service.GetByIdAsync(id);
             if (entity == null) return NotFound();
             var dto = _mapper.Map<OutputUserDetailDto>(entity);
+
+            dto.Role = (await _authService.GetRoleAsync(dto.UserName)).ToString();
             dto.Permissions = _mapper.Map<List<OutputUserPermissionOverviewDto>>(entity.Permissions);
             return Ok(dto);
         }
@@ -67,11 +71,10 @@ namespace EasyStock.API.Controllers
             var entity = _mapper.Map<User>(dto);
             entity.Permissions = _mapper.Map<List<UserPermission>>(dto.Permissions);
 
-            await _service.AddAsync(entity, HttpContext.User.Identity!.Name!);
+            await _userService.AddAsync(entity, HttpContext.User.Identity!.Name!);
 
             var pw = await _authService.AddAsync(entity, Enum.Parse<UserRole>(dto.Role), HttpContext.User.Identity!.Name!);
 
-            var resultDto = _mapper.Map<OutputUserDetailDto>(entity);
             return Ok(new { password = pw });
         }
 
@@ -81,7 +84,8 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null || dto.Id != id) return BadRequest();
             var entity = _mapper.Map<User>(dto);
-            await _service.UpdateAsync(entity, HttpContext.User.Identity!.Name!);
+            await _userService.UpdateAsync(entity, HttpContext.User.Identity!.Name!);
+            await _authService.UpdateRoleAsync(entity, Enum.Parse<UserRole>(dto.Role), HttpContext.User.Identity!.Name!);
 
             return NoContent();
         }
@@ -98,7 +102,7 @@ namespace EasyStock.API.Controllers
         [HttpPost("block")]
         public async Task<ActionResult> Block(int id)
         {
-            await _service.BlockAsync(id, HttpContext.User.Identity!.Name!);
+            await _userService.BlockAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 
@@ -106,7 +110,7 @@ namespace EasyStock.API.Controllers
         [HttpPost("unblock")]
         public async Task<ActionResult> Unblock(int id)
         {
-            await _service.UnblockAsync(id, HttpContext.User.Identity!.Name!);
+            await _userService.UnblockAsync(id, HttpContext.User.Identity!.Name!);
             return NoContent();
         }
 
@@ -118,6 +122,13 @@ namespace EasyStock.API.Controllers
 
             var result = await _service.GetAdvancedAsync(parameters.Filters, parameters.Sorting, parameters.Pagination);
             var dtoItems = _mapper.Map<List<OutputUserOverviewDto>>(result.Data);
+
+            var userRoles = await _authService.GetRolesAsync();
+
+            foreach (var dto in dtoItems)
+            {
+                dto.Role = userRoles[dto.UserName].ToString();
+            }
 
             return Ok(new PaginationResult<OutputUserOverviewDto>
             {

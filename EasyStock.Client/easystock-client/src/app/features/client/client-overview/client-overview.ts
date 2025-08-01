@@ -17,7 +17,7 @@ import { PageTitleService } from '../../../shared/services/page-title-service';
 
 @Component({
   selector: 'app-client-overview',
-  imports: [ DataTable ],
+  imports: [DataTable],
   templateUrl: './client-overview.html',
   styleUrl: './client-overview.css'
 })
@@ -98,6 +98,15 @@ export class ClientOverview {
     const sortOptions = direction === 'asc' || direction === 'desc'
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
+
+    var blFilter = this.filters.find(f => f.field == 'BlUserId');
+    if (!blFilter) {
+      var chk = this.checkboxOptions.find(o => o.id == 'showblocked');
+      if (chk) {
+        this.onShowBlockedClicked({ id: 'showblocked', label: 'Show blocked', checked: chk.checked });
+      }
+
+    }
 
     const query: AdvancedQueryParametersDto = {
       filters: this.filters,
@@ -261,11 +270,11 @@ export class ClientOverview {
   }
 
   onExportClicked() {
-    
+
   }
 
   onExportCsv() {
-   this.export('csv')
+    this.export('csv')
   }
 
   onExportExcel() {

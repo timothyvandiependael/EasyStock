@@ -15,6 +15,7 @@ import { SalesOrderService } from '../../sales-order/sales-order-service';
 import { StorageService } from '../../../shared/storage/storage-service';
 import { SalesOrderDetailDto } from '../../sales-order/dtos/sales-order-detail.dto';
 import { CreateSalesOrderDto } from '../../sales-order/dtos/create-sales-order.dto';
+import { AutoRestockDto } from '../../../shared/autorestock.dto';
 
 @Component({
   selector: 'app-sales-order-line-edit',
@@ -39,8 +40,10 @@ export class SalesOrderLineEdit {
 
   parentId?: number = undefined;
 
+  filledInFields: any = {};
+
   addModeHideFields = [
-    'orderNumber', 'lineNumber', 'status'
+    'lineNumber', 'status'
   ]
 
   @ViewChild(EditView) detailView!: EditView<SalesOrderLineDetailDto>;
@@ -52,7 +55,7 @@ export class SalesOrderLineEdit {
     private router: Router,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
-    private persistentSnackbar: PersistentSnackbarService, 
+    private persistentSnackbar: PersistentSnackbarService,
     private confirmDialogService: ConfirmDialogService,
     private storage: StorageService) { }
 
@@ -81,16 +84,31 @@ export class SalesOrderLineEdit {
 
       if (mode == 'add') {
         const fromParent = params.get('id');
-        if (fromParent)
+        if (fromParent) {
           this.procedureStep2 = true;
+          this.addModeHideFields.push('orderNumber');
+        }
+        else {
+          this.addModeHideFields = [
+            'lineNumber', 'status'
+          ]
+        }
+
 
         this.route.queryParamMap.subscribe(queryParams => {
           const parentId = queryParams.get('parentId');
+          const parentNumber = queryParams.get('parentNumber');
           if (!parentId) {
             this.parentId = undefined;
           }
           else {
             this.parentId = parseInt(parentId);
+          }
+
+          if (parentNumber) {
+            this.filledInFields = {
+              orderNumber: parentNumber
+            }
           }
         });
       }
@@ -125,10 +143,15 @@ export class SalesOrderLineEdit {
       salesOrderLine.salesOrderId = this.parentId;
     }
     this.saveAndAddSub = this.salesOrderLineService.add(salesOrderLine).subscribe({
-      next: (saved: SalesOrderLineDetailDto) => {
+      next: (dto: AutoRestockDto) => {
         this.selectedSalesOrderLine = undefined;
         this.detailView.clearForm();
-        this.snackBar.open(`Sales order line saved`, 'Close', {
+
+        var snackbarText = dto.autoRestocked 
+          ? `Sales order line saved. Product ${dto.productName} was reduced below minimum available stock. Purchase order ${dto.autoRestockPurchaseOrderNumber} has been created for auto restock.`  
+          : `Sales order line saved`;
+
+        this.snackBar.open(snackbarText, 'Close', {
           duration: 3000, // 3 seconds
           horizontalPosition: 'right',
           verticalPosition: 'top',
@@ -146,9 +169,13 @@ export class SalesOrderLineEdit {
       salesOrderLine.salesOrderId = this.parentId;
     }
     this.saveNewExitSub = this.salesOrderLineService.add(salesOrderLine).subscribe({
-      next: (saved: SalesOrderLineDetailDto) => {
+      next: (dto: AutoRestockDto) => {
         this.selectedSalesOrderLine = undefined;
-        this.snackBar.open(`Sales order line saved`, 'Close', {
+        var snackbarText = dto.autoRestocked 
+          ? `Sales order line saved. Product ${dto.productName} was reduced below minimum available stock. Purchase order ${dto.autoRestockPurchaseOrderNumber} has been created for auto restock.`  
+          : `Sales order line saved`;
+
+        this.snackBar.open(snackbarText, 'Close', {
           duration: 3000, // 3 seconds
           horizontalPosition: 'right',
           verticalPosition: 'top',
@@ -173,8 +200,12 @@ export class SalesOrderLineEdit {
 
   handleSaveAndExit(salesOrderLine: UpdateSalesOrderLineDto) {
     this.saveExitSub = this.salesOrderLineService.edit(salesOrderLine.id, salesOrderLine).subscribe({
-      next: () => {
-        this.snackBar.open(`Sales order line updated`, 'Close', {
+      next: (dto: AutoRestockDto) => {
+        var snackbarText = dto.autoRestocked 
+          ? `Sales order line saved. Product ${dto.productName} was reduced below minimum available stock. Purchase order ${dto.autoRestockPurchaseOrderNumber} has been created for auto restock.`  
+          : `Sales order line saved`;
+
+        this.snackBar.open(snackbarText, 'Close', {
           duration: 3000, // 3 seconds
           horizontalPosition: 'right',
           verticalPosition: 'top',
@@ -209,71 +240,71 @@ export class SalesOrderLineEdit {
   }
 
   handleAddMoreLines(line: CreateSalesOrderLineDto) {
-      this.addLineToOrder(line);
-      this.selectedSalesOrderLine = undefined;
-      this.detailView.clearForm();
-    }
-  
-    handleSaveAllAndExit(line: CreateSalesOrderLineDto) {
-      this.addLineToOrder(line);
-      this.saveOrder();
-  
-    }
-  
-    saveOrder() {
-      var so = this.getOrder();
-  
-      this.salesOrderSaveSub = this.salesOrderService.add(so).subscribe({
-        next: (saved: SalesOrderDetailDto) => {
-          this.selectedSalesOrderLine = undefined;
-          this.snackBar.open(`Sales order saved`, 'Close', {
-            duration: 3000,
-            horizontalPosition: 'right',
-            verticalPosition: 'top',
-          });
-          this.router.navigate(['app/salesorder']);
-        },
-        error: (err) => {
-          this.persistentSnackbar.showError(`Error saving sales order. If the problem persists, please contact support.`);
-          this.removeLastLineAfterError();
-        }
-      })
-    }
-  
-    removeLastLineAfterError() {
-      var so = this.getOrder();
-      if (so.lines.length > 0) {
-        so.lines.pop();
-      }
-      this.storage.store('SalesOrder', so);
-    }
-  
-    addLineToOrder(line: CreateSalesOrderLineDto) {
-      var so = this.getOrder();
-      so.lines.push(line);
-      this.storage.store('SalesOrder', so);
-    }
-  
-    getOrder() {
-      var so = this.storage.retrieve('SalesOrder') as CreateSalesOrderDto;
-      if (!so) {
-        this.persistentSnackbar.showError(`Error retrieving sales order. If the problem persist, contact support.`);
-      }
-      if (so.lines == null) so.lines = [];
-      return so;
-    }
-  
-    handleProcedureCancel() {
-        this.confirmDialogService.open({
-          title: 'Discard order?',
-          message: 'If you exit now, the entire order will not be saved. Discard?',
-          confirmText: 'Yes, discard',
-          cancelText: 'Keep editing'
-        }).subscribe(cancelled => {
-          if (cancelled) {
-            this.router.navigate(['app/salesorder']);
-          }
+    this.addLineToOrder(line);
+    this.selectedSalesOrderLine = undefined;
+    this.detailView.clearForm();
+  }
+
+  handleSaveAllAndExit(line: CreateSalesOrderLineDto) {
+    this.addLineToOrder(line);
+    this.saveOrder();
+
+  }
+
+  saveOrder() {
+    var so = this.getOrder();
+
+    this.salesOrderSaveSub = this.salesOrderService.add(so).subscribe({
+      next: (saved: SalesOrderDetailDto) => {
+        this.selectedSalesOrderLine = undefined;
+        this.snackBar.open(`Sales order saved`, 'Close', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
         });
-  
+        this.router.navigate(['app/salesorder']);
+      },
+      error: (err) => {
+        this.persistentSnackbar.showError(`Error saving sales order. If the problem persists, please contact support.`);
+        this.removeLastLineAfterError();
+      }
+    })
+  }
+
+  removeLastLineAfterError() {
+    var so = this.getOrder();
+    if (so.lines.length > 0) {
+      so.lines.pop();
     }
+    this.storage.store('SalesOrder', so);
+  }
+
+  addLineToOrder(line: CreateSalesOrderLineDto) {
+    var so = this.getOrder();
+    so.lines.push(line);
+    this.storage.store('SalesOrder', so);
+  }
+
+  getOrder() {
+    var so = this.storage.retrieve('SalesOrder') as CreateSalesOrderDto;
+    if (!so) {
+      this.persistentSnackbar.showError(`Error retrieving sales order. If the problem persist, contact support.`);
+    }
+    if (so.lines == null) so.lines = [];
+    return so;
+  }
+
+  handleProcedureCancel() {
+    this.confirmDialogService.open({
+      title: 'Discard order?',
+      message: 'If you exit now, the entire order will not be saved. Discard?',
+      confirmText: 'Yes, discard',
+      cancelText: 'Keep editing'
+    }).subscribe(cancelled => {
+      if (cancelled) {
+        this.router.navigate(['app/salesorder']);
+      }
+    });
+
+  }
 }

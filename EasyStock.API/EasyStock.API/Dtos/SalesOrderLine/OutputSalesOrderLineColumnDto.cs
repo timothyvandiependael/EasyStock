@@ -14,13 +14,20 @@ namespace EasyStock.API.Dtos
                 IsSortable = true,
                 DisplayName = "Id"
             },
-            new ColumnMetaData {
+             new ColumnMetaData {
                 Name = "orderNumber",
                 Type = "string",
                 IsEditable = false,
                 IsFilterable = true,
                 IsSortable = true,
                 DisplayName = "Order Number",
+                ValidationRules = new ValidationRules
+                {
+                    Required = true
+                },
+                IsLookup = true,
+                LookupIdField = "salesOrderId",
+                LookupTarget = "SalesOrder"
             },
             new ColumnMetaData {
                 Name = "lineNumber",

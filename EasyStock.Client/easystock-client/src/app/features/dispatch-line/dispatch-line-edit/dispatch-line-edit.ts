@@ -41,10 +41,12 @@ export class DispatchLineEdit {
   procedureStep2 = false;
 
   addModeHideFields = [
-    'dispatchNumber', 'lineNumber', 'status'
+    'lineNumber', 'status'
   ]
 
   additionalFilters: any;
+
+  filledInFields: any = {};
 
   @ViewChild(EditView) detailView!: EditView<DispatchLineDetailDto>;
 
@@ -86,17 +88,31 @@ export class DispatchLineEdit {
         const fromParent = params.get('id');
         if (fromParent) {
           this.procedureStep2 = true;
+          this.addModeHideFields.push('dispatchNumber');
           this.addAdditionalFilters();
+
+        }
+        else {
+          this.addModeHideFields = [
+            'lineNumber', 'status'
+          ]
         }
 
         this.route.queryParamMap.subscribe(queryParams => {
           const parentId = queryParams.get('parentId');
+          const parentNumber = queryParams.get('parentNumber');
           if (!parentId) {
             this.parentId = undefined;
           }
           else {
             this.parentId = parseInt(parentId);
             this.addAdditionalFilters();
+          }
+
+          if (parentNumber) {
+            this.filledInFields = {
+              dispatchNumber: parentNumber
+            }
           }
         });
       }

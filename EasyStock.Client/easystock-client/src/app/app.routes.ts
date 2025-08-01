@@ -32,6 +32,7 @@ import { SupplierOverview } from './features/supplier/supplier-overview/supplier
 import { SupplierEdit } from './features/supplier/supplier-edit/supplier-edit';
 import { ClientOverview } from './features/client/client-overview/client-overview';
 import { ClientEdit } from './features/client/client-edit/client-edit';
+import { UserPermission } from './features/user/user-permission/user-permission';
 
 export const routes: Routes = [
       { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -94,6 +95,7 @@ export const routes: Routes = [
           { path: '', component: UserOverview }, 
           { path: 'edit/:mode', component: UserEdit }, 
           { path: 'edit/:mode/:id', component: UserEdit },
+          { path: 'permission', component: UserPermission }
         ] },
         { path: 'supplier', children: [
           { path: '', component: SupplierOverview }, 

@@ -37,10 +37,12 @@ export class PurchaseOrderLineEdit {
 
   parentId?: number = undefined;
 
+  filledInFields: any = {};
+
   procedureStep2 = false;
 
   addModeHideFields = [
-    'orderNumber', 'lineNumber', 'status', 'deliveredQuantity'
+    'lineNumber', 'status', 'deliveredQuantity'
   ]
 
   @ViewChild(EditView) detailView!: EditView<PurchaseOrderLineDetailDto>;
@@ -81,16 +83,31 @@ export class PurchaseOrderLineEdit {
 
       if (mode == 'add') {
         const fromParent = params.get('id');
-        if (fromParent)
+        if (fromParent) {
           this.procedureStep2 = true;
+          this.addModeHideFields.push('orderNumber');
+        }
+        else {
+          this.addModeHideFields = [
+            'lineNumber', 'status', 'deliveredQuantity'
+          ]
+        }
+
 
         this.route.queryParamMap.subscribe(queryParams => {
           const parentId = queryParams.get('parentId');
+          const parentNumber = queryParams.get('parentNumber');
           if (!parentId) {
             this.parentId = undefined;
           }
           else {
             this.parentId = parseInt(parentId);
+          }
+
+          if (parentNumber) {
+            this.filledInFields = {
+              orderNumber: parentNumber
+            }
           }
         });
       }
@@ -153,7 +170,7 @@ export class PurchaseOrderLineEdit {
           horizontalPosition: 'right',
           verticalPosition: 'top',
         });
-        
+
         if (this.parentId) {
           this.router.navigate(['app/purchaseorderline'], {
             queryParams: {

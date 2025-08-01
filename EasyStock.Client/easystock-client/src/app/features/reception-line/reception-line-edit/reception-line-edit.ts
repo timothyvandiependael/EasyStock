@@ -39,11 +39,14 @@ export class ReceptionLineEdit {
   procedureStep2 = false;
 
   parentId?: number = undefined;
+  parentNumber?: string = undefined;
+
+  filledInFields: any = {};
 
   additionalFilters: any;
 
   addModeHideFields = [
-    'receptionNumber', 'lineNumber', 'status'
+    'lineNumber', 'status'
   ]
 
   @ViewChild(EditView) detailView!: EditView<ReceptionLineDetailDto>;
@@ -86,19 +89,31 @@ export class ReceptionLineEdit {
         const fromParent = params.get('id');
         if (fromParent) {
           this.procedureStep2 = true;
-          debugger;
+          this.addModeHideFields.push('receptionNumber');
           this.addAdditionalFilters();
         }
-          
+        else {
+          this.addModeHideFields = [
+            'lineNumber', 'status'
+          ]
+        }
+
 
         this.route.queryParamMap.subscribe(queryParams => {
           const parentId = queryParams.get('parentId');
+          const parentNumber = queryParams.get('parentNumber');
           if (!parentId) {
             this.parentId = undefined;
           }
           else {
             this.parentId = parseInt(parentId);
             this.addAdditionalFilters();
+          }
+
+          if (parentNumber) {
+            this.filledInFields = {
+              receptionNumber: parentNumber
+            }
           }
         });
       }

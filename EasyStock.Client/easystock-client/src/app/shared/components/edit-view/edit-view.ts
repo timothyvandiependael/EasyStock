@@ -25,6 +25,7 @@ export class EditView<T> {
   @Input() addModeHideFields: string[] = [];
   @Input() additionalFilters: any;
   @Input() parentType: string = '';
+  @Input() filledInFields: any = {};
 
   @Output() saveAndAddAnother = new EventEmitter<any>();
   @Output() saveAndExit = new EventEmitter<any>();
@@ -46,7 +47,11 @@ export class EditView<T> {
   photoUploadColumn?: ColumnMetaData;
   showPhotoUploadPopup = false;
 
+  maxQuantity = 0;
+
   ngOnInit(): void {
+    this.maxQuantity = 0;
+
     this.buildForm();
   }
 
@@ -74,6 +79,9 @@ export class EditView<T> {
       if (this.mode === 'add' && (isSystemField || hideInAddMode)) continue;
 
       let initialValue = this.model ? (this.model as any)[col.name] : '';
+      debugger;
+      if (this.filledInFields[col.name])
+        initialValue = this.filledInFields[col.name];
 
       if (this.mode === 'edit' && !initialValue && this.model) {
         var m = this.model as any;
@@ -154,6 +162,8 @@ export class EditView<T> {
           validators.push(Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/));
         }
       }
+
+
 
       // visible field
       group[col.name] = new FormControl({ value: initialValue, disabled }, validators);
@@ -271,6 +281,17 @@ export class EditView<T> {
           + "/"
           + (this.model as any).salesOrderLine.lineNumber
       }
+      else if (col.name == "orderNumber") {
+        displayValue = (this.model as any).purchaseOrder
+          ? (this.model as any).purchaseOrder.orderNumber
+          : (this.model as any).salesOrder.orderNumber
+      }
+      else if (col.name == "dispatchNumber") {
+        displayValue = (this.model as any).dispatch.dispatchNumber
+      }
+      else if (col.name == "receptionNumber") {
+        displayValue = (this.model as any).reception.receptionNumber
+      }
       else {
         var referencedEntity = this.stringService.toLowerFirst(col.lookupTarget);
         var referencedField = this.getReferenceFieldFromLookupFieldName(col.name, referencedEntity);
@@ -289,6 +310,15 @@ export class EditView<T> {
     return this.stringService.toLowerFirst(fieldName.replace(referencedEntity, ''));
   }
 
+  maxQuantityValidator(max: number): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      return value != null && value > max
+        ? { maxQuantity: { requiredMax: max, actual: value } }
+        : null;
+    };
+  }
+
   openLookup(col: ColumnMetaData) {
     const lookupType = col.lookupTarget;
     if (!lookupType) {
@@ -296,9 +326,9 @@ export class EditView<T> {
       return;
     }
 
-    var filters = this.additionalFilters 
-      ? (this.additionalFilters[lookupType.toLowerCase()] == undefined 
-        ? [] 
+    var filters = this.additionalFilters
+      ? (this.additionalFilters[lookupType.toLowerCase()] == undefined
+        ? []
         : this.additionalFilters[lookupType.toLowerCase()])
       : [];
 
@@ -311,7 +341,6 @@ export class EditView<T> {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        debugger;
         if (col.lookupIdField) {
           var ctrl = this.form.get(col.lookupIdField);
           ctrl?.setValue(result.id);
@@ -326,12 +355,42 @@ export class EditView<T> {
             this.form.get('productId')?.setValue(result.productId);
             this.form.get('productName')?.setValue(result.productName);
             this.form.get('quantity')?.setValue(result.quantity);
+            const quantityControl = this.form.get('quantity');
+            this.maxQuantity = result.quantity;
+            quantityControl?.setValidators([
+              Validators.required,
+              this.maxQuantityValidator(result.quantity)
+            ])
           }
           else if (col.name == "salesOrderLink") {
             this.lookupDisplayCache[col.lookupIdField][result.id] = result.orderNumber + "/" + result.lineNumber;
             this.form.get('productId')?.setValue(result.productId);
             this.form.get('productName')?.setValue(result.productName);
             this.form.get('quantity')?.setValue(result.quantity);
+            this.maxQuantity = result.quantity;
+            const quantityControl = this.form.get('quantity');
+            quantityControl?.setValidators([
+              Validators.required,
+              this.maxQuantityValidator(result.quantity)
+            ])
+          }
+          else if (col.name == "orderNumber") {
+            this.lookupDisplayCache[col.lookupIdField][result.id] = result.orderNumber;
+            if (col.lookupTarget == "SalesOrder") {
+              this.form.get('salesOrderId')?.setValue(result.id);
+            }
+            else {
+              this.form.get('purchaseOrderId')?.setValue(result.id);
+            }
+
+          }
+          else if (col.name == "receptionNumber") {
+            this.lookupDisplayCache[col.lookupIdField][result.id] = result.receptionNumber;
+            this.form.get('receptionId')?.setValue(result.id);
+          }
+          else if (col.name == "dispatchNumber") {
+            this.lookupDisplayCache[col.lookupIdField][result.id] = result.dispatchNumber;
+            this.form.get('dispatchId')?.setValue(result.id);
           }
           else {
             this.lookupDisplayCache[col.lookupIdField][result.id] = result.name;
@@ -339,11 +398,11 @@ export class EditView<T> {
             if (col.name == 'productName') {
               var price = 0;
               var isSalesOrderLine = this.metaData
-              if (this.parentType == 'salesOrder') 
+              if (this.parentType == 'salesOrder')
                 price = result.retailPrice;
               else
                 price = result.costPrice;
-              
+
               this.form.get('unitPrice')?.setValue(price);
             }
           }

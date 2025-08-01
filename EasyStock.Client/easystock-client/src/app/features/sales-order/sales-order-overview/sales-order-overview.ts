@@ -14,6 +14,8 @@ import { PersistentSnackbarService } from '../../../shared/services/persistent-s
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 import { AuthService } from '../../auth/auth-service';
 import { PageTitleService } from '../../../shared/services/page-title-service';
+import { DispatchService } from '../../dispatch/dispatch-service';
+import { DispatchDetailDto } from '../../dispatch/dtos/dispatch-detail.dto';
 
 @Component({
   selector: 'app-sales-order-overview',
@@ -27,6 +29,7 @@ export class SalesOrderOverview {
   private blockSub?: Subscription;
   private unblockSub?: Subscription;
   private routeSub?: Subscription;
+  private createDispatchSub?: Subscription;
 
   data: any[] = [];
   columnsMeta: ColumnMetaData[] = [];
@@ -47,14 +50,16 @@ export class SalesOrderOverview {
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
     { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
     { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
-    { label: 'Lines', icon: 'receipt_long', action: 'lines', color: 'detail', disabled: false }
+    { label: 'Lines', icon: 'receipt_long', action: 'lines', color: 'detail', disabled: false },
+    { label: 'Auto Create Dispatch', icon: 'outbox', action: 'createdispatch', color: 'detail', disabled: true }
   ]
 
   fromClientButtons: ButtonConfig[] = [
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
     { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
     { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
-    { label: 'Lines', icon: 'receipt_long', action: 'lines', color: 'detail', disabled: false }
+    { label: 'Lines', icon: 'receipt_long', action: 'lines', color: 'detail', disabled: false },
+    { label: 'Auto Create Dispatch', icon: 'outbox', action: 'createdispatch', color: 'detail', disabled: true }
   ]
 
   checkboxOptions: CheckboxData[] = [
@@ -69,6 +74,7 @@ export class SalesOrderOverview {
     private route: ActivatedRoute,
     private snackbar: MatSnackBar,
     private pageTitleService: PageTitleService,
+    private dispatchService: DispatchService,
     private persistentSnackbar: PersistentSnackbarService,
     private confirmDialogService: ConfirmDialogService,
     private authService: AuthService) { }
@@ -112,6 +118,7 @@ export class SalesOrderOverview {
     this.blockSub?.unsubscribe();
     this.unblockSub?.unsubscribe();
     this.routeSub?.unsubscribe();
+    this.createDispatchSub?.unsubscribe();
   }
 
   loadColumns() {
@@ -136,6 +143,15 @@ export class SalesOrderOverview {
     const sortOptions = direction === 'asc' || direction === 'desc'
       ? [{ field: this.currentSort.active, direction: direction as 'asc' | 'desc' }]
       : [];
+
+    var blFilter = this.filters.find(f => f.field == 'BlUserId');
+    if (!blFilter) {
+      var chk = this.checkboxOptions.find(o => o.id == 'showblocked');
+      if (chk) {
+        this.onShowBlockedClicked({ id: 'showblocked', label: 'Show blocked', checked: chk.checked });
+      }
+
+    }
 
     if (this.fromClientId) {
       var fc: FilterCondition = {
@@ -170,6 +186,8 @@ export class SalesOrderOverview {
   onRowSelected(row: any) {
     this.selectedRow = row;
 
+    const dispBtn = this.buttons.find(b => b.action === 'createdispatch');
+    if (dispBtn) dispBtn.disabled = this.selectedRow.status != 'Complete';
     const editBtn = this.buttons.find(b => b.action === 'edit');
     if (editBtn) editBtn.disabled = !this.authService.canEdit("SalesOrder");
     const blockBtn = this.buttons.find(b => b.action === 'block' || b.action === 'unblock');
@@ -196,6 +214,7 @@ export class SalesOrderOverview {
       case 'unblock': this.onUnblockClicked(); break;
       case 'export': this.onExportClicked(); break;
       case 'lines': this.onLinesClicked(); break;
+      case 'createdispatch': this.onCreateDispatchClicked(); break;
       default: break;
     }
   }
@@ -343,6 +362,17 @@ export class SalesOrderOverview {
         parentOrderNumber: this.selectedRow.orderNumber
       }
     });
+  }
+
+  onCreateDispatchClicked() {
+    this.createDispatchSub = this.dispatchService.addFromSalesOrder({ salesOrderId: this.selectedRow.id }).subscribe({
+      next: (result: DispatchDetailDto) => {
+        this.persistentSnackbar.showMessage(`Dispatch ${result.dispatchNumber} created for sales order ${this.selectedRow.orderNumber}`);
+      },
+      error: (err) => {
+        this.persistentSnackbar.showError(`Error creating dispatch for sales order. If issue persists, contact support.`);
+      }
+    })
   }
 
   onSortChanged(sort: Sort) {
