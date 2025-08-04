@@ -1,8 +1,10 @@
 ﻿using EasyStock.API.Common;
+using EasyStock.API.Dtos;
 using EasyStock.API.Models;
 using EasyStock.API.Repositories;
 using EasyStock.API.Services;
 using EasyStock.Tests.TestHelpers;
+using Microsoft.OpenApi.Any;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -47,7 +49,7 @@ namespace EasyStock.Tests.Services
 
             _mockOrderNumberCounterService.Setup(x => x.GenerateOrderNumberAsync(OrderType.SalesOrder)).ReturnsAsync("123");
             _mockSalesOrderLineProcessor.Setup(x => x.AddAsync(It.IsAny<SalesOrderLine>(), userName, null, true))
-                .Returns(Task.CompletedTask);
+                .ReturnsAsync(new AutoRestockDto());
             _mockRepository.Setup(x => x.AddAsync(It.IsAny<SalesOrder>())).Returns(Task.CompletedTask);
 
             // Act
@@ -78,7 +80,7 @@ namespace EasyStock.Tests.Services
             so.Lines.Add(line2);
 
             _mockOrderNumberCounterService.Setup(x => x.GenerateOrderNumberAsync(OrderType.SalesOrder)).ReturnsAsync("1");
-            _mockSalesOrderLineProcessor.Setup(x => x.AddAsync(It.IsAny<SalesOrderLine>(), userName, null, true)).Returns(Task.CompletedTask);
+            _mockSalesOrderLineProcessor.Setup(x => x.AddAsync(It.IsAny<SalesOrderLine>(), userName, null, true)).ReturnsAsync(new AutoRestockDto());
             _mockRepository.Setup(x => x.AddAsync(It.IsAny<SalesOrder>())).Returns(Task.CompletedTask);
 
             // Act

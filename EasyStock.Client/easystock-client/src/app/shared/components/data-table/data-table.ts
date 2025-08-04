@@ -73,15 +73,20 @@ export class DataTable {
     this.filterSubject.pipe(debounceTime(300)).subscribe(() => {
       var filterPayload: FilterCondition[] = Object.entries(this.filters)
         .filter(([_, val]) => {
-          // For booleans, skip 'All'
           if (val.operator === 'All') return false;
           return val.value !== null && val.value !== undefined && val.value !== '';
         })
-        .map(([field, val]) => ({
-          field: field.replace(/(>=|<=)$/, ''),
-          operator: val.operator,
-          value: val.value
-        } as FilterCondition));
+        .map(([field, val]) => {
+          let operator = val.operator;
+          if (field.toLowerCase() === 'status') {
+            operator = 'equals';
+          }
+          return {
+            field: field.replace(/(>=|<=)$/, ''),
+            operator: operator,
+            value: val.value
+          } as FilterCondition;
+        });
 
       for (var i = 0; i < filterPayload.length; i++) {
         var fil = filterPayload[i];

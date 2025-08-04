@@ -304,12 +304,15 @@ namespace EasyStock.API.Services
                 Lines = new List<PurchaseOrderLine>()
             };
 
+            await _repository.AddAsync(po);
+
             var line = new PurchaseOrderLine
             {
+                PurchaseOrderId = po.Id,
                 PurchaseOrder = po,
                 ProductId = productId,
                 Product = product,
-                Quantity = product.AutoRestockAmount,
+                Quantity = product.AutoRestockAmount + product.BackOrderedStock,
                 UnitPrice = product.CostPrice,
                 Status = OrderStatus.Open,
                 CrDate = DateTime.UtcNow,
@@ -321,7 +324,7 @@ namespace EasyStock.API.Services
 
             await _purchaseOrderLineProcessor.AddAsync(line, userName, null, true);
 
-            await _repository.AddAsync(po);
+
             po = await _repository.GetByIdAsync(po.Id);
 
             return po;

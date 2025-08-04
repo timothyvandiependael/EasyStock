@@ -17,6 +17,8 @@ namespace EasyStock.Tests.Services
         private readonly EntityFactory _entityFactory;
         private readonly Mock<IRepository<Product>> _mockProductRepository;
         private readonly Mock<IRepository<SalesOrderLine>> _mockSalesOrderLineRepository;
+        private readonly Mock<IProductService> _mockProductService;
+        private readonly Mock<IPurchaseOrderService> _mockPurchaseOrderService;
         private readonly SalesOrderLineProcessor _service;
 
         public SalesOrderLineProcessorTests()
@@ -25,8 +27,10 @@ namespace EasyStock.Tests.Services
 
             _mockProductRepository = new Mock<IRepository<Product>>();
             _mockSalesOrderLineRepository = new Mock<IRepository<SalesOrderLine>>();
+            _mockProductService = new Mock<IProductService>();
+            _mockPurchaseOrderService = new Mock<IPurchaseOrderService>();
 
-            _service = new SalesOrderLineProcessor(_mockProductRepository.Object, _mockSalesOrderLineRepository.Object);
+            _service = new SalesOrderLineProcessor(_mockProductRepository.Object, _mockSalesOrderLineRepository.Object, _mockProductService.Object, _mockPurchaseOrderService.Object);
         }
 
 

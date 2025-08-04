@@ -43,6 +43,7 @@ namespace EasyStock.API.Controllers
             dto.Reception = _mapper.Map<OutputReceptionOverviewDto>(entity.Reception);
             dto.Product = _mapper.Map<OutputProductOverviewDto>(entity.Product);
             dto.PurchaseOrderLine = _mapper.Map<OutputPurchaseOrderLineOverviewDto>(entity.PurchaseOrderLine);
+            dto.PurchaseOrderLine.OrderNumber = entity.PurchaseOrderLine.PurchaseOrder.OrderNumber;
             return Ok(dto);
         }
 

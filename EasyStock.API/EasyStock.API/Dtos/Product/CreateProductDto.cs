@@ -32,7 +32,7 @@ namespace EasyStock.API.Dtos
 
         public bool AutoRestock { get; set; }
 
-        public int? AutoRestockSuppliedId { get; set; }
+        public int? AutoRestockSupplierId { get; set; }
 
         [Required]
         public int CategoryId { get; set; }

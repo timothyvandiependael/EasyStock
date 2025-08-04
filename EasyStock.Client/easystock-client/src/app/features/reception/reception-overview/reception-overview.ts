@@ -42,7 +42,7 @@ export class ReceptionOverview {
     { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
     { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
     { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false },
-    { label: 'Lines', icon: 'receipt_long', action: 'suppliers', color: 'detail', disabled: false }
+    { label: 'Lines', icon: 'receipt_long', action: 'lines', color: 'detail', disabled: false }
   ]
 
   checkboxOptions: CheckboxData[] = [

@@ -167,6 +167,11 @@ export class DispatchLineEdit {
         field: 'ClientId',
         operator: 'equals',
         value: dispatch.clientId
+      },
+      { 
+        field: 'Status',
+        operator: 'notequals',
+        value: 'Complete'
       }
     ];
 

@@ -75,11 +75,9 @@ export class EditView<T> {
     for (const col of this.metaData) {
       const isSystemField = this.systemFields.includes(col.name);
       const hideInAddMode = this.addModeHideFields.includes(col.name);
-      debugger;
       if (this.mode === 'add' && (isSystemField || hideInAddMode)) continue;
 
       let initialValue = this.model ? (this.model as any)[col.name] : '';
-      debugger;
       if (this.filledInFields[col.name])
         initialValue = this.filledInFields[col.name];
 
@@ -101,6 +99,21 @@ export class EditView<T> {
           case "dispatchnumber":
             if (m.dispatch) {
               initialValue = m.dispatch.dispatchNumber;
+            }
+            break;
+          case "purchaseorderlink":
+            if (m.purchaseOrderLine) {
+              initialValue = m.purchaseOrderLine.orderNumber + "/" + m.purchaseOrderLine.lineNumber;
+            }
+            break;
+          case "salesorderlink":
+            if (m.salesOrderLine) {
+              initialValue = m.salesOrderLine.orderNumber + "/" + m.salesOrderLine.lineNumber;
+            }
+            break;
+          case "productname":
+            if (m.product) {
+              initialValue = m.product.name;
             }
             break;
           default:
@@ -164,12 +177,21 @@ export class EditView<T> {
       }
 
 
+      if (col.type?.toLowerCase() === 'boolean') {
+        debugger;
+        if (typeof initialValue === 'string') {
+          initialValue = initialValue.toLowerCase() === 'true'
+        }
+        else {
+          initialValue = !!initialValue;
+        }
+      }
 
       // visible field
       group[col.name] = new FormControl({ value: initialValue, disabled }, validators);
 
       if (col.isLookup && col.lookupIdField) {
-        const idValue = this.model ? (this.model as any)[col.lookupIdField] : null;
+        var idValue = this.model ? (this.model as any)[col.lookupIdField] : null;
         // hidden id field
         group[col.lookupIdField] = new FormControl(idValue, validators);
       }
@@ -212,24 +234,47 @@ export class EditView<T> {
     });
   }
 
+  fixBooleanFieldsBeforeEmit(rawValue: any) {
+    debugger;
+    if (rawValue.autoRestock !== undefined) {
+      if (typeof rawValue.autoRestock === 'string') {
+        rawValue.autoRestock = rawValue.autoRestock.toLowerCase() === 'true';
+      }
+    }
+    return rawValue;
+  }
+
   onSaveAndAddAnother() {
     this.form.markAllAsTouched()
-    if (this.form.valid) this.saveAndAddAnother.emit(this.form.getRawValue());
+    if (this.form.valid) {
+      const fixedValue = this.fixBooleanFieldsBeforeEmit(this.form.getRawValue());
+      this.saveAndAddAnother.emit(fixedValue);
+    }
   }
 
   onSaveAndExit() {
     this.form.markAllAsTouched()
-    if (this.form.valid) this.saveAndExit.emit(this.form.getRawValue());
+    if (this.form.valid) {
+      debugger;
+      const fixedValue = this.fixBooleanFieldsBeforeEmit(this.form.getRawValue());
+      this.saveAndExit.emit(fixedValue);
+    }
   }
 
   onSaveNewAndExit() {
     this.form.markAllAsTouched()
-    if (this.form.valid) this.saveNewAndExit.emit(this.form.getRawValue());
+    if (this.form.valid) {
+      const fixedValue = this.fixBooleanFieldsBeforeEmit(this.form.getRawValue());
+      this.saveNewAndExit.emit(fixedValue);
+    }
   }
 
   onSave() {
     this.form.markAllAsDirty()
-    if (this.form.valid) this.save.emit(this.form.getRawValue());
+    if (this.form.valid) {
+      const fixedValue = this.fixBooleanFieldsBeforeEmit(this.form.getRawValue());
+      this.save.emit(fixedValue);
+    }
   }
 
   onCancel() {
@@ -238,17 +283,26 @@ export class EditView<T> {
 
   onCreateLines() {
     this.form.markAllAsTouched();
-    if (this.form.valid) this.createLines.emit(this.form.getRawValue());
+    if (this.form.valid) {
+      const fixedValue = this.fixBooleanFieldsBeforeEmit(this.form.getRawValue());
+      this.createLines.emit(fixedValue);
+    }
   }
 
   onAddMoreLines() {
     this.form.markAllAsTouched();
-    if (this.form.valid) this.addMoreLines.emit(this.form.getRawValue());
+    if (this.form.valid) {
+      const fixedValue = this.fixBooleanFieldsBeforeEmit(this.form.getRawValue());
+      this.addMoreLines.emit(fixedValue);
+    }
   }
 
   onSaveAllAndExit() {
     this.form.markAllAsTouched();
-    if (this.form.valid) this.saveAllAndExit.emit(this.form.getRawValue());
+    if (this.form.valid) {
+      const fixedValue = this.fixBooleanFieldsBeforeEmit(this.form.getRawValue());
+      this.saveAllAndExit.emit(fixedValue);
+    }
   }
 
   onProcedureCancel() {
@@ -262,6 +316,11 @@ export class EditView<T> {
       case 'boolean': return 'checkbox';
       default: return 'text';
     }
+  }
+
+  onCheckboxChange(event: Event, field: string) {
+    const input = event.target as HTMLInputElement;
+    this.form.get(field)?.setValue(input.checked);
   }
 
   getLookupDisplay(col: ColumnMetaData): string {
@@ -291,6 +350,9 @@ export class EditView<T> {
       }
       else if (col.name == "receptionNumber") {
         displayValue = (this.model as any).reception.receptionNumber
+      }
+      else if (col.lookupIdField == 'autoRestockSupplierId') {
+        displayValue = this.model ? (this.model as any)['autoRestockSupplier']['name'] : '';
       }
       else {
         var referencedEntity = this.stringService.toLowerFirst(col.lookupTarget);
@@ -351,27 +413,31 @@ export class EditView<T> {
           }
 
           if (col.name == "purchaseOrderLink") {
+            debugger;
             this.lookupDisplayCache[col.lookupIdField][result.id] = result.orderNumber + "/" + result.lineNumber;
+            this.form.addControl('productId', new FormControl(''));
             this.form.get('productId')?.setValue(result.productId);
             this.form.get('productName')?.setValue(result.productName);
-            this.form.get('quantity')?.setValue(result.quantity);
+            this.form.get('quantity')?.setValue(result.quantity - result.deliveredQuantity);
+            debugger;
             const quantityControl = this.form.get('quantity');
-            this.maxQuantity = result.quantity;
+            this.maxQuantity = result.quantity - result.deliveredQuantity;
             quantityControl?.setValidators([
               Validators.required,
-              this.maxQuantityValidator(result.quantity)
+              this.maxQuantityValidator(result.quantity - result.deliveredQuantity)
             ])
           }
           else if (col.name == "salesOrderLink") {
             this.lookupDisplayCache[col.lookupIdField][result.id] = result.orderNumber + "/" + result.lineNumber;
+            this.form.addControl('productId', new FormControl(''));
             this.form.get('productId')?.setValue(result.productId);
             this.form.get('productName')?.setValue(result.productName);
-            this.form.get('quantity')?.setValue(result.quantity);
-            this.maxQuantity = result.quantity;
+            this.form.get('quantity')?.setValue(result.quantity - result.dispatchedQuantity);
+            this.maxQuantity = result.quantity - result.dispatchedQuantity;
             const quantityControl = this.form.get('quantity');
             quantityControl?.setValidators([
               Validators.required,
-              this.maxQuantityValidator(result.quantity)
+              this.maxQuantityValidator(result.quantity - result.dispatchedQuantity)
             ])
           }
           else if (col.name == "orderNumber") {
@@ -413,5 +479,9 @@ export class EditView<T> {
 
   isDirty(): boolean {
     return this.form.dirty;
+  }
+
+  logValue() {
+    console.log(this.form.getRawValue().autoRestock);
   }
 }

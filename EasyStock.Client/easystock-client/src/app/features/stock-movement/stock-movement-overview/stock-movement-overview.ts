@@ -38,8 +38,6 @@ export class StockMovementOverview {
   selectedRow: any;
 
   buttons: ButtonConfig[] = [
-    { label: 'Edit', icon: 'edit', action: 'edit', color: 'accent', disabled: true },
-    { label: 'Block', icon: 'block', action: 'block', color: 'warn', disabled: true },
     { label: 'Export', icon: 'download', action: 'export', color: 'export', disabled: false }
   ]
 

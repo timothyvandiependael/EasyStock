@@ -15,6 +15,7 @@ import { StorageService } from '../../../shared/storage/storage-service';
 import { CreatePurchaseOrderDto } from '../../purchase-order/dtos/create-purchase-order.dto';
 import { PurchaseOrderService } from '../../purchase-order/purchase-order-service';
 import { PurchaseOrderDetailDto } from '../../purchase-order/dtos/purchase-order-detail.dto';
+import { FilterCondition } from '../../../shared/query';
 
 @Component({
   selector: 'app-purchase-order-line-edit',
@@ -44,6 +45,8 @@ export class PurchaseOrderLineEdit {
   addModeHideFields = [
     'lineNumber', 'status', 'deliveredQuantity'
   ]
+
+  additionalFilters: any;
 
   @ViewChild(EditView) detailView!: EditView<PurchaseOrderLineDetailDto>;
 
@@ -86,6 +89,7 @@ export class PurchaseOrderLineEdit {
         if (fromParent) {
           this.procedureStep2 = true;
           this.addModeHideFields.push('orderNumber');
+          this.addAdditionalFilters();
         }
         else {
           this.addModeHideFields = [
@@ -102,6 +106,7 @@ export class PurchaseOrderLineEdit {
           }
           else {
             this.parentId = parseInt(parentId);
+            this.addAdditionalFilters();
           }
 
           if (parentNumber) {
@@ -117,6 +122,7 @@ export class PurchaseOrderLineEdit {
         this.getByIdSub = this.purchaseOrderLineService.getById(id).subscribe({
           next: (dto: PurchaseOrderLineDetailDto) => {
             this.selectedPurchaseOrderLine = dto;
+            this.addAdditionalFilters();
           },
           error: (err) => {
             console.error('Error retrieving purchaseOrderLine with id ' + id + ': ', err);
@@ -126,6 +132,46 @@ export class PurchaseOrderLineEdit {
 
       }
     });
+  }
+
+  addAdditionalFilters() {
+    var purchaseOrder = undefined;
+
+    if (this.detailMode == 'add') {
+      if (this.procedureStep2) {
+        purchaseOrder = this.storage.retrieve('PurchaseOrder');
+        this.addFilters(purchaseOrder);
+      }
+      else {
+        if (this.parentId) {
+          this.purchaseOrderService.getById(this.parentId).subscribe({
+            next: (dto: PurchaseOrderDetailDto) => {
+              this.addFilters(dto);
+            },
+            error: (err) => {
+              this.persistentSnackbar.showError(`Error retrieving parent for additional lookup filtering. If the problem persists, please contact support.`);
+            }
+          })
+        }
+      }
+    }
+    else if (this.detailMode == 'edit') {
+      purchaseOrder = this.selectedPurchaseOrderLine?.purchaseOrder;
+      this.addFilters(purchaseOrder);
+    }
+  }
+
+  addFilters(purchaseOrder: any) {
+    var productFc: FilterCondition[] = [
+      {
+        field: 'SupplierId',
+        operator: 'equals',
+        value: purchaseOrder.supplierId
+      }
+    ];
+
+    if (!this.additionalFilters) this.additionalFilters = {};
+    this.additionalFilters.product = productFc;
   }
 
   ngOnDestroy() {

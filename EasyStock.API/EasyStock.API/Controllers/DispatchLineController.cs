@@ -42,6 +42,8 @@ namespace EasyStock.API.Controllers
             var dto = _mapper.Map<OutputDispatchLineDetailDto>(entity);
             dto.Dispatch = _mapper.Map<OutputDispatchOverviewDto>(entity.Dispatch);
             dto.Product = _mapper.Map<OutputProductOverviewDto>(entity.Product);
+            dto.SalesOrderLine = _mapper.Map<OutputSalesOrderLineOverviewDto>(entity.SalesOrderLine);
+            dto.SalesOrderLine.OrderNumber = entity.SalesOrderLine.SalesOrder.OrderNumber;
             return Ok(dto);
         }
 

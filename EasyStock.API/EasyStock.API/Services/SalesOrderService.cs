@@ -1,4 +1,5 @@
 ﻿using EasyStock.API.Common;
+using EasyStock.API.Dtos;
 using EasyStock.API.Models;
 using EasyStock.API.Repositories;
 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -28,22 +29,25 @@ namespace EasyStock.API.Services
         public async Task<PaginationResult<SalesOrderOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination)
             => await _salesOrderRepository.GetAdvancedAsync(filters, sorting, pagination);
 
-        public async Task AddAsync(SalesOrder entity, string userName, bool useTransaction = true)
+        public async Task<List<AutoRestockDto>> AddAsync(SalesOrder entity, string userName, bool useTransaction = true)
         {
+            var dtos = new List<AutoRestockDto>();
             if (useTransaction)
             {
                 await _retryableTransactionService.ExecuteAsync(async () =>
                 {
-                    await AddAsyncInternal(entity, userName);
+                    dtos = await AddAsyncInternal(entity, userName);
                 });
             }
             else
             {
-                await AddAsyncInternal(entity, userName);
+                dtos = await AddAsyncInternal(entity, userName);
             }
+
+            return dtos;
         }
 
-        private async Task AddAsyncInternal(SalesOrder entity, string userName)
+        private async Task<List<AutoRestockDto>> AddAsyncInternal(SalesOrder entity, string userName)
         {
             entity.OrderNumber = await _orderNumberCounterService.GenerateOrderNumberAsync(OrderType.SalesOrder);
             entity.Status = OrderStatus.Open;
@@ -57,18 +61,20 @@ namespace EasyStock.API.Services
 
             await _repository.AddAsync(entity);
 
+            var dtos = new List<AutoRestockDto>();
             var lineCounter = 1;
             foreach (var line in lines)
             {
                 line.LineNumber = lineCounter;
                 line.SalesOrderId = entity.Id;
 
-                await _salesOrderLineProcessor.AddAsync(line, userName, null, true);
+                var dto = await _salesOrderLineProcessor.AddAsync(line, userName, null, true);
+                dtos.Add(dto);
 
                 lineCounter++;
             }
 
-           
+            return dtos;
         }
 
 

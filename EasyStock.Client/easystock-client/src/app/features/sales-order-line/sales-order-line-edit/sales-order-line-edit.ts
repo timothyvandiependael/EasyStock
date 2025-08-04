@@ -43,7 +43,7 @@ export class SalesOrderLineEdit {
   filledInFields: any = {};
 
   addModeHideFields = [
-    'lineNumber', 'status'
+    'lineNumber', 'status', 'dispatchedQuantity'
   ]
 
   @ViewChild(EditView) detailView!: EditView<SalesOrderLineDetailDto>;
@@ -147,15 +147,22 @@ export class SalesOrderLineEdit {
         this.selectedSalesOrderLine = undefined;
         this.detailView.clearForm();
 
-        var snackbarText = dto.autoRestocked 
-          ? `Sales order line saved. Product ${dto.productName} was reduced below minimum available stock. Purchase order ${dto.autoRestockPurchaseOrderNumber} has been created for auto restock.`  
-          : `Sales order line saved`;
+        var snackbarText = dto.autoRestocked
+          ? `Sales order line saved. Product ${dto.productName} was reduced below minimum available stock. Purchase order ${dto.autoRestockPurchaseOrderNumber} has been created for auto restock.`
+          : `Sales order line saved`
 
-        this.snackBar.open(snackbarText, 'Close', {
-          duration: 3000, // 3 seconds
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
-        });
+        if (dto.productShortage > 0 && !dto.autoRestocked) {
+          this.persistentSnackbar.showMessage(`Sales order line saved. Warning: Product ${dto.productName} has a shortage of ${dto.productShortage} considering backorder stock and minimum stock requirements. Please create a purchase order for this amount.`)
+        }
+        else {
+          this.snackBar.open(snackbarText, 'Close', {
+            duration: 3000, // 3 seconds
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+          });
+        }
+
+
       },
       error: (err) => {
         console.error('Error saving salesOrderLine ', err);
@@ -171,15 +178,20 @@ export class SalesOrderLineEdit {
     this.saveNewExitSub = this.salesOrderLineService.add(salesOrderLine).subscribe({
       next: (dto: AutoRestockDto) => {
         this.selectedSalesOrderLine = undefined;
-        var snackbarText = dto.autoRestocked 
-          ? `Sales order line saved. Product ${dto.productName} was reduced below minimum available stock. Purchase order ${dto.autoRestockPurchaseOrderNumber} has been created for auto restock.`  
+        var snackbarText = dto.autoRestocked
+          ? `Sales order line saved. Product ${dto.productName} was reduced below minimum available stock. Purchase order ${dto.autoRestockPurchaseOrderNumber} has been created for auto restock.`
           : `Sales order line saved`;
 
-        this.snackBar.open(snackbarText, 'Close', {
-          duration: 3000, // 3 seconds
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
-        });
+        if (dto.productShortage > 0 && !dto.autoRestocked) {
+          this.persistentSnackbar.showMessage(`Sales order line saved. Warning: Product ${dto.productName} has a shortage of ${dto.productShortage} considering backorder stock and minimum stock requirements. Please create a purchase order for this amount.`)
+        }
+        else {
+          this.snackBar.open(snackbarText, 'Close', {
+            duration: 3000, // 3 seconds
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+          });
+        }
 
         if (this.parentId) {
           this.router.navigate(['app/salesorderline'], {
@@ -201,8 +213,8 @@ export class SalesOrderLineEdit {
   handleSaveAndExit(salesOrderLine: UpdateSalesOrderLineDto) {
     this.saveExitSub = this.salesOrderLineService.edit(salesOrderLine.id, salesOrderLine).subscribe({
       next: (dto: AutoRestockDto) => {
-        var snackbarText = dto.autoRestocked 
-          ? `Sales order line saved. Product ${dto.productName} was reduced below minimum available stock. Purchase order ${dto.autoRestockPurchaseOrderNumber} has been created for auto restock.`  
+        var snackbarText = dto.autoRestocked
+          ? `Sales order line saved. Product ${dto.productName} was reduced below minimum available stock. Purchase order ${dto.autoRestockPurchaseOrderNumber} has been created for auto restock.`
           : `Sales order line saved`;
 
         this.snackBar.open(snackbarText, 'Close', {
@@ -256,12 +268,40 @@ export class SalesOrderLineEdit {
 
     this.salesOrderSaveSub = this.salesOrderService.add(so).subscribe({
       next: (saved: SalesOrderDetailDto) => {
+        debugger;
         this.selectedSalesOrderLine = undefined;
-        this.snackBar.open(`Sales order saved`, 'Close', {
-          duration: 3000,
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
-        });
+
+        if (saved.autoRestockDtos && saved.autoRestockDtos.length > 0) {
+          var autoRestockedProducts = saved.autoRestockDtos.filter(a => a.autoRestocked);
+          var productsWithShortage = saved.autoRestockDtos.filter(a => !a.autoRestocked && a.productShortage > 0);
+
+          var snackbarText = '';
+
+          if (autoRestockedProducts.length > 0) {
+            snackbarText += 'The following products have auto restock on and have had purchase orders created for them: ';
+            autoRestockedProducts.forEach(p => {
+              snackbarText += `${p.productName}: purchase order ${p.autoRestockPurchaseOrderNumber} ;`
+            })
+          }
+
+          if (productsWithShortage.length > 0) {
+            snackbarText += 'The following products have a shortage, being under minimum stock and/or having backordered stock: ';
+            productsWithShortage.forEach(p => {
+              snackbarText += `${p.productName} has a shortage of ${p.productShortage} ;`
+            })
+            snackbarText += 'Please create purchase orders for these products compensating for the respective shortages.';
+          }
+
+          this.persistentSnackbar.showMessage(snackbarText);
+        }
+        else {
+          this.snackBar.open(`Sales order saved`, 'Close', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+          });
+        }
+
         this.router.navigate(['app/salesorder']);
       },
       error: (err) => {

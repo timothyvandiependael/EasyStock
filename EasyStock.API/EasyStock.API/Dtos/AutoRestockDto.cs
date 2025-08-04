@@ -5,5 +5,7 @@
         public string ProductName { get; set; } = "";
         public bool AutoRestocked { get; set; } = false;
         public string? AutoRestockPurchaseOrderNumber { get; set; }
+        public int ProductShortage { get; set; } = 0;
+        
     }
 }

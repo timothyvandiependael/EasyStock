@@ -1,4 +1,5 @@
 ﻿using EasyStock.API.Common;
+using EasyStock.API.Dtos;
 using EasyStock.API.Models;
 using EasyStock.API.Repositories;
 
@@ -8,13 +9,17 @@ namespace EasyStock.API.Services
     {
         private readonly IRepository<Product> _genericProductRepository;
         private readonly IRepository<SalesOrderLine> _repository;
-        public SalesOrderLineProcessor(IRepository<Product> genericProductRepository, IRepository<SalesOrderLine> repository) 
+        private readonly IProductService _productService;
+        private readonly IPurchaseOrderService _purchaseOrderService;
+        public SalesOrderLineProcessor(IRepository<Product> genericProductRepository, IRepository<SalesOrderLine> repository, IProductService productService, IPurchaseOrderService purchaseOrderService) 
         { 
             _genericProductRepository = genericProductRepository;
             _repository = repository;
+            _productService = productService;
+            _purchaseOrderService = purchaseOrderService;
         }
 
-        public async Task AddAsync(SalesOrderLine entity, string userName, Func<int, Task<int>>? getNextLineNumberAsync, bool fromParent = false)
+        public async Task<AutoRestockDto> AddAsync(SalesOrderLine entity, string userName, Func<int, Task<int>>? getNextLineNumberAsync, bool fromParent = false)
         {
             entity.CrDate = DateTime.UtcNow;
             entity.LcDate = entity.CrDate;
@@ -43,6 +48,43 @@ namespace EasyStock.API.Services
 
             product.LcUserId = userName;
             product.LcDate = DateTime.UtcNow;
+
+            var resultDto = new AutoRestockDto();
+            resultDto.AutoRestocked = false;
+            resultDto.ProductName = product.Name;
+            var isBelowMinimumStock = await _productService.IsProductBelowMinimumStock(entity.ProductId);
+            var productSurplus = await _productService.GetProductSurplusAfterReceptions(entity.ProductId);
+
+            if (isBelowMinimumStock)
+            {
+                if (productSurplus < 0)
+                {
+                    if (entity.Product.AutoRestock)
+                    {
+                        var po = await _purchaseOrderService.AutoRestockProduct(entity.ProductId, userName, false);
+                        if (po == null)
+                            throw new Exception("Error while creating purchase order for autorestock.");
+                        if (product == null) throw new Exception("Error while finding product for autorestock.");
+                        resultDto.ProductName = product.Name;
+                        resultDto.AutoRestockPurchaseOrderNumber = po.OrderNumber;
+                        resultDto.AutoRestocked = true;
+                    }
+                    else // notify user of low stock
+                    {
+                        resultDto.ProductShortage = Math.Abs(productSurplus);
+                    }
+                }
+            }
+            else // Return shortage if any
+            {
+                if (productSurplus < 0)
+                {
+                    resultDto.ProductShortage = Math.Abs(productSurplus);
+                }
+
+            }
+
+            return resultDto;
         }
 
         public async Task DeleteAsync(int id, string userName)

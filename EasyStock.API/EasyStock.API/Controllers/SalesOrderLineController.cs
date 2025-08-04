@@ -63,29 +63,10 @@ namespace EasyStock.API.Controllers
         {
             if (dto == null) return BadRequest();
             var entity = _mapper.Map<SalesOrderLine>(dto);
-            await _salesOrderLineService.AddAsync(entity, HttpContext.User.Identity!.Name!);
+           
 
-            var resultDto = new AutoRestockDto();
-            resultDto.AutoRestocked = false;
-            var isBelowMinimumStock = await _productService.IsProductBelowMinimumStock(entity.ProductId);
-            if (isBelowMinimumStock)
-            {
-                var hasAlreadyOrderedEnough = await _productService.IsProductOrderedEnough(entity.ProductId);
-                if (!hasAlreadyOrderedEnough)
-                {
-                    if (entity.Product.AutoRestock)
-                    {
-                        var po = await _purchaseOrderService.AutoRestockProduct(entity.ProductId, HttpContext.User.Identity!.Name!);
-                        if (po == null)
-                            throw new Exception("Error while creating purchase order for autorestock.");
-                        var product = await _genericProductService.GetByIdAsync(entity.ProductId);
-                        if (product == null) throw new Exception("Error while finding product for autorestock.");
-                        resultDto.ProductName = product.Name;
-                        resultDto.AutoRestockPurchaseOrderNumber = po.OrderNumber;
-                        resultDto.AutoRestocked = true;
-                    }
-                }                
-            }
+            var resultDto = await _salesOrderLineService.AddAsync(entity, HttpContext.User.Identity!.Name!);
+
 
             return Ok(resultDto);
         }
@@ -100,23 +81,35 @@ namespace EasyStock.API.Controllers
 
             var resultDto = new AutoRestockDto();
             resultDto.AutoRestocked = false;
+            var product = await _genericProductService.GetByIdAsync(entity.ProductId);
+            if (product == null) throw new Exception("Error while finding product for autorestock.");
+            resultDto.ProductName = product.Name;
             var isBelowMinimumStock = await _productService.IsProductBelowMinimumStock(entity.ProductId);
+            var productSurplus = await _productService.GetProductSurplusAfterReceptions(entity.ProductId);
             if (isBelowMinimumStock)
             {
-                var hasAlreadyOrderedEnough = await _productService.IsProductOrderedEnough(entity.ProductId);
-                if (!hasAlreadyOrderedEnough)
+                if (productSurplus < 0)
                 {
                     if (entity.Product.AutoRestock)
                     {
                         var po = await _purchaseOrderService.AutoRestockProduct(entity.ProductId, HttpContext.User.Identity!.Name!);
                         if (po == null)
                             throw new Exception("Error while creating purchase order for autorestock.");
-                        var product = await _genericProductService.GetByIdAsync(entity.ProductId);
-                        if (product == null) throw new Exception("Error while finding product for autorestock.");
-                        resultDto.ProductName = product.Name;
+                        
                         resultDto.AutoRestockPurchaseOrderNumber = po.OrderNumber;
                         resultDto.AutoRestocked = true;
                     }
+                    else
+                    {
+                        resultDto.ProductShortage = Math.Abs(productSurplus);
+                    }
+                }
+            }
+            else
+            {
+                if (productSurplus < 0)
+                {
+                    resultDto.ProductShortage = Math.Abs(productSurplus);
                 }
             }
 

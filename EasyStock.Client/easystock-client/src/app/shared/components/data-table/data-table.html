@@ -96,6 +96,7 @@
             <th mat-header-cell *matHeaderCellDef class="px-2 py-1" style="min-width:120px;">
                 <ng-container *ngIf="col.isFilterable; else noFilter">
                     <div class="flex space-x-1 -ml-2">
+                        @if (col.name != 'status') {
                         <!-- Operator dropdown -->
                         <select class="border rounded px-2 py-1 text-xs" [(ngModel)]="filters[col.name].operator"
                             (change)="onFilterChange(col.name)">
@@ -103,8 +104,18 @@
                                 {{ op.label }}
                             </option>
                         </select>
+                        }
 
                         <!-- Input controls -->
+                        @if (col.name.toLowerCase() === 'status') {
+                        <select class="border rounded px-2 py-1 text-xs flex-grow" [(ngModel)]="filters[col.name].value"
+                            (change)="onFilterChange(col.name)">
+                            <option value="">All</option>
+                            <option value="Open">Open</option>
+                            <option value="Partial">Partial</option>
+                            <option value="Complete">Complete</option>
+                        </select>
+                        } @else {
                         <ng-container [ngSwitch]="getMeta(col.name)?.type?.toLowerCase()">
                             <input *ngSwitchCase="'string'" type="text"
                                 class="border rounded px-2 py-1 text-xs flex-grow" [(ngModel)]="filters[col.name].value"
@@ -124,6 +135,7 @@
                                 [(ngModel)]="filters[col.name].value" (ngModelChange)="onFilterChange(col.name)"
                                 placeholder="Filter..." />
                         </ng-container>
+                        }
                     </div>
                 </ng-container>
                 <ng-template #noFilter>&nbsp;</ng-template>

@@ -35,6 +35,7 @@ export class ProductService {
   private formatBeforePost(product: CreateProductDto) {
     if (!product.discount) product.discount = 0;
     if (!product.minimumStock) product.minimumStock = 0;
+    debugger;
     if (!product.autoRestock) product.autoRestock = false;
   }
 

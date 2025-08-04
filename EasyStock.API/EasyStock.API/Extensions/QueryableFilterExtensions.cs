@@ -28,7 +28,14 @@ namespace EasyStock.API.Extensions
                 Expression? constant = null;
                 if (propertyType != typeof(DateTime))
                 {
-                    typedValue = propertyType == typeof(DateTime) ? "" : Convert.ChangeType(filter.Value, propertyType);
+                    if (propertyType.IsEnum)
+                    {
+                        typedValue = Enum.Parse(propertyType, filter.Value?.ToString()!);
+                    }
+                    else
+                    {
+                        typedValue = Convert.ChangeType(filter.Value, propertyType);
+                    }
                     constant = Expression.Constant(typedValue, property.Type);
                 }
 
@@ -146,6 +153,7 @@ namespace EasyStock.API.Extensions
                 {
                     comparison = filter.Operator.ToLower() switch
                     {
+                        "notequals" or "<>" or "!=" => Expression.NotEqual(property, constant),
                         "equals" or "=" => Expression.Equal(property, constant),
                         "greaterthan" or ">" => Expression.GreaterThan(property, constant),
                         "greaterthanorequal" or ">=" => Expression.GreaterThanOrEqual(property, constant),

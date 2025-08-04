@@ -1,4 +1,5 @@
 ﻿using EasyStock.API.Common;
+using EasyStock.API.Dtos;
 using EasyStock.API.Models;
 using EasyStock.API.Repositories;
 
@@ -31,13 +32,16 @@ namespace EasyStock.API.Services
         public async Task<PaginationResult<SalesOrderLineOverview>> GetAdvancedAsync(List<FilterCondition> filters, List<SortOption> sorting, Pagination? pagination)
             => await _SalesOrderLineRepository.GetAdvancedAsync(filters, sorting, pagination);
 
-        public async Task AddAsync(SalesOrderLine entity, string userName)
+        public async Task<AutoRestockDto> AddAsync(SalesOrderLine entity, string userName)
         {
+            var dto = new AutoRestockDto();
 
             await _retryableTransactionService.ExecuteAsync(async () =>
             {
-                await _salesOrderLineProcessor.AddAsync(entity, userName, _salesOrderService.GetNextLineNumberAsync);
+                dto = await _salesOrderLineProcessor.AddAsync(entity, userName, _salesOrderService.GetNextLineNumberAsync);
             });
+
+            return dto;
         }
 
         public async Task UpdateAsync(SalesOrderLine entity, string userName, bool useTransaction = true)

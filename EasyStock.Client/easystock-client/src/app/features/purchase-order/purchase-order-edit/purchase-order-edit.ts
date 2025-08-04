@@ -12,6 +12,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { PersistentSnackbarService } from '../../../shared/services/persistent-snackbar.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog-service';
 import { StorageService } from '../../../shared/storage/storage-service';
+import { FilterCondition } from '../../../shared/query';
 
 @Component({
   selector: 'app-purchase-order-edit',

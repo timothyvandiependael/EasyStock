@@ -169,6 +169,11 @@ export class ReceptionLineEdit {
         field: 'SupplierId',
         operator: 'equals',
         value: reception.supplierId
+      },
+      { 
+        field: 'Status',
+        operator: 'notequals',
+        value: 'Complete'
       }
     ];
 

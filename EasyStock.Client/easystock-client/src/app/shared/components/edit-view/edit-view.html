@@ -24,8 +24,9 @@
     }
     } @else if (col.type === 'photo') {
     <div class="photo-container" (click)="openPhotoUpload(col)">
-      <img [src]="form.get(col.name)?.value ? form.get(col.name)?.value : 'assets/noimg.png'" alt="Photo"
-        class="max-w-[200px] max-h-[200px] object-contain cursor-pointer border rounded" />
+      <img
+        [src]="form.get(col.name)?.value && form.get(col.name)?.value != 'data:image/png;base64,' ? form.get(col.name)?.value : 'assets/noimg.png'"
+        alt="Photo" class="max-w-[200px] max-h-[200px] object-contain cursor-pointer border rounded" />
     </div>
     }
     @else {
@@ -36,8 +37,15 @@
       <option value="Regular">Regular</option>
     </select>
     }
+    @else if (col.type == 'boolean') {
+    <input [type]="mapType(col.type)" [formControlName]="col.name" (change)="onCheckboxChange($event, col.name)"
+      [checked]="mapType(col.type) === 'checkbox' ? form.get(col.name)?.value : null"
+      [ngClass]="mapType(col.type) === 'checkbox' 
+    ? 'h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500' 
+    : 'border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'" />
+    }
     @else {
-    <input [type]="mapType(col.type)" [formControlName]="col.name"
+    <input [type]="mapType(col.type)" [formControlName]="col.name" 
       [ngClass]="mapType(col.type) === 'checkbox' 
     ? 'h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500' 
     : 'border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'" />

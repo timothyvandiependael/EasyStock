@@ -60,10 +60,11 @@ namespace EasyStock.API.Controllers
             if (dto == null) return BadRequest();
             var entity = _mapper.Map<SalesOrder>(dto);
             entity.Lines = _mapper.Map<List<SalesOrderLine>>(dto.Lines);
-            await _service.AddAsync(entity, HttpContext.User.Identity!.Name!);
+            var autoRestockDtos = await _salesOrderService.AddAsync(entity, HttpContext.User.Identity!.Name!);
 
             var resultDto = _mapper.Map<OutputSalesOrderDetailDto>(entity);
-            return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
+            resultDto.AutoRestockDtos = autoRestockDtos;
+            return Ok(resultDto);
         }
 
         [PermissionAuthorize("SalesOrder", "edit")]

@@ -158,7 +158,7 @@ namespace EasyStock.API.Dtos
                 IsEditable = false,
                 IsFilterable = true,
                 IsSortable = true,
-                DisplayName = "Supplier",
+                DisplayName = "Auto Restock Supplier",
                 IsLookup = true,
                 LookupIdField = "autoRestockSupplierId",
                 LookupTarget = "Supplier"
