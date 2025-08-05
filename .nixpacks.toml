@@ -1,0 +1,15 @@
+[phases.setup]
+nixPkgs = ["dotnet-sdk_6"]
+
+[phases.install]
+cmds = [
+  "dotnet restore EasyStock.API/EasyStock.API.sln"
+]
+
+[phases.build]
+cmds = [
+  "dotnet publish EasyStock.API/EasyStock.API.sln -c Release -o out"
+]
+
+[start]
+cmd = "dotnet out/EasyStock.API.dll"
