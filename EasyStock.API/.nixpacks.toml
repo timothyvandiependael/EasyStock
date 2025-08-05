@@ -3,7 +3,6 @@ nixPkgs = ["dotnet-sdk"]
 
 [phases.install]
 cmds = [
-  "ls -R",  # Debug line to show contents
   "dotnet restore EasyStock.API/EasyStock.API.sln"
 ]
 
