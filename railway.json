@@ -1,0 +1,24 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "nixpacksPlan": {
+      "providers": ["dotnet-sdk"],
+      "phases": {
+        "install": {
+          "dependsOn": ["setup"],
+          "cmds": [
+            "dotnet restore EasyStock.API/EasyStock.API.sln"
+          ]
+        },
+        "build": {
+          "cmds": [
+            "dotnet publish EasyStock.API/EasyStock.API.sln -c Release -o out"
+          ]
+        }
+      }
+    }
+  },
+  "start": {
+    "cmd": "dotnet out/EasyStock.API.dll"
+  }
+}
