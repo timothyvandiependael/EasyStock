@@ -2,7 +2,6 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "nixpacksPlan": {
-      "providers": ["dotnet-sdk"],
       "phases": {
         "install": {
           "dependsOn": ["setup"],
