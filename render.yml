@@ -1,4 +1,0 @@
-build:
-  - dotnet publish EasyStock.API/EasyStock.API.sln -c Release -o out
-
-start: dotnet out/EasyStock.API.dll
