@@ -9,12 +9,12 @@
         "install": {
           "dependsOn": ["setup"],
           "cmds": [
-            "dotnet restore EasyStock.API/EasyStock.API.sln"
+            "dotnet restore EasyStock.API/EasyStock.API/EasyStock.API.csproj"
           ]
         },
         "build": {
           "cmds": [
-            "dotnet publish EasyStock.API/EasyStock.API.sln -c Release -o out"
+            "dotnet publish EasyStock.API/EasyStock.API/EasyStock.API.csproj -c Release -o out"
           ]
         }
       }
