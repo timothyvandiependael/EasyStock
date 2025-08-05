@@ -1,6 +1,9 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
+    "env": {
+      "NIXPACKS_CSHARP_SDK_VERSION": "8.0.100"
+    },
     "nixpacksPlan": {
       "phases": {
         "install": {
